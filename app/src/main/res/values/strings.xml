@@ -12,6 +12,22 @@
     <string name="about_version">Version %1$s (%2$d)</string>
     <string name="about_copyright">© 2026 PureTech</string>
     <string name="about_rights">All rights reserved.</string>
+
+    <!-- In-app updater -->
+    <string name="update_title">Updates</string>
+    <string name="update_current">Current version</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_latest_fmt">Latest: %1$s</string>
+    <string name="update_whats_new">What\'s new</string>
+    <string name="update_no_notes">No release notes provided.</string>
+    <string name="update_up_to_date">You\'re on the latest version.</string>
+    <string name="update_available">An update is available.</string>
+    <string name="update_no_asset">This release has no installable file yet.</string>
+    <string name="update_download_install">Download &amp; install</string>
+    <string name="update_downloading">Downloading… %1$d%%</string>
+    <string name="update_failed">Couldn\'t check for updates. Check your connection and try again.</string>
+    <string name="update_install_sources">Allow installing apps from PureTech Phone, then tap Download &amp; install again.</string>
+
     <string name="dial_add_pause">Add 2-sec pause</string>
     <string name="dial_add_wait">Add wait</string>
     <string name="ongoing_call">Ongoing call</string>

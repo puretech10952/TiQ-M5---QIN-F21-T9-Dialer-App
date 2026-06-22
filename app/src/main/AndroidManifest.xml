@@ -22,6 +22,9 @@
     <!-- Move system call-recording files into a Music sub-folder (files owned by
          the MTK recorder, so this needs broad file access on Android 11+) -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <!-- In-app updater: fetch the latest release from GitHub and install the APK -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".App"
@@ -85,6 +88,7 @@
         <activity android:name=".KeepAliveSettingsActivity" android:exported="false" />
         <activity android:name=".RecordingSettingsActivity" android:exported="false" />
         <activity android:name=".CallStatsActivity" android:exported="false" />
+        <activity android:name=".UpdateActivity" android:exported="false" />
         <activity android:name=".WelcomeActivity" android:exported="false" />
         <activity android:name=".LegalActivity" android:exported="false" />
         <activity
@@ -159,6 +163,17 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/dialer_redirect_service" />
         </service>
+
+        <!-- Shares downloaded update APKs with the system package installer. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <!-- Handles the ongoing-call notification action buttons. -->
         <receiver

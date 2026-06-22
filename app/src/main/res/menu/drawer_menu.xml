@@ -9,6 +9,10 @@
         android:icon="@drawable/ic_history"
         android:title="@string/nav_durations" />
     <item
+        android:id="@+id/nav_updates"
+        android:icon="@drawable/ic_update"
+        android:title="@string/update_title" />
+    <item
         android:id="@+id/nav_about"
         android:icon="@drawable/ic_info"
         android:title="@string/setting_about" />
