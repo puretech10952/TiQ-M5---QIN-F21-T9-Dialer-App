@@ -17,7 +17,10 @@ import java.net.URL
  */
 object Updater {
 
-    // Public repo that hosts the release APKs.
+    // Public repo that hosts the release APKs. NOTE: builds <= 0.9.1 shipped with
+    // the old slug "M5-F21-dialer"; GitHub redirects that to this repo, so their
+    // in-app updater keeps working. Keep an "M5-F21-dialer" rename-redirect alive
+    // (i.e. don't create a new repo under that old name).
     private const val OWNER = "puretech10952"
     private const val REPO = "TiQ-M5---QIN-F21-T9-Dialer-App"
     private const val LATEST = "https://api.github.com/repos/$OWNER/$REPO/releases/latest"
