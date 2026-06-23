@@ -19,7 +19,7 @@ object Updater {
 
     // Public repo that hosts the release APKs.
     private const val OWNER = "puretech10952"
-    private const val REPO = "M5-F21-dialer"
+    private const val REPO = "TiQ-M5---QIN-F21-T9-Dialer-App"
     private const val LATEST = "https://api.github.com/repos/$OWNER/$REPO/releases/latest"
 
     data class Release(
