@@ -74,7 +74,6 @@ class CallLogActivity : AppCompatActivity() {
         binding.navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
-                R.id.nav_voicemail -> startActivity(Intent(this, VoicemailActivity::class.java))
                 R.id.nav_durations -> startActivity(Intent(this, CallStatsActivity::class.java))
                 R.id.nav_updates -> startActivity(Intent(this, UpdateActivity::class.java))
                 R.id.nav_about -> startActivity(Intent(this, AboutActivity::class.java))

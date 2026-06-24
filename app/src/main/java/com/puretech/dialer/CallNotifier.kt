@@ -20,7 +20,9 @@ object CallNotifier {
 
     // New ids so the importance levels take effect (channels are immutable once created).
     private const val CHANNEL_INCOMING = "incoming_call_v2"  // HIGH: heads-up + full-screen
-    private const val CHANNEL_ONGOING = "ongoing_call_v2"    // LOW: no heads-up, pinned in shade
+    // DEFAULT (silent) so the status-bar icon shows on minimal ROMs that hide LOW
+    // notification icons (e.g. the Qin F21). New id so the importance bump applies.
+    private const val CHANNEL_ONGOING = "ongoing_call_v3"
     private const val NOTIF_ID = 42
 
     fun update(context: Context) {
@@ -50,7 +52,8 @@ object CallNotifier {
         val channel = if (ringing) CHANNEL_INCOMING else CHANNEL_ONGOING
 
         val builder = NotificationCompat.Builder(context, channel)
-            .setSmallIcon(R.drawable.ic_call)
+            // Animated phone-with-waves icon so the status bar pulses during a call.
+            .setSmallIcon(R.drawable.ic_stat_call)
             .setContentTitle(title)
             // Tapping the notification returns to the in-call screen.
             .setContentIntent(contentPi)
@@ -132,13 +135,18 @@ object CallNotifier {
             )
         }
         if (nm.getNotificationChannel(CHANNEL_ONGOING) == null) {
-            nm.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_ONGOING,
-                    context.getString(R.string.notif_channel),
-                    NotificationManager.IMPORTANCE_LOW
-                )
-            )
+            val ongoing = NotificationChannel(
+                CHANNEL_ONGOING,
+                context.getString(R.string.notif_channel),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                // Show the status-bar icon but stay silent during the call.
+                setSound(null, null)
+                enableVibration(false)
+                setShowBadge(false)
+            }
+            nm.createNotificationChannel(ongoing)
+            nm.deleteNotificationChannel("ongoing_call_v2")  // retire the old LOW channel
         }
     }
 

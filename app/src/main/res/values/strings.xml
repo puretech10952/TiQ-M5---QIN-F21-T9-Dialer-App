@@ -40,21 +40,6 @@
     <string name="update_notif_title">Update available</string>
     <string name="update_notif_text">PureTech Phone %1$s is ready to install.</string>
 
-    <!-- Visual voicemail -->
-    <string name="vvm_enable">Visual voicemail</string>
-    <string name="vvm_enable_sub">Download voicemails from your carrier and play them here</string>
-    <string name="vvm_enabled_sub">On — new voicemails appear here automatically</string>
-    <string name="vvm_provisioning">Setting up with your carrier… this can take a minute</string>
-    <string name="vvm_unsupported">Your carrier doesn\'t offer visual voicemail on this SIM</string>
-    <string name="vvm_enable_failed">Couldn\'t turn on visual voicemail. Make sure this app is your default phone app.</string>
-    <string name="vvm_enable_first">Turn on visual voicemail first</string>
-    <string name="vvm_empty">No voicemails</string>
-    <string name="vvm_refresh">Refresh</string>
-    <string name="vvm_play">Play</string>
-    <string name="vvm_delete">Delete</string>
-    <string name="vvm_delete_confirm">Delete this voicemail?</string>
-    <string name="vvm_no_audio">Audio isn\'t downloaded yet</string>
-    <string name="vvm_play_failed">Couldn\'t play this voicemail</string>
 
     <string name="dial_add_pause">Add 2-sec pause</string>
     <string name="dial_add_wait">Add wait</string>
@@ -77,8 +62,6 @@
     <string name="nav_recents">Recents</string>
     <string name="nav_home">Home</string>
     <string name="nav_keypad">Keypad</string>
-    <string name="nav_voicemail">Voicemail</string>
-    <string name="nav_voicemail_experimental">Voicemail (experimental)</string>
     <string name="frequently_contacted">Frequently contacted</string>
     <string name="no_recents">No recent calls</string>
     <string name="recents_today">Today</string>
@@ -223,6 +206,7 @@
     <string name="route_speaker">Speaker</string>
     <string name="route_bluetooth">Bluetooth</string>
     <string name="on_hold">On hold</string>
+    <string name="on_call_ongoing">On call</string>
 
     <!-- Reply-with-message -->
     <string name="reply_message">Message</string>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Animated status-bar call icon: a phone with waves pulsing outward. AOSP
+     SystemUI animates an animation-list notification small icon in the status bar. -->
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="false">
+    <item android:drawable="@drawable/ic_call_pulse0" android:duration="230" />
+    <item android:drawable="@drawable/ic_call_pulse1" android:duration="230" />
+    <item android:drawable="@drawable/ic_call_pulse2" android:duration="230" />
+    <item android:drawable="@drawable/ic_call_pulse3" android:duration="230" />
+</animation-list>

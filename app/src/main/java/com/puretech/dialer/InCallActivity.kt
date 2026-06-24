@@ -180,7 +180,9 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         val held = CallManager.heldCall()
         val waiting = CallManager.waitingCall()
 
-        val headerCall = if (waiting != null) (active ?: held) else CallManager.primaryCall()
+        // A 2nd (waiting) call takes over the screen like a normal incoming call, so
+        // it drives the big caller display; the ongoing call is shown small below.
+        val headerCall = if (waiting != null) waiting else CallManager.primaryCall()
         if (headerCall == null && !isPreview) {
             finishAndStopRecording()
             return
@@ -192,11 +194,24 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
         when {
             waiting != null -> {
+                // Full-screen incoming look: the big header already shows the waiting
+                // caller, so hide the redundant line, pulse the avatar, and show the
+                // ongoing call small in the secondary strip (not tappable here).
                 show(binding.waitingPanel)
                 hide(binding.bottomPanel, binding.incomingControls, binding.swipeIncomingPanel,
-                    binding.btnIncomingMessage, binding.secondaryStrip)
-                binding.waitingText.text = getString(R.string.waiting_incoming, nameFor(waiting))
-                binding.pulseRing.stop()
+                    binding.btnIncomingMessage)
+                binding.waitingText.visibility = View.GONE
+                val ongoing = active ?: held
+                if (ongoing != null) {
+                    binding.secondaryStrip.visibility = View.VISIBLE
+                    binding.secondaryStrip.isClickable = false
+                    val status = if (ongoing == held) getString(R.string.on_hold)
+                    else getString(R.string.on_call_ongoing)
+                    binding.secondaryText.text = "${nameFor(ongoing)} • $status"
+                } else {
+                    binding.secondaryStrip.visibility = View.GONE
+                }
+                binding.pulseRing.start()
                 releaseProximity()
             }
             ringing != null -> {
@@ -240,6 +255,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     private fun bindSecondaryStrip(held: Call?) {
         if (held != null) {
             binding.secondaryStrip.visibility = View.VISIBLE
+            binding.secondaryStrip.isClickable = true   // tap to swap (re-enabled after call-waiting)
             binding.secondaryText.text = "${nameFor(held)} • ${getString(R.string.on_hold)}"
         } else {
             binding.secondaryStrip.visibility = View.GONE
