@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="6dp"
-            android:text="@string/nav_voicemail"
+            android:text="@string/nav_voicemail_experimental"
             android:textColor="?attr/colorOnSurface"
             android:textSize="28sp"
             android:textStyle="bold" />

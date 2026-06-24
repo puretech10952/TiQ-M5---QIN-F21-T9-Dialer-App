@@ -145,6 +145,29 @@
                 tools:text="You're on the latest version."
                 tools:visibility="visible" />
 
+            <!-- Download & install (above What's new) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInstall"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:icon="@drawable/ic_update"
+                android:text="@string/update_download_install"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <ProgressBar
+                android:id="@+id/downloadProgress"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:max="100"
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:progress="45" />
+
             <!-- What's new (shown after a successful check) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/latestCard"
@@ -190,29 +213,6 @@
                         tools:text="- Fixed a crash\n- New graph" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <!-- Download & install -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnInstall"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:icon="@drawable/ic_update"
-                android:text="@string/update_download_install"
-                android:visibility="gone"
-                tools:visibility="visible" />
-
-            <ProgressBar
-                android:id="@+id/downloadProgress"
-                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:max="100"
-                android:visibility="gone"
-                tools:visibility="visible"
-                tools:progress="45" />
         </LinearLayout>
     </ScrollView>
 

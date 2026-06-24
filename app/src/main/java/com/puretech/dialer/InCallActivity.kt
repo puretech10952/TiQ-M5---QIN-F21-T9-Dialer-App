@@ -23,7 +23,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import com.puretech.dialer.databinding.ActivityIncallBinding
 
@@ -37,6 +36,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
     private lateinit var binding: ActivityIncallBinding
     private val powerManager by lazy { getSystemService(PowerManager::class.java) }
+    private val audioManager by lazy { getSystemService(android.media.AudioManager::class.java) }
     private var proximityWl: PowerManager.WakeLock? = null
 
     private val preview by lazy { intent.getBooleanExtra(EXTRA_PREVIEW, false) }
@@ -140,6 +140,25 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             toggleDtmf()
             return true
         }
+        // On these keypad phones (no volume rocker) the D-pad up/down adjusts the
+        // in-call volume. Only active here — i.e. only on the call screen — and it
+        // keeps working with the screen blanked by the proximity sensor, since the
+        // proximity wake lock keeps input flowing to this activity. We pick the
+        // stream that matches the current audio route so it also works on speaker
+        // (same voice-call stream) and on Bluetooth (separate SCO volume).
+        if (!isPreview && (keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN)) {
+            val dir = if (keyCode == KeyEvent.KEYCODE_DPAD_UP)
+                android.media.AudioManager.ADJUST_RAISE else android.media.AudioManager.ADJUST_LOWER
+            // Earpiece/speaker share the voice-call stream; Bluetooth uses the SCO
+            // stream (value 6, hidden in the SDK) so the headset volume changes too.
+            val stream = if (CallManager.currentRoute() == CallAudioState.ROUTE_BLUETOOTH) 6
+            else android.media.AudioManager.STREAM_VOICE_CALL
+            try {
+                audioManager?.adjustStreamVolume(stream, dir, android.media.AudioManager.FLAG_SHOW_UI)
+            } catch (_: Exception) {
+            }
+            return true
+        }
         val dtmf = when (keyCode) {
             in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 -> ('0' + (keyCode - KeyEvent.KEYCODE_0))
             KeyEvent.KEYCODE_STAR -> '*'
@@ -230,28 +249,31 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     // --- More / route popups ---------------------------------------------------
 
     private fun showMoreMenu(anchor: View) {
-        val menu = PopupMenu(this, anchor)
-        menu.menu.add(0, MENU_RECORD, 0,
-            if (CallManager.recording) R.string.ctl_stop_record else R.string.ctl_record)
-        menu.menu.add(0, MENU_ADD, 1, R.string.ctl_add)
+        val menu = CardMenu(this, anchor)
+        menu.add(
+            MENU_RECORD,
+            if (CallManager.recording) R.drawable.ic_mic_off else R.drawable.ic_record,
+            getString(if (CallManager.recording) R.string.ctl_stop_record else R.string.ctl_record)
+        )
+        menu.add(MENU_ADD, R.drawable.ic_add_call, getString(R.string.ctl_add))
         // Two calls → Swap; a single call on hold → Resume; an active call → Hold.
-        val holdLabel = when {
-            CallManager.activeCall() != null && CallManager.heldCall() != null -> R.string.ctl_swap
-            CallManager.heldCall() != null -> R.string.ctl_resume
-            else -> R.string.ctl_hold
+        val (holdIcon, holdLabel) = when {
+            CallManager.activeCall() != null && CallManager.heldCall() != null ->
+                R.drawable.ic_swap to R.string.ctl_swap
+            CallManager.heldCall() != null -> R.drawable.ic_play to R.string.ctl_resume
+            else -> R.drawable.ic_hold to R.string.ctl_hold
         }
-        menu.menu.add(0, MENU_HOLD, 2, holdLabel)
+        menu.add(MENU_HOLD, holdIcon, getString(holdLabel))
         if (CallManager.activeCall() != null && CallManager.heldCall() != null) {
-            menu.menu.add(0, MENU_MERGE, 3, R.string.ctl_merge)
+            menu.add(MENU_MERGE, R.drawable.ic_merge, getString(R.string.ctl_merge))
         }
-        menu.setOnMenuItemClickListener {
-            when (it.itemId) {
+        menu.onClick { id ->
+            when (id) {
                 MENU_RECORD -> toggleRecord()
                 MENU_ADD -> addCall()
                 MENU_HOLD -> toggleHoldOrSwap()
                 MENU_MERGE -> CallManager.merge()
             }
-            true
         }
         menu.show()
     }
@@ -268,21 +290,28 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
     private fun showRouteMenu(anchor: View) {
         val mask = CallManager.supportedRouteMask()
-        val menu = PopupMenu(this, anchor)
+        val current = CallManager.currentRoute()
+        val menu = CardMenu(this, anchor)
         if (mask and CallAudioState.ROUTE_EARPIECE != 0)
-            menu.menu.add(0, CallAudioState.ROUTE_EARPIECE, 0, R.string.route_earpiece)
-        if (mask and CallAudioState.ROUTE_SPEAKER != 0)
-            menu.menu.add(0, CallAudioState.ROUTE_SPEAKER, 1, R.string.route_speaker)
-        if (mask and CallAudioState.ROUTE_BLUETOOTH != 0)
-            menu.menu.add(
-                0, CallAudioState.ROUTE_BLUETOOTH, 2,
-                CallManager.bluetoothDeviceName() ?: getString(R.string.route_bluetooth)
+            menu.add(
+                CallAudioState.ROUTE_EARPIECE, R.drawable.ic_call_outline,
+                getString(R.string.route_earpiece), current == CallAudioState.ROUTE_EARPIECE
             )
-        menu.setOnMenuItemClickListener {
-            CallManager.setRoute(it.itemId)
+        if (mask and CallAudioState.ROUTE_SPEAKER != 0)
+            menu.add(
+                CallAudioState.ROUTE_SPEAKER, R.drawable.ic_speaker,
+                getString(R.string.route_speaker), current == CallAudioState.ROUTE_SPEAKER
+            )
+        if (mask and CallAudioState.ROUTE_BLUETOOTH != 0)
+            menu.add(
+                CallAudioState.ROUTE_BLUETOOTH, R.drawable.ic_bluetooth,
+                CallManager.bluetoothDeviceName() ?: getString(R.string.route_bluetooth),
+                current == CallAudioState.ROUTE_BLUETOOTH
+            )
+        menu.onClick { id ->
+            CallManager.setRoute(id)
             bindControlStates()
             updateProximity()
-            true
         }
         menu.show()
     }

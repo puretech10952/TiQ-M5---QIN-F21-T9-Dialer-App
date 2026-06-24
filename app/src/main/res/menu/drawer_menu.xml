@@ -7,7 +7,7 @@
     <item
         android:id="@+id/nav_voicemail"
         android:icon="@drawable/ic_voicemail"
-        android:title="@string/nav_voicemail" />
+        android:title="@string/nav_voicemail_experimental" />
     <item
         android:id="@+id/nav_durations"
         android:icon="@drawable/ic_history"

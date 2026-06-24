@@ -1,6 +1,9 @@
 package com.puretech.dialer.vvm
 
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.telephony.TelephonyManager
 import android.telephony.VisualVoicemailSms
@@ -23,16 +26,18 @@ object VvmSync {
     /** Turn VVM on for the default subscription: register the SMS filter and ask
      *  the carrier to activate. Returns false if unsupported or not permitted. */
     fun enable(context: Context): Boolean {
-        val cfg = VvmConfig.read(context) ?: return false
+        val cfg = VvmConfig.read(context)
+        if (cfg == null) { Log.w(TAG, "enable: no carrier config"); return false }
+        Log.d(
+            TAG, "enable: type=${cfg.type} dest=${cfg.destinationNumber} port=${cfg.port} " +
+                "prefix=${cfg.clientPrefix} ssl=${cfg.sslEnabled} supported=${cfg.isSupported}"
+        )
         if (!cfg.isSupported) return false
         val tm = context.getSystemService(TelephonyManager::class.java) ?: return false
         try {
-            tm.setVisualVoicemailSmsFilterSettings(
-                VisualVoicemailSmsFilterSettings.Builder()
-                    .setClientPrefix(cfg.clientPrefix)
-                    .build()
-            )
-            sendActivate(tm, cfg)
+            tm.setVisualVoicemailSmsFilterSettings(buildFilter(cfg))
+            Log.d(TAG, "SMS filter set (port=${cfg.port}); sending activation")
+            sendActivate(context, tm, cfg)
             VvmPrefs.setEnabled(context, true)
             return true
         } catch (e: SecurityException) {
@@ -55,24 +60,73 @@ object VvmSync {
         VvmPrefs.clear(context)
     }
 
-    private fun sendActivate(tm: TelephonyManager, cfg: VvmConfig) {
+    /**
+     * Build the platform SMS filter for this carrier. Crucially, when the carrier
+     * delivers OMTP messages on a dedicated port (T-Mobile CVVM uses 1808), we must
+     * tell the filter that port. The default `DESTINATION_PORT_ANY` only matches
+     * plain text SMS, so a port-directed *data* SMS is rejected before the prefix is
+     * ever checked — it then falls through to the normal SMS apps (Google Messages)
+     * and never reaches us. Setting the port makes the platform route it here.
+     */
+    fun buildFilter(cfg: VvmConfig): VisualVoicemailSmsFilterSettings {
+        val b = VisualVoicemailSmsFilterSettings.Builder()
+            .setClientPrefix(cfg.clientPrefix)
+        if (cfg.port != 0) b.setDestinationPort(cfg.port)
+        return b.build()
+    }
+
+    private fun sendActivate(context: Context, tm: TelephonyManager, cfg: VvmConfig) {
         val text = when (cfg.type) {
             // Verizon VVM3 provisions through a STATUS request first.
             VVM_TYPE_VVM3 -> "STATUS"
             else -> "Activate:pv=$PROTOCOL_VERSION;ct=$CLIENT_TYPE"
         }
-        tm.sendVisualVoicemailSms(cfg.destinationNumber, cfg.port, text, null)
+        Log.d(TAG, "sendVisualVoicemailSms text='$text' to ${cfg.destinationNumber}:${cfg.port}")
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) flags = flags or PendingIntent.FLAG_IMMUTABLE
+        val sent = PendingIntent.getBroadcast(
+            context, 0, Intent(context, VvmSmsSentReceiver::class.java), flags
+        )
+        tm.sendVisualVoicemailSms(cfg.destinationNumber, cfg.port, text, sent)
     }
 
-    /** Handle a VVM SMS delivered to our VisualVoicemailService. */
+    /** Handle a VVM SMS delivered to our VisualVoicemailService (platform path). */
     fun onSms(context: Context, sms: VisualVoicemailSms) {
         val event = sms.prefix ?: return
         val fields = sms.fields ?: Bundle.EMPTY
-        Log.d(TAG, "VVM SMS event=$event fields=$fields")
+        Log.d(TAG, "VVM SMS (platform) event=$event fields=$fields")
+        routeEvent(context, event, fields)
+    }
+
+    /**
+     * Handle an OMTP message we parsed ourselves from a raw data SMS, for the case
+     * where the platform's VisualVoicemailSmsFilter drops it (observed on this
+     * Duoqin/MTK ROM with T-Mobile's port-1808 7-bit STATUS). [body] is the decoded
+     * text, e.g. "//VVM:STATUS:st=R;srv=...;u=...;pw=...". No-op if it isn't ours.
+     */
+    fun onRawMessage(context: Context, body: String) {
+        val cfg = VvmConfig.read(context) ?: return
+        val prefix = cfg.clientPrefix
+        if (!body.startsWith(prefix)) return
+        // "//VVM:STATUS:st=R;..." -> event "STATUS", fields {st=R, ...}
+        val rest = body.substring(prefix.length).trimStart(':')
+        val sep = rest.indexOf(':')
+        val event = (if (sep >= 0) rest.substring(0, sep) else rest).trim()
+        val fieldStr = if (sep >= 0) rest.substring(sep + 1) else ""
+        val fields = Bundle()
+        for (pair in fieldStr.split(';')) {
+            val eq = pair.indexOf('=')
+            if (eq <= 0) continue
+            fields.putString(pair.substring(0, eq).trim(), pair.substring(eq + 1).trim())
+        }
+        Log.d(TAG, "VVM SMS (self-parsed) event=$event fields=$fields")
+        routeEvent(context, event, fields)
+    }
+
+    /** Dispatch a parsed OMTP event regardless of which receive path found it. */
+    private fun routeEvent(context: Context, event: String, fields: Bundle) {
         when (event.uppercase()) {
-            "STATUS" -> {
-                if (storeCredentials(context, fields)) sync(context)
-            }
+            "STATUS" -> if (storeCredentials(context, fields)) sync(context)
             "SYNC" -> sync(context)
         }
     }

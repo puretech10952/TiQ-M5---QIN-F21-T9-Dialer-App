@@ -132,11 +132,13 @@ object CallLogRepository {
         ) return entries
         val cache = HashMap<String, ContactInfo?>()
         return entries.map { e ->
-            if (e.name != null || e.number.isBlank()) e
+            // The system call log caches the name but often NOT the photo URI, so
+            // look the contact up whenever we're missing the name OR the photo.
+            if ((e.name != null && e.photoUri != null) || e.number.isBlank()) e
             else {
                 val info = cache.getOrPut(e.number) { lookupContact(context, e.number) }
                 if (info != null) e.copy(
-                    name = info.name,
+                    name = e.name ?: info.name,
                     photoUri = e.photoUri ?: info.photo,
                     numberType = if (e.numberType > 0) e.numberType else info.type,
                     numberLabel = e.numberLabel ?: info.label

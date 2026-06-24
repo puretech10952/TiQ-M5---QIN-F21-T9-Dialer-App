@@ -164,6 +164,9 @@ class CallLogActivity : AppCompatActivity() {
         // the framework's missed-call count so it stays in sync with us.
         clearMissedCalls()
         if (binding.searchInput.text.isNullOrBlank() && hasLogPermission()) reload()
+        // Re-read contacts + favorites so changes made in the Contacts app (e.g.
+        // un-starring a favorite) are reflected when the user returns here.
+        if (binding.searchInput.text.isNullOrBlank()) loadContacts()
     }
 
     /** Reset both our missed-call notifications and Telecom's missed count. */

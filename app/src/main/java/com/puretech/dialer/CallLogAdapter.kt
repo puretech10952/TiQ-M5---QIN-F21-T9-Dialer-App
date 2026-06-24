@@ -115,7 +115,9 @@ class CallLogAdapter(
                 time.setTextColor(variant)
             } else {
                 val missed = e.type == CallLog.Calls.MISSED_TYPE || e.type == CallLog.Calls.REJECTED_TYPE
-                name.setTextColor(if (missed) red else onSurface)
+                // The primary line (name / phone number) always stays the normal
+                // colour; only the second line (arrow, label, time) turns red for missed.
+                name.setTextColor(onSurface)
                 count.text = if (e.count > 1) "(${e.count})" else ""
                 count.visibility = if (e.count > 1) View.VISIBLE else View.GONE
                 hd.visibility = if (e.isHd) View.VISIBLE else View.GONE

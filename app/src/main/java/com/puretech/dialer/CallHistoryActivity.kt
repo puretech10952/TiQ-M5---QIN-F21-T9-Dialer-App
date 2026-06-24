@@ -197,7 +197,6 @@ class CallHistoryActivity : AppCompatActivity() {
                 val ctx = title.context
                 val missed = d.type == CallLog.Calls.MISSED_TYPE || d.type == CallLog.Calls.REJECTED_TYPE
                 val red = ContextCompat.getColor(ctx, R.color.missed_red)
-                val variant = ctx.themeColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
                 val onSurface = ctx.themeColor(com.google.android.material.R.attr.colorOnSurface)
 
                 title.text = getString(
@@ -215,7 +214,13 @@ class CallHistoryActivity : AppCompatActivity() {
                         else -> R.drawable.ic_call_received
                     }
                 )
-                typeIcon.imageTintList = ColorStateList.valueOf(if (missed) red else variant)
+                // Match the recents list: outgoing green, missed red, incoming blue.
+                val arrowColor = when (d.type) {
+                    CallLog.Calls.OUTGOING_TYPE -> ContextCompat.getColor(ctx, R.color.call_arrow_outgoing)
+                    CallLog.Calls.MISSED_TYPE, CallLog.Calls.REJECTED_TYPE -> red
+                    else -> ContextCompat.getColor(ctx, R.color.call_arrow_incoming)
+                }
+                typeIcon.imageTintList = ColorStateList.valueOf(arrowColor)
                 time.text = DateUtils.formatDateTime(ctx, d.date, DateUtils.FORMAT_SHOW_TIME)
                 val s = d.duration
                 duration.text = when {

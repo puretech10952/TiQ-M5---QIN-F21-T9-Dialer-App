@@ -90,7 +90,57 @@ object ContactsRepository {
         } catch (e: SecurityException) {
             // Permission revoked between the check and the query — ignore.
         }
+        // The contacts provider's TIMES_CONTACTED is deprecated and reads 0 on
+        // Android 11+, so fold in real call frequency/recency from the call log.
+        mergeCallFrequency(context, out)
         return out
+    }
+
+    /**
+     * Replace each contact's usage stats with how often / how recently we actually
+     * called that number, counted from the call log. Used to rank suggestions so
+     * frequently-called people surface even when another contact matches better.
+     */
+    private fun mergeCallFrequency(context: Context, contacts: MutableList<Contact>) {
+        if (contacts.isEmpty()) return
+        if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+        val counts = HashMap<String, Int>()
+        val lasts = HashMap<String, Long>()
+        try {
+            context.contentResolver.query(
+                android.provider.CallLog.Calls.CONTENT_URI,
+                arrayOf(android.provider.CallLog.Calls.NUMBER, android.provider.CallLog.Calls.DATE),
+                null, null, null
+            )?.use { c ->
+                val numIdx = c.getColumnIndex(android.provider.CallLog.Calls.NUMBER)
+                val dateIdx = c.getColumnIndex(android.provider.CallLog.Calls.DATE)
+                while (c.moveToNext()) {
+                    val key = freqKey(c.getString(numIdx) ?: continue)
+                    if (key.isEmpty()) continue
+                    counts[key] = (counts[key] ?: 0) + 1
+                    val d = if (dateIdx >= 0) c.getLong(dateIdx) else 0L
+                    if (d > (lasts[key] ?: 0L)) lasts[key] = d
+                }
+            }
+        } catch (e: Exception) {
+            return
+        }
+        for (i in contacts.indices) {
+            val c = contacts[i]
+            val cnt = counts[freqKey(c.digits)] ?: 0
+            if (cnt > 0) contacts[i] = c.copy(
+                timesContacted = cnt,
+                lastTimeContacted = maxOf(c.lastTimeContacted, lasts[freqKey(c.digits)] ?: 0L)
+            )
+        }
+    }
+
+    /** Normalised key for matching call-log numbers to contact numbers (last 10 digits). */
+    private fun freqKey(number: String): String {
+        val d = number.filter { it.isDigit() }
+        return if (d.length >= 10) d.takeLast(10) else d
     }
 
     /**
@@ -104,7 +154,9 @@ object ContactsRepository {
         val scored = ArrayList<Pair<Contact, Int>>()
         for (c in contacts) {
             val s = score(c, query)
-            if (s > 0) scored.add(c to s)
+            // Add a frequency bonus to the match score (not just a tiebreak) so a
+            // frequently-called contact can rank above a better text/number match.
+            if (s > 0) scored.add(c to (s + freqBonus(c)))
         }
         scored.sortWith(
             compareByDescending<Pair<Contact, Int>> { it.second }
@@ -113,6 +165,17 @@ object ContactsRepository {
                 .thenBy { it.first.name.lowercase() }
         )
         return scored.take(limit).map { it.first }
+    }
+
+    /**
+     * Score bump from call frequency. Sub-linear and capped: a handful of calls
+     * gives a clear lift, and it saturates so a very frequent contact can climb
+     * about one match tier (~30 pts) but never swamp the ranking entirely.
+     */
+    private fun freqBonus(c: Contact): Int {
+        val t = c.timesContacted
+        if (t <= 0) return 0
+        return (10.0 * Math.log10((t + 1).toDouble())).toInt().coerceAtMost(30)
     }
 
     /** Quick contact-name lookup for a single number (used by the call notification). */
