@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_sheet"
+    android:orientation="vertical"
+    android:paddingBottom="16dp">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- Header: avatar + name + number -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="20dp">
+
+        <FrameLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp">
+
+            <TextView
+                android:id="@+id/sheetAvatarInitial"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_circle_solid"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Y"
+                tools:visibility="visible" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/sheetAvatarPhoto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/CircleImageView" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="18dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/sheetName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="22sp"
+                android:fontFamily="sans-serif-medium"
+                tools:text="Yumi" />
+
+            <TextView
+                android:id="@+id/sheetSub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp"
+                tools:text="Mobile • (845) 351-1200" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="4dp"
+        android:background="?attr/colorOutlineVariant" />
+
+    <LinearLayout android:id="@+id/rowCall" style="@style/SheetActionRow">
+        <ImageView style="@style/SheetActionIcon" android:src="@drawable/ic_call" />
+        <TextView style="@style/SheetActionText" android:text="@string/log_call" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/rowMessage" style="@style/SheetActionRow">
+        <ImageView style="@style/SheetActionIcon" android:src="@drawable/ic_message" />
+        <TextView style="@style/SheetActionText" android:text="@string/log_message" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/rowContact" style="@style/SheetActionRow">
+        <ImageView android:id="@+id/rowContactIcon" style="@style/SheetActionIcon"
+            android:src="@drawable/ic_person_add" />
+        <TextView android:id="@+id/rowContactText" style="@style/SheetActionText"
+            android:text="@string/log_add_contact" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/rowHistory" style="@style/SheetActionRow">
+        <ImageView style="@style/SheetActionIcon" android:src="@drawable/ic_history" />
+        <TextView style="@style/SheetActionText" android:text="@string/log_history" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/rowCopy" style="@style/SheetActionRow">
+        <ImageView style="@style/SheetActionIcon" android:src="@drawable/ic_content_copy" />
+        <TextView style="@style/SheetActionText" android:text="@string/log_copy" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/rowBlock" style="@style/SheetActionRow">
+        <ImageView style="@style/SheetActionIcon" android:src="@drawable/ic_block" />
+        <TextView style="@style/SheetActionText" android:text="@string/block_number" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/rowDelete" style="@style/SheetActionRow">
+        <ImageView style="@style/SheetActionIcon" android:src="@drawable/ic_delete"
+            app:tint="@color/missed_red" />
+        <TextView style="@style/SheetActionText" android:text="@string/log_delete"
+            android:textColor="@color/missed_red" />
+    </LinearLayout>
+
+</LinearLayout>

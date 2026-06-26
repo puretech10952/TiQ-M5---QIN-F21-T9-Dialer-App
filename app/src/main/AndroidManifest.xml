@@ -35,20 +35,34 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.M5Dialer">
 
+        <!-- Single host for Recents + Dialer (tabs swap inside, persistent bottom bar). -->
         <activity
-            android:name=".MainActivity"
+            android:name=".HomeActivity"
             android:exported="true"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden|adjustNothing">
+            <!-- App icon opens the host (lands on Recents). -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Home-screen Send key → Recents. -->
+            <intent-filter>
+                <action android:name="android.intent.action.CALL_BUTTON" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
             <!-- Marks this app as a phone/dialer app so it is eligible for ROLE_DIALER -->
             <intent-filter>
                 <action android:name="android.intent.action.DIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <!-- DIAL tel: → Dialer tab, pre-filled -->
             <intent-filter>
                 <action android:name="android.intent.action.DIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="tel" />
             </intent-filter>
+            <!-- VIEW/DIAL tel: from links → Dialer tab -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.DIAL" />
@@ -58,26 +72,10 @@
             </intent-filter>
         </activity>
 
-        <!-- Recents / call log. The home-screen Send key opens it via CALL_BUTTON. -->
-        <activity
-            android:name=".CallLogActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:windowSoftInputMode="stateHidden|adjustNothing">
-            <!-- App icon opens the call log (like Google Dialer). -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.CALL_BUTTON" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
         <activity android:name=".CallHistoryActivity" android:exported="false" />
         <activity android:name=".ContactsActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".ToggleSettingActivity" android:exported="false" />
         <activity android:name=".BlockedNumbersActivity" android:exported="false" />
         <activity android:name=".QuickResponsesActivity" android:exported="false" />
         <activity android:name=".AssistedDialingActivity" android:exported="false" />

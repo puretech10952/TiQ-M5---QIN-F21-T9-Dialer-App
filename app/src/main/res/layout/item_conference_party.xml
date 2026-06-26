@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One conference participant with an end-call button (manage conference sheet). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="20dp"
+    android:paddingEnd="16dp"
+    android:paddingVertical="8dp">
+
+    <TextView
+        android:id="@+id/partyName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/partyEnd"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_circle_solid"
+        android:backgroundTint="@color/missed_red"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/ctl_end"
+        android:padding="11dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_call_end"
+        app:tint="#FFFFFF" />
+
+</LinearLayout>

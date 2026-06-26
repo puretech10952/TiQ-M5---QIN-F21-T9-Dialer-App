@@ -11,27 +11,29 @@ import android.os.Bundle
 import android.provider.ContactsContract
 import android.telecom.TelecomManager
 import android.text.format.DateUtils
-import android.view.KeyEvent
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.puretech.dialer.databinding.ActivityCallLogBinding
+import androidx.recyclerview.widget.RecyclerView
+import com.puretech.dialer.databinding.FragmentRecentsBinding
 import java.util.Calendar
 
-/** Recents screen (Google-Dialer card style) with search, favorites, drawer. */
-class CallLogActivity : AppCompatActivity() {
+/** Recents screen (Google-Dialer card style) with search + favorites. Hosted by
+ *  [HomeActivity]; the drawer, bottom bar, and gating live in the host. */
+class RecentsFragment : Fragment() {
 
-    private lateinit var binding: ActivityCallLogBinding
-    private val telecomManager by lazy { getSystemService(TelecomManager::class.java) }
+    private var _binding: FragmentRecentsBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var logAdapter: CallLogAdapter
     private lateinit var favoritesAdapter: FavoritesAdapter
     private var allContacts: List<Contact> = emptyList()
@@ -45,12 +47,14 @@ class CallLogActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) reload() else showEmpty(getString(R.string.log_perm_needed)) }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRecentsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityCallLogBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         logAdapter = CallLogAdapter(
             onCall = { callNumber(it.number) },
             onMessage = { messageNumber(it) },
@@ -60,139 +64,82 @@ class CallLogActivity : AppCompatActivity() {
             onOpenContact = { openContact(it) },
             onLongPress = { showEntryMenu(it) }
         )
-        binding.recents.layoutManager = LinearLayoutManager(this)
+        binding.recents.layoutManager = LinearLayoutManager(requireContext())
         binding.recents.adapter = logAdapter
 
         favoritesAdapter = FavoritesAdapter { callNumber(it.number) }
         binding.favoritesStrip.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         binding.favoritesStrip.adapter = favoritesAdapter
 
         binding.filterChips.setOnCheckedStateChangeListener { _, _ -> reload() }
-        binding.btnMenu.setOnClickListener { binding.drawerLayout.openDrawer(GravityCompat.START) }
-        binding.drawerVersion.text = getString(R.string.drawer_version, appVersionName())
-        binding.navView.setNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
-                R.id.nav_durations -> startActivity(Intent(this, CallStatsActivity::class.java))
-                R.id.nav_updates -> startActivity(Intent(this, UpdateActivity::class.java))
-                R.id.nav_about -> startActivity(Intent(this, AboutActivity::class.java))
-            }
-            binding.drawerLayout.closeDrawers()
-            true
-        }
+        binding.btnMenu.setOnClickListener { (requireActivity() as HomeActivity).openDrawer() }
         binding.searchInput.doAfterTextChanged { onSearchChanged(it?.toString().orEmpty()) }
-        setupBackBehavior()
-
         binding.favoritesToggle.setOnClickListener { toggleFavorites() }
         binding.viewContacts.setOnClickListener { openContactsApp() }
-        binding.navKeypad.setOnClickListener { startActivity(Intent(this, MainActivity::class.java)) }
-        binding.navRecents.setOnClickListener {
-            if (!binding.searchInput.text.isNullOrBlank()) binding.searchInput.text?.clear()
-            binding.appBar.setExpanded(true, true)
-            binding.recents.smoothScrollToPosition(0)
-        }
 
         loadContacts()
         ensureLogPermission()
-        applyFilterExtra(intent)
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        applyFilterExtra(intent)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
-    /** Honor a filter passed in from the call-stats screen (e.g. tapping the
-     *  "Incoming" card opens recents showing incoming calls only). */
-    private fun applyFilterExtra(intent: Intent?) {
-        val filter = intent?.getStringExtra(EXTRA_FILTER) ?: return
-        intent.removeExtra(EXTRA_FILTER)
+    // --- Host-facing API -------------------------------------------------------
+
+    fun scrollTarget(): RecyclerView? = _binding?.recents
+
+    fun isSearchFocused(): Boolean = _binding?.searchInput?.hasFocus() == true
+
+    /** Re-run the per-visit work whenever this tab becomes the visible one. */
+    fun onTabResumed() {
+        if (_binding == null) return
+        clearSearchFocus()
+        VoicemailMonitor.start(requireContext())
+        clearMissedCalls()
+        if (binding.searchInput.text.isNullOrBlank() && hasLogPermission()) reload()
+        if (binding.searchInput.text.isNullOrBlank()) loadContacts()
+    }
+
+    /** Home re-tap while already on Recents. */
+    fun scrollToTopAndClearSearch() {
+        if (_binding == null) return
+        if (!binding.searchInput.text.isNullOrBlank()) binding.searchInput.text?.clear()
+        binding.appBar.setExpanded(true, true)
+        binding.recents.smoothScrollToPosition(0)
+    }
+
+    /** Preselect a filter chip (from the call-stats screen). */
+    fun applyFilter(filter: String?) {
+        filter ?: return
+        if (_binding == null) return
         if (!binding.searchInput.text.isNullOrBlank()) binding.searchInput.text?.clear()
         binding.appBar.setExpanded(true, false)
-        // Checking a chip triggers the group's listener, which reloads the list.
         when (filter) {
-            FILTER_INCOMING -> binding.chipReceived.isChecked = true
-            FILTER_OUTGOING -> binding.chipOutgoing.isChecked = true
-            FILTER_MISSED -> binding.chipMissed.isChecked = true
+            HomeActivity.FILTER_INCOMING -> binding.chipReceived.isChecked = true
+            HomeActivity.FILTER_OUTGOING -> binding.chipOutgoing.isChecked = true
+            HomeActivity.FILTER_MISSED -> binding.chipMissed.isChecked = true
             else -> binding.chipAll.isChecked = true
         }
     }
 
-    /**
-     * On a keypad phone, pressing a number key while in recents starts dialing:
-     * open the keypad with that digit already entered — just like pressing it on
-     * the home screen. Skipped while the search field is focused (T9 name search).
-     */
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (!binding.searchInput.hasFocus()) {
-            val ch = dialCharFor(keyCode)
-            if (ch != null) {
-                startActivity(
-                    Intent(this, MainActivity::class.java)
-                        .setAction(Intent.ACTION_DIAL)
-                        .setData(Uri.fromParts("tel", ch, null))
-                )
-                return true
-            }
-        }
-        return super.onKeyDown(keyCode, event)
+    /** Back handling for the Recents tab: hide keyboard, then leave the search field. */
+    fun handleBack(): Boolean = when {
+        isKeyboardVisible() -> { hideKeyboard(); true }
+        binding.searchInput.hasFocus() || !binding.searchInput.text.isNullOrBlank() ->
+            { clearSearchFocus(); true }
+        else -> false
     }
 
-    private fun dialCharFor(keyCode: Int): String? = when (keyCode) {
-        in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 ->
-            ('0' + (keyCode - KeyEvent.KEYCODE_0)).toString()
-        in KeyEvent.KEYCODE_NUMPAD_0..KeyEvent.KEYCODE_NUMPAD_9 ->
-            ('0' + (keyCode - KeyEvent.KEYCODE_NUMPAD_0)).toString()
-        KeyEvent.KEYCODE_STAR, KeyEvent.KEYCODE_NUMPAD_MULTIPLY -> "*"
-        KeyEvent.KEYCODE_POUND -> "#"
-        else -> null
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Block the whole app until the user accepts the Terms/Privacy and sets
-        // us as the default phone app — no recents, settings, or keypad before.
-        if (Gates.enforce(this)) return
-        // Never resume into the search field with the keyboard up.
-        clearSearchFocus()
-        // Once phone permission is granted, the MWI watcher can register.
-        VoicemailMonitor.start(this)
-        // Viewing recents clears missed calls: dismiss our notifications and reset
-        // the framework's missed-call count so it stays in sync with us.
-        clearMissedCalls()
-        if (binding.searchInput.text.isNullOrBlank() && hasLogPermission()) reload()
-        // Re-read contacts + favorites so changes made in the Contacts app (e.g.
-        // un-starring a favorite) are reflected when the user returns here.
-        if (binding.searchInput.text.isNullOrBlank()) loadContacts()
-    }
-
-    /** Reset both our missed-call notifications and Telecom's missed count. */
     private fun clearMissedCalls() {
-        MissedCallNotifier.cancelAll(this)
+        MissedCallNotifier.cancelAll(requireContext())
         try {
-            getSystemService(TelecomManager::class.java)?.cancelMissedCallsNotification()
+            requireContext().getSystemService(TelecomManager::class.java)
+                ?.cancelMissedCallsNotification()
         } catch (_: Exception) {
-            // Needs to be the default dialer; ignore if we're not.
         }
-    }
-
-    /** Back: 1) hide keyboard, 2) leave the search field, 3) exit the screen. */
-    private fun setupBackBehavior() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                when {
-                    isKeyboardVisible() -> hideKeyboard()
-                    binding.searchInput.hasFocus() || !binding.searchInput.text.isNullOrBlank() ->
-                        clearSearchFocus()
-                    else -> {
-                        isEnabled = false
-                        onBackPressedDispatcher.onBackPressed()
-                    }
-                }
-            }
-        })
     }
 
     private fun isKeyboardVisible(): Boolean =
@@ -200,7 +147,7 @@ class CallLogActivity : AppCompatActivity() {
             ?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
 
     private fun hideKeyboard() {
-        val imm = getSystemService(InputMethodManager::class.java)
+        val imm = requireContext().getSystemService(InputMethodManager::class.java)
         imm?.hideSoftInputFromWindow(binding.root.windowToken, 0)
     }
 
@@ -215,15 +162,14 @@ class CallLogActivity : AppCompatActivity() {
 
     private fun loadContacts() {
         Thread {
-            val list = ContactsRepository.load(applicationContext)
-            val favs = ContactsRepository.loadFavorites(applicationContext)
-            runOnUiThread {
+            val list = ContactsRepository.load(requireContext().applicationContext)
+            val favs = ContactsRepository.loadFavorites(requireContext().applicationContext)
+            ui {
                 allContacts = list
                 favoritesAdapter.submit(favs)
                 binding.favoritesToggle.visibility = if (favs.isEmpty()) View.GONE else View.VISIBLE
-                // Restore the saved expand/collapse state (persists across launches).
                 binding.favoritesStrip.visibility =
-                    if (favs.isNotEmpty() && Prefs.favoritesExpanded(this)) View.VISIBLE
+                    if (favs.isNotEmpty() && Prefs.favoritesExpanded(requireContext())) View.VISIBLE
                     else View.GONE
                 updateFavoritesArrow()
             }
@@ -233,23 +179,21 @@ class CallLogActivity : AppCompatActivity() {
     private fun toggleFavorites() {
         val show = binding.favoritesStrip.visibility != View.VISIBLE
         binding.favoritesStrip.visibility = if (show) View.VISIBLE else View.GONE
-        Prefs.setFavoritesExpanded(this, show)
+        Prefs.setFavoritesExpanded(requireContext(), show)
         updateFavoritesArrow()
     }
 
-    /** Point the caret up when expanded, down when collapsed. */
     private fun updateFavoritesArrow() {
         val expanded = binding.favoritesStrip.visibility == View.VISIBLE
-        val caret = androidx.core.content.ContextCompat.getDrawable(
-            this, if (expanded) R.drawable.ic_arrow_drop_up else R.drawable.ic_arrow_drop_down
+        val caret = ContextCompat.getDrawable(
+            requireContext(),
+            if (expanded) R.drawable.ic_arrow_drop_up else R.drawable.ic_arrow_drop_down
         )
-        binding.favoritesToggle.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            null, null, caret, null
-        )
+        binding.favoritesToggle.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, caret, null)
         androidx.core.widget.TextViewCompat.setCompoundDrawableTintList(
             binding.favoritesToggle,
             android.content.res.ColorStateList.valueOf(
-                themeColor(com.google.android.material.R.attr.colorOnSurface)
+                requireContext().themeColor(com.google.android.material.R.attr.colorOnSurface)
             )
         )
     }
@@ -281,18 +225,20 @@ class CallLogActivity : AppCompatActivity() {
     }
 
     private fun hasLogPermission() =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) ==
+        ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALL_LOG) ==
             PackageManager.PERMISSION_GRANTED
 
     private fun reload() {
+        if (_binding == null) return
         if (!hasLogPermission() || !binding.searchInput.text.isNullOrBlank()) return
         val missedOnly = binding.chipMissed.isChecked
         val receivedOnly = binding.chipReceived.isChecked
         val outgoingOnly = binding.chipOutgoing.isChecked
         val contactsOnly = binding.chipContacts.isChecked
+        val ctx = requireContext().applicationContext
         Thread {
             try {
-                val all = CallLogRepository.load(applicationContext, missedOnly)
+                val all = CallLogRepository.load(ctx, missedOnly)
                 val entries = when {
                     contactsOnly -> all.filter { it.name != null }
                     receivedOnly -> all.filter {
@@ -304,7 +250,7 @@ class CallLogActivity : AppCompatActivity() {
                     else -> all
                 }
                 val rows = buildRows(entries)
-                runOnUiThread {
+                ui {
                     logAdapter.submit(rows)
                     binding.emptyText.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
                     if (rows.isEmpty()) binding.emptyText.text = getString(R.string.no_recents)
@@ -333,16 +279,15 @@ class CallLogActivity : AppCompatActivity() {
         return rows
     }
 
-    /** Today / Yesterday / weekday name within the last week / else the date. */
     private fun dayLabel(date: Long): String {
         val diff = ((midnight(System.currentTimeMillis()) - midnight(date)) /
             DateUtils.DAY_IN_MILLIS).toInt()
         return when {
             diff <= 0 -> getString(R.string.recents_today)
             diff == 1 -> getString(R.string.recents_yesterday)
-            diff in 2..6 -> DateUtils.formatDateTime(this, date, DateUtils.FORMAT_SHOW_WEEKDAY)
+            diff in 2..6 -> DateUtils.formatDateTime(requireContext(), date, DateUtils.FORMAT_SHOW_WEEKDAY)
             else -> DateUtils.formatDateTime(
-                this, date, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_ABBREV_MONTH
+                requireContext(), date, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_ABBREV_MONTH
             )
         }
     }
@@ -359,22 +304,21 @@ class CallLogActivity : AppCompatActivity() {
 
     private fun openHistory(entry: CallLogEntry) {
         startActivity(
-            Intent(this, CallHistoryActivity::class.java)
+            Intent(requireContext(), CallHistoryActivity::class.java)
                 .putExtra(CallHistoryActivity.EXTRA_NUMBER, entry.number)
                 .putExtra(CallHistoryActivity.EXTRA_NAME, entry.name ?: entry.number)
         )
     }
 
-    /** Open the contact card for a saved number (avatar tap). */
     private fun openContact(entry: CallLogEntry) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS)
             != PackageManager.PERMISSION_GRANTED
         ) return
         val lookupUri = Uri.withAppendedPath(
             ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(entry.number)
         )
         val contactUri: Uri? = try {
-            contentResolver.query(
+            requireContext().contentResolver.query(
                 lookupUri,
                 arrayOf(ContactsContract.PhoneLookup._ID, ContactsContract.PhoneLookup.LOOKUP_KEY),
                 null, null, null
@@ -396,10 +340,9 @@ class CallLogActivity : AppCompatActivity() {
         }
     }
 
-    // --- Block / delete (long-press) ------------------------------------------
-
+    /** Long-press popup: block number / delete entry. */
     private fun showEntryMenu(entry: CallLogEntry) {
-        val sheet = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val sheet = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
         val view = layoutInflater.inflate(R.layout.sheet_entry_actions, null)
         view.findViewById<android.widget.TextView>(R.id.sheetTitle).text =
             entry.name ?: android.telephony.PhoneNumberUtils
@@ -415,27 +358,29 @@ class CallLogActivity : AppCompatActivity() {
     }
 
     private fun blockNumber(number: String) {
+        val ctx = requireContext().applicationContext
         Thread {
-            BlockedNumbers.add(applicationContext, number)
-            runOnUiThread {
-                Toast.makeText(this, R.string.number_blocked, Toast.LENGTH_SHORT).show()
+            BlockedNumbers.add(ctx, number)
+            ui {
+                Toast.makeText(requireContext(), R.string.number_blocked, Toast.LENGTH_SHORT).show()
                 reload()
             }
         }.start()
     }
 
     private fun deleteEntry(number: String) {
+        val ctx = requireContext().applicationContext
         Thread {
             try {
-                contentResolver.delete(
+                ctx.contentResolver.delete(
                     android.provider.CallLog.Calls.CONTENT_URI,
                     "${android.provider.CallLog.Calls.NUMBER} = ?", arrayOf(number)
                 )
             } catch (e: Exception) {
                 android.util.Log.w("M5CallLog", "delete failed: ${e.message}")
             }
-            runOnUiThread {
-                Toast.makeText(this, R.string.entry_deleted, Toast.LENGTH_SHORT).show()
+            ui {
+                Toast.makeText(requireContext(), R.string.entry_deleted, Toast.LENGTH_SHORT).show()
                 reload()
             }
         }.start()
@@ -461,17 +406,17 @@ class CallLogActivity : AppCompatActivity() {
     }
 
     private fun copyNumber(number: String) {
-        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         cm.setPrimaryClip(ClipData.newPlainText("number", number))
-        Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
     // --- Calling ---------------------------------------------------------------
 
     private fun callNumber(raw: String) {
         if (raw.isBlank()) return
-        pendingNumber = normalizeForDial(raw)
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
+        pendingNumber = Dialer.normalize(requireContext(), raw)
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CALL_PHONE)
             == PackageManager.PERMISSION_GRANTED
         ) placeCall() else callPermLauncher.launch(Manifest.permission.CALL_PHONE)
     }
@@ -479,36 +424,24 @@ class CallLogActivity : AppCompatActivity() {
     private fun placeCall() {
         val n = pendingNumber ?: return
         pendingNumber = null
-        Dialer.place(this, n)
+        Dialer.place(requireContext(), n)
     }
 
-    /** Open the phone's default Contacts app. */
     private fun openContactsApp() {
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CONTACTS)
         try {
             startActivity(intent)
         } catch (_: Exception) {
-            // Fallback to viewing the contacts list directly.
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
             } catch (_: Exception) {
-                startActivity(Intent(this, ContactsActivity::class.java))
+                startActivity(Intent(requireContext(), ContactsActivity::class.java))
             }
         }
     }
 
-    private fun normalizeForDial(raw: String): String = Dialer.normalize(this, raw)
-
-    private fun appVersionName(): String = try {
-        packageManager.getPackageInfo(packageName, 0).versionName ?: ""
-    } catch (e: Exception) {
-        ""
-    }
-
-    companion object {
-        const val EXTRA_FILTER = "filter"
-        const val FILTER_INCOMING = "incoming"
-        const val FILTER_OUTGOING = "outgoing"
-        const val FILTER_MISSED = "missed"
+    /** Run [block] on the UI thread only if the view is still alive. */
+    private fun ui(block: () -> Unit) {
+        _binding?.root?.post { if (_binding != null) block() }
     }
 }

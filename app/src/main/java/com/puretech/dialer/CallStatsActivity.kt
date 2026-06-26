@@ -27,9 +27,9 @@ class CallStatsActivity : AppCompatActivity() {
 
         // Tapping a breakdown card jumps to the recents list, pre-filtered to
         // that call direction.
-        binding.cardIncoming.setOnClickListener { openLog(CallLogActivity.FILTER_INCOMING) }
-        binding.cardOutgoing.setOnClickListener { openLog(CallLogActivity.FILTER_OUTGOING) }
-        binding.cardMissed.setOnClickListener { openLog(CallLogActivity.FILTER_MISSED) }
+        binding.cardIncoming.setOnClickListener { openLog(HomeActivity.FILTER_INCOMING) }
+        binding.cardOutgoing.setOnClickListener { openLog(HomeActivity.FILTER_OUTGOING) }
+        binding.cardMissed.setOnClickListener { openLog(HomeActivity.FILTER_MISSED) }
 
         binding.rangeToggle.check(R.id.btnRangeMonth)
         binding.rangeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -49,8 +49,8 @@ class CallStatsActivity : AppCompatActivity() {
 
     private fun openLog(filter: String) {
         startActivity(
-            Intent(this, CallLogActivity::class.java)
-                .putExtra(CallLogActivity.EXTRA_FILTER, filter)
+            Intent(this, HomeActivity::class.java)
+                .putExtra(HomeActivity.EXTRA_FILTER, filter)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         )
     }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    android:background="?attr/colorSurfaceContainer"
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
@@ -63,38 +63,24 @@
 
                     <LinearLayout android:id="@+id/rowTheme" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_palette" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_theme" />
-                            <TextView android:id="@+id/themeValue" style="@style/SettingSummary"
-                                tools:text="Same as device" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_theme" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowFloating" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_dialpad" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_floating_dial" />
-                            <TextView android:id="@+id/floatingValue" style="@style/SettingSummary"
-                                android:text="@string/setting_floating_dial_summary" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_floating_dial" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowDialpadTone" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_volume" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_dialpad_tone" />
-                            <TextView style="@style/SettingSummary" android:text="@string/setting_dialpad_tone_summary" />
-                        </LinearLayout>
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/switchDialpadTone"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:clickable="false"
-                            android:focusable="false" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_dialpad_tone" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -110,101 +96,72 @@
 
                     <LinearLayout android:id="@+id/rowSwipeAnswer" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_swap" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_swipe_answer" />
-                            <TextView style="@style/SettingSummary" android:text="@string/setting_swipe_answer_summary" />
-                        </LinearLayout>
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/switchSwipeAnswer"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:clickable="false"
-                            android:focusable="false" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_swipe_answer" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowBlockAi" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_block_ai" />
-                            <TextView style="@style/SettingSummary" android:text="@string/setting_block_ai_summary" />
-                        </LinearLayout>
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/switchBlockAi"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:clickable="false"
-                            android:focusable="false" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_block_ai" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowBlocked" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_blocked" />
-                            <TextView style="@style/SettingSummary" android:text="@string/setting_blocked_summary" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_blocked" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowQuick" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_message" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_quick_responses" />
-                            <TextView style="@style/SettingSummary" android:text="@string/setting_quick_responses_summary" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_quick_responses" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowAssisted" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_call" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_assisted" />
-                            <TextView style="@style/SettingSummary" android:text="@string/setting_assisted_summary" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_assisted" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowRedirect" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_redirect" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_redirect" />
-                            <TextView android:id="@+id/redirectValue" style="@style/SettingSummary"
-                                android:text="@string/setting_redirect_summary" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_redirect" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowRecording" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_mic" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_recording" />
-                            <TextView android:id="@+id/recordingValue" style="@style/SettingSummary"
-                                android:text="@string/setting_recording_summary" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_recording" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowKeepAlive" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_call" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_keepalive" />
-                            <TextView android:id="@+id/keepAliveValue" style="@style/SettingSummary"
-                                android:text="@string/setting_keepalive_summary" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_keepalive" />
                     </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/rowAccounts" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_sim" />
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical">
-                            <TextView style="@style/SettingTitle" android:text="@string/setting_calling_accounts" />
-                            <TextView android:id="@+id/accountsValue" style="@style/SettingSummary"
-                                android:text="@string/setting_default_sim" />
-                        </LinearLayout>
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_calling_accounts" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

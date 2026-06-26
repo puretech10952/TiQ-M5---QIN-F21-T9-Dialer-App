@@ -202,7 +202,8 @@ class CallHistoryActivity : AppCompatActivity() {
                 title.text = getString(
                     when (d.type) {
                         CallLog.Calls.OUTGOING_TYPE -> R.string.hist_outgoing
-                        CallLog.Calls.MISSED_TYPE, CallLog.Calls.REJECTED_TYPE -> R.string.hist_missed
+                        CallLog.Calls.REJECTED_TYPE -> R.string.hist_declined
+                        CallLog.Calls.MISSED_TYPE -> R.string.hist_missed
                         else -> R.string.hist_incoming
                     }
                 )

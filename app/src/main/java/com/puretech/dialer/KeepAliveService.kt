@@ -56,7 +56,7 @@ class KeepAliveService : Service() {
         ensureChannel(this)
         val pi = PendingIntent.getActivity(
             this, 0,
-            Intent(this, CallLogActivity::class.java),
+            Intent(this, HomeActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         return NotificationCompat.Builder(this, CHANNEL)

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    android:background="?attr/colorSurfaceContainer"
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
@@ -94,80 +94,73 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Incoming -->
+            <!-- Incoming / Outgoing / Missed grouped into one card with splits -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardIncoming"
                 style="@style/SettingsGroupCard"
                 android:layout_marginHorizontal="0dp"
-                android:layout_marginTop="12dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_marginTop="12dp">
 
-                <LinearLayout style="@style/StatRow">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-                    <ImageView style="@style/StatIcon"
-                        android:src="@drawable/ic_call_received"
-                        android:contentDescription="@string/stats_incoming" />
+                    <LinearLayout android:id="@+id/cardIncoming" style="@style/StatRow"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true" android:focusable="true">
 
-                    <LinearLayout style="@style/StatText">
-                        <TextView style="@style/StatLabel" android:text="@string/stats_incoming" />
-                        <TextView android:id="@+id/incomingCount" style="@style/StatSub"
-                            tools:text="128 calls" />
+                        <ImageView style="@style/StatIcon"
+                            android:src="@drawable/ic_call_received"
+                            android:contentDescription="@string/stats_incoming" />
+
+                        <LinearLayout style="@style/StatText">
+                            <TextView style="@style/StatLabel" android:text="@string/stats_incoming" />
+                            <TextView android:id="@+id/incomingCount" style="@style/StatSub"
+                                tools:text="128 calls" />
+                        </LinearLayout>
+
+                        <TextView android:id="@+id/incomingDuration" style="@style/StatValue"
+                            tools:text="6h 02m" />
                     </LinearLayout>
 
-                    <TextView android:id="@+id/incomingDuration" style="@style/StatValue"
-                        tools:text="6h 02m" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                    <View style="@style/SettingRowDivider" />
 
-            <!-- Outgoing -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardOutgoing"
-                style="@style/SettingsGroupCard"
-                android:layout_marginHorizontal="0dp"
-                android:layout_marginTop="10dp"
-                android:clickable="true"
-                android:focusable="true">
+                    <LinearLayout android:id="@+id/cardOutgoing" style="@style/StatRow"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true" android:focusable="true">
 
-                <LinearLayout style="@style/StatRow">
+                        <ImageView style="@style/StatIcon"
+                            android:src="@drawable/ic_call_made"
+                            android:contentDescription="@string/stats_outgoing" />
 
-                    <ImageView style="@style/StatIcon"
-                        android:src="@drawable/ic_call_made"
-                        android:contentDescription="@string/stats_outgoing" />
+                        <LinearLayout style="@style/StatText">
+                            <TextView style="@style/StatLabel" android:text="@string/stats_outgoing" />
+                            <TextView android:id="@+id/outgoingCount" style="@style/StatSub"
+                                tools:text="96 calls" />
+                        </LinearLayout>
 
-                    <LinearLayout style="@style/StatText">
-                        <TextView style="@style/StatLabel" android:text="@string/stats_outgoing" />
-                        <TextView android:id="@+id/outgoingCount" style="@style/StatSub"
-                            tools:text="96 calls" />
+                        <TextView android:id="@+id/outgoingDuration" style="@style/StatValue"
+                            tools:text="8h 30m" />
                     </LinearLayout>
 
-                    <TextView android:id="@+id/outgoingDuration" style="@style/StatValue"
-                        tools:text="8h 30m" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                    <View style="@style/SettingRowDivider" />
 
-            <!-- Missed -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardMissed"
-                style="@style/SettingsGroupCard"
-                android:layout_marginHorizontal="0dp"
-                android:layout_marginTop="10dp"
-                android:clickable="true"
-                android:focusable="true">
+                    <LinearLayout android:id="@+id/cardMissed" style="@style/StatRow"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true" android:focusable="true">
 
-                <LinearLayout style="@style/StatRow">
+                        <ImageView style="@style/StatIcon"
+                            android:src="@drawable/ic_call_missed"
+                            android:contentDescription="@string/stats_missed" />
 
-                    <ImageView style="@style/StatIcon"
-                        android:src="@drawable/ic_call_missed"
-                        android:contentDescription="@string/stats_missed" />
+                        <LinearLayout style="@style/StatText">
+                            <TextView style="@style/StatLabel" android:text="@string/stats_missed" />
+                            <TextView style="@style/StatSub" android:text="@string/stats_missed_sub" />
+                        </LinearLayout>
 
-                    <LinearLayout style="@style/StatText">
-                        <TextView style="@style/StatLabel" android:text="@string/stats_missed" />
-                        <TextView style="@style/StatSub" android:text="@string/stats_missed_sub" />
+                        <TextView android:id="@+id/missedCount" style="@style/StatValue"
+                            tools:text="12" />
                     </LinearLayout>
-
-                    <TextView android:id="@+id/missedCount" style="@style/StatValue"
-                        tools:text="12" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -112,6 +112,24 @@ object CallManager {
         a.conference(h)
     }
 
+    // --- Conference ------------------------------------------------------------
+
+    /** The conference (multi-party) call, if one exists — created locally by merge
+     *  or by the remote party. Detected by the conference property or by children. */
+    @Suppress("DEPRECATION")
+    fun conferenceCall(): Call? =
+        _calls.firstOrNull { it.details.hasProperty(Call.Details.PROPERTY_CONFERENCE) }
+            ?: _calls.firstOrNull { it.children.isNotEmpty() }
+
+    fun isConference(): Boolean = conferenceCall() != null
+
+    /** Participants of the conference (each can be hung up individually). */
+    @Suppress("DEPRECATION")
+    fun conferenceChildren(): List<Call> = conferenceCall()?.children ?: emptyList()
+
+    /** Hang up one specific participant in the conference. */
+    fun disconnectParticipant(c: Call) = c.disconnect()
+
     /** Answer a waiting call, putting the current one on hold (call waiting). */
     fun answerAndHold() {
         activeCall()?.hold()

@@ -63,7 +63,12 @@ class CallLogAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val row = rows[position]) {
             is CallLogRow.Header -> (holder as HeaderVH).label.text = row.label
-            is CallLogRow.Item -> (holder as ItemVH).bind(row.entry, position == expandedPosition)
+            is CallLogRow.Item -> {
+                // Group consecutive items between day headers into one rounded card.
+                val first = position == 0 || rows[position - 1] is CallLogRow.Header
+                val last = position == rows.size - 1 || rows[position + 1] is CallLogRow.Header
+                (holder as ItemVH).bind(row.entry, position == expandedPosition, first, last)
+            }
         }
     }
 
@@ -80,6 +85,7 @@ class CallLogAdapter(
     }
 
     inner class ItemVH(view: View) : RecyclerView.ViewHolder(view) {
+        private val rowDivider: View = view.findViewById(R.id.rowDivider)
         private val row: View = view.findViewById(R.id.row)
         private val avatar: View = view.findViewById(R.id.avatar)
         private val avatarInitial: TextView = view.findViewById(R.id.avatarInitial)
@@ -96,12 +102,23 @@ class CallLogAdapter(
         private val actionHistory: TextView = view.findViewById(R.id.actionHistory)
         private val actionCopy: TextView = view.findViewById(R.id.actionCopy)
 
-        fun bind(e: CallLogEntry, expanded: Boolean) {
+        fun bind(e: CallLogEntry, expanded: Boolean, firstInGroup: Boolean, lastInGroup: Boolean) {
             val ctx = name.context
             val onSurface = ctx.themeColor(com.google.android.material.R.attr.colorOnSurface)
             val variant = ctx.themeColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
             val red = ContextCompat.getColor(ctx, R.color.missed_red)
             val number = formatNumber(e.number)
+
+            // Group consecutive same-day rows into one rounded white card.
+            itemView.setBackgroundResource(
+                when {
+                    firstInGroup && lastInGroup -> R.drawable.bg_log_group_single
+                    firstInGroup -> R.drawable.bg_log_group_top
+                    lastInGroup -> R.drawable.bg_log_group_bottom
+                    else -> R.drawable.bg_log_group_middle
+                }
+            )
+            rowDivider.visibility = if (firstInGroup) View.GONE else View.VISIBLE
 
             Avatars.bind(avatarInitial, avatarPhoto, e.name, e.photoUri)
             name.text = e.name ?: number.ifBlank { ctx.getString(R.string.unknown_caller) }

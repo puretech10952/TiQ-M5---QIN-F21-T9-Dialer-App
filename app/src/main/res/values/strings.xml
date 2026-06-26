@@ -72,8 +72,10 @@
     <string name="hist_incoming">Incoming call</string>
     <string name="hist_outgoing">Outgoing call</string>
     <string name="hist_missed">Missed call</string>
+    <string name="hist_declined">Declined</string>
     <string name="log_message">Message</string>
     <string name="log_call">Call</string>
+    <string name="open_contact">Open contact</string>
     <string name="log_copy">Copy number</string>
     <string name="log_delete">Delete</string>
     <string name="log_history">History</string>
@@ -200,6 +202,12 @@
     <string name="ctl_resume">Resume</string>
     <string name="ctl_swap">Swap</string>
     <string name="ctl_merge">Merge</string>
+    <string name="ctl_manage_conference">Manage conference</string>
+    <string name="conference_call">Conference call</string>
+    <plurals name="conference_people">
+        <item quantity="one">%d person</item>
+        <item quantity="other">%d people</item>
+    </plurals>
     <string name="ctl_more">More</string>
     <string name="ctl_stop_record">Stop recording</string>
     <string name="route_earpiece">Earpiece</string>
@@ -233,6 +241,7 @@
     <string name="state_ringing">Incoming call</string>
     <string name="state_holding">On hold</string>
     <string name="state_disconnected">Call ended</string>
+    <string name="state_unreachable">Server unreachable</string>
 
     <!-- Recording feedback -->
     <string name="rec_started">Recording started</string>

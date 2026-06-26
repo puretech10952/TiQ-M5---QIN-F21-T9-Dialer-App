@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rounded-top card background for the bottom navigation bar. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/log_card_bg" />
+    <corners android:topLeftRadius="18dp" android:topRightRadius="18dp" />
+</shape>

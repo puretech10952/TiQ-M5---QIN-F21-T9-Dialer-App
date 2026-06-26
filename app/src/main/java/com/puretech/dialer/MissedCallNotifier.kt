@@ -30,7 +30,7 @@ object MissedCallNotifier {
         // Tap or "View" → open recents.
         val viewPi = PendingIntent.getActivity(
             context, id,
-            Intent(context, CallLogActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            Intent(context, HomeActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             piFlags()
         )
         // "Call back" → broadcast that places the call and dismisses this notification.

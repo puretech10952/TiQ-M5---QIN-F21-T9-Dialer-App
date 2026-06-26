@@ -17,4 +17,5 @@
     <color name="incall_control_active_bg">#FFFFFF</color>
     <color name="incall_control_active_icon">#202124</color>
     <color name="incall_dtmf_key_bg">#3C4043</color>
+    <color name="incall_osk_panel">#17181A</color>
 </resources>

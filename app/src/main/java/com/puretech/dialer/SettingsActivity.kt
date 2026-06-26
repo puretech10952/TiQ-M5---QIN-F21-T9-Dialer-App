@@ -6,7 +6,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.puretech.dialer.databinding.ActivitySettingsBinding
 
-/** Settings hub: theme, blocked numbers, quick responses, assisted dialing, SIMs. */
+/** Settings hub. Each row shows only the setting name; details (and any switch)
+ *  live on the setting's own page. */
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
@@ -43,59 +44,16 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, RecordingSettingsActivity::class.java))
         }
 
-        binding.switchDialpadTone.isChecked = Prefs.dialpadTone(this)
-        binding.switchDialpadTone.setOnCheckedChangeListener { _, checked ->
-            Prefs.setDialpadTone(this, checked)
-        }
-        binding.rowDialpadTone.setOnClickListener {
-            binding.switchDialpadTone.isChecked = !binding.switchDialpadTone.isChecked
-        }
-
-        binding.switchSwipeAnswer.isChecked = Prefs.swipeToAnswer(this)
-        binding.switchSwipeAnswer.setOnCheckedChangeListener { _, checked ->
-            Prefs.setSwipeToAnswer(this, checked)
-        }
-        binding.rowSwipeAnswer.setOnClickListener {
-            binding.switchSwipeAnswer.isChecked = !binding.switchSwipeAnswer.isChecked
-        }
-
-        binding.switchBlockAi.isChecked = Prefs.blockAiNumbers(this)
-        binding.switchBlockAi.setOnCheckedChangeListener { _, checked ->
-            Prefs.setBlockAiNumbers(this, checked)
-        }
-        binding.rowBlockAi.setOnClickListener {
-            binding.switchBlockAi.isChecked = !binding.switchBlockAi.isChecked
-        }
+        // On/off settings now open their own detail page (switch lives inside).
+        binding.rowDialpadTone.setOnClickListener { openToggle(ToggleSettingActivity.KEY_DIALPAD_TONE) }
+        binding.rowSwipeAnswer.setOnClickListener { openToggle(ToggleSettingActivity.KEY_SWIPE_ANSWER) }
+        binding.rowBlockAi.setOnClickListener { openToggle(ToggleSettingActivity.KEY_BLOCK_AI) }
     }
 
-
-    private fun updateFloatingSummary() {
-        binding.floatingValue.text = getString(
-            if (Prefs.floatingDialButton(this)) R.string.setting_on
-            else R.string.setting_off
-        )
-    }
-
-    override fun onResume() {
-        super.onResume()
-        binding.themeValue.text = getString(
-            when (Prefs.themeMode(this)) {
-                Prefs.THEME_LIGHT -> R.string.setting_theme_light
-                Prefs.THEME_DARK -> R.string.setting_theme_dark
-                else -> R.string.setting_theme_system
-            }
-        )
-        binding.accountsValue.text =
-            if (CallingAccounts.isMultiSim(this)) getString(R.string.setting_default_sim)
-            else getString(R.string.setting_single_sim)
-        updateFloatingSummary()
-        binding.redirectValue.text = getString(
-            if (DialerRedirectService.isEnabled(this)) R.string.setting_on
-            else R.string.setting_off
-        )
-        binding.keepAliveValue.text = getString(
-            if (Prefs.keepAlive(this)) R.string.setting_on
-            else R.string.setting_keepalive_summary
+    private fun openToggle(key: String) {
+        startActivity(
+            Intent(this, ToggleSettingActivity::class.java)
+                .putExtra(ToggleSettingActivity.EXTRA_KEY, key)
         )
     }
 

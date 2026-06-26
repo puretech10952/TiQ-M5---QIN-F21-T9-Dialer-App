@@ -16,14 +16,6 @@ class KeypadSettingsActivity : AppCompatActivity() {
 
         binding.back.setOnClickListener { finish() }
 
-        binding.switchFloating.isChecked = Prefs.floatingDialButton(this)
-        binding.switchFloating.setOnCheckedChangeListener { _, checked ->
-            Prefs.setFloatingDialButton(this, checked)
-        }
-        binding.rowToggle.setOnClickListener {
-            binding.switchFloating.isChecked = !binding.switchFloating.isChecked
-        }
-
         binding.switchDefaultOpen.isChecked = Prefs.keypadDefaultOpen(this)
         binding.switchDefaultOpen.setOnCheckedChangeListener { _, checked ->
             Prefs.setKeypadDefaultOpen(this, checked)

@@ -188,26 +188,76 @@
                 android:src="@drawable/ic_arrow_drop_down"
                 app:tint="@color/incall_subtitle" />
 
-            <GridLayout
+            <LinearLayout
                 android:id="@+id/dtmfPad"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="3"
-                android:rowCount="4">
+                android:orientation="vertical"
+                android:background="@color/incall_osk_panel"
+                android:paddingHorizontal="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="6dp">
 
-                <Button android:text="1" style="@style/DtmfKey" />
-                <Button android:text="2" style="@style/DtmfKey" />
-                <Button android:text="3" style="@style/DtmfKey" />
-                <Button android:text="4" style="@style/DtmfKey" />
-                <Button android:text="5" style="@style/DtmfKey" />
-                <Button android:text="6" style="@style/DtmfKey" />
-                <Button android:text="7" style="@style/DtmfKey" />
-                <Button android:text="8" style="@style/DtmfKey" />
-                <Button android:text="9" style="@style/DtmfKey" />
-                <Button android:text="*" style="@style/DtmfKey" />
-                <Button android:text="0" style="@style/DtmfKey" />
-                <Button android:text="#" style="@style/DtmfKey" />
-            </GridLayout>
+                <LinearLayout style="@style/DialPadRow">
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="1" />
+                        <TextView style="@style/DialPadLetters" android:text="" />
+                    </LinearLayout>
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="2" />
+                        <TextView style="@style/DialPadLetters" android:text="ABC" />
+                    </LinearLayout>
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="3" />
+                        <TextView style="@style/DialPadLetters" android:text="DEF" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/DialPadRow">
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="4" />
+                        <TextView style="@style/DialPadLetters" android:text="GHI" />
+                    </LinearLayout>
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="5" />
+                        <TextView style="@style/DialPadLetters" android:text="JKL" />
+                    </LinearLayout>
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="6" />
+                        <TextView style="@style/DialPadLetters" android:text="MNO" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/DialPadRow">
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="7" />
+                        <TextView style="@style/DialPadLetters" android:text="PQRS" />
+                    </LinearLayout>
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="8" />
+                        <TextView style="@style/DialPadLetters" android:text="TUV" />
+                    </LinearLayout>
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="9" />
+                        <TextView style="@style/DialPadLetters" android:text="WXYZ" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/DialPadRow">
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="*" />
+                        <TextView style="@style/DialPadLetters" android:text="" />
+                    </LinearLayout>
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="0" />
+                        <TextView style="@style/DialPadLetters" android:text="+" />
+                    </LinearLayout>
+                    <LinearLayout style="@style/DialPadKeyInCall">
+                        <TextView style="@style/DialPadDigit" android:text="#" />
+                        <TextView style="@style/DialPadLetters" android:text="" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 

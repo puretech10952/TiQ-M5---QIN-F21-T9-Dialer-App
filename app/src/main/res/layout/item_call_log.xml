@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<!-- Root is a per-day group cell: the adapter sets a position-aware white
+     background (rounded top/bottom of the group) so each day reads as one card. -->
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="10dp"
-    android:layout_marginTop="3dp"
-    app:cardBackgroundColor="@color/log_card_bg"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="0dp">
+    android:layout_marginHorizontal="12dp"
+    android:orientation="vertical"
+    android:background="@drawable/bg_log_group_single">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="6dp"
-        android:paddingVertical="4dp">
+        <!-- Inset split between rows of the same day (hidden on the first row). -->
+        <View
+            android:id="@+id/rowDivider"
+            style="@style/LogRowDivider"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
-        <!-- Main row: tap to expand, phone icon to call -->
+        <!-- Main row: tap to expand the shade, phone icon to call -->
         <LinearLayout
             android:id="@+id/row"
             android:layout_width="match_parent"
@@ -28,13 +28,13 @@
             android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="8dp">
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp">
 
             <FrameLayout
                 android:id="@+id/avatar"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true">
@@ -65,7 +65,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="14dp"
+                android:layout_marginStart="16dp"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -80,6 +80,7 @@
                         android:layout_height="wrap_content"
                         android:maxLines="1"
                         android:ellipsize="end"
+                        android:fontFamily="sans-serif-medium"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         tools:text="Yumi" />
@@ -98,7 +99,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="15sp"
                         android:visibility="gone"
                         tools:text="(4)"
@@ -108,7 +109,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="3dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -125,31 +126,31 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         tools:text="Mobile • 12:45 AM" />
                 </LinearLayout>
             </LinearLayout>
 
             <ImageView
                 android:id="@+id/callBtn"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/ctl_answer"
-                android:padding="11dp"
+                android:padding="12dp"
                 android:src="@drawable/ic_call_outline"
-                app:tint="?attr/colorOnSurfaceVariant" />
+                app:tint="?attr/colorPrimary" />
         </LinearLayout>
 
-        <!-- Expanded shade -->
+        <!-- Expanded shade (opens under the row on tap) -->
         <LinearLayout
             android:id="@+id/actions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="10dp"
+            android:paddingHorizontal="12dp"
             android:paddingBottom="6dp"
             android:visibility="gone"
             tools:visibility="visible">
@@ -179,6 +180,4 @@
                 android:drawableStart="@drawable/ic_content_copy"
                 android:text="@string/log_copy" />
         </LinearLayout>
-    </LinearLayout>
-
-</com.google.android.material.card.MaterialCardView>
+</LinearLayout>

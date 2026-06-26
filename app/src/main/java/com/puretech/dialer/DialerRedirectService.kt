@@ -41,7 +41,7 @@ class DialerRedirectService : AccessibilityService() {
         lastRedirect = now
 
         startActivity(
-            Intent(this, CallLogActivity::class.java).addFlags(
+            Intent(this, HomeActivity::class.java).addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_SINGLE_TOP or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or

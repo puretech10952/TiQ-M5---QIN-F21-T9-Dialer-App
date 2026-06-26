@@ -110,9 +110,9 @@ object Prefs {
     const val UPDATE_WEEKLY = 2
     const val UPDATE_MONTHLY = 3
 
-    /** How often to check GitHub for a new release in the background. Manual
-     *  (off) by default — the app never reaches the network unless asked. */
-    fun updateFrequency(c: Context) = sp(c).getInt("update_frequency", UPDATE_MANUAL)
+    /** How often to check GitHub for a new release in the background.
+     *  Defaults to a once-a-day check. */
+    fun updateFrequency(c: Context) = sp(c).getInt("update_frequency", UPDATE_DAILY)
     fun setUpdateFrequency(c: Context, mode: Int) =
         sp(c).edit().putInt("update_frequency", mode).apply()
 

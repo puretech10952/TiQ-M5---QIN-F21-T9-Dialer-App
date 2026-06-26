@@ -48,6 +48,11 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     // Fallback call-start clock for devices whose telecom returns connectTimeMillis == 0.
     private var activeSinceRealtime = 0L
     private val dtmfBuffer = StringBuilder()
+    // True once any call reached ACTIVE, so we can tell a real hang-up from a
+    // call that never connected (e.g. no service).
+    private var everConnected = false
+    // While showing "Server unreachable", hold the screen open for 2s before it closes.
+    private var errorFinishPending = false
 
     private val recordPermLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -184,7 +189,8 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         // it drives the big caller display; the ongoing call is shown small below.
         val headerCall = if (waiting != null) waiting else CallManager.primaryCall()
         if (headerCall == null && !isPreview) {
-            finishAndStopRecording()
+            // If we're showing "Server unreachable", let the 2s timer close us.
+            if (!errorFinishPending) finishAndStopRecording()
             return
         }
         headerCall?.let { bindIdentity(it) }
@@ -283,15 +289,57 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         if (CallManager.activeCall() != null && CallManager.heldCall() != null) {
             menu.add(MENU_MERGE, R.drawable.ic_merge, getString(R.string.ctl_merge))
         }
+        // In a conference, let the user manage / drop individual participants.
+        if (CallManager.conferenceChildren().size > 1) {
+            menu.add(MENU_MANAGE_CONF, R.drawable.ic_merge, getString(R.string.ctl_manage_conference))
+        }
         menu.onClick { id ->
             when (id) {
                 MENU_RECORD -> toggleRecord()
                 MENU_ADD -> addCall()
                 MENU_HOLD -> toggleHoldOrSwap()
                 MENU_MERGE -> CallManager.merge()
+                MENU_MANAGE_CONF -> showManageConference()
             }
         }
         menu.show()
+    }
+
+    /** List the conference participants; tap the end button to drop one. */
+    private fun showManageConference() {
+        val sheet = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val container = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            val pad = (12 * resources.displayMetrics.density).toInt()
+            setPadding(0, pad, 0, pad)
+        }
+        val title = android.widget.TextView(this).apply {
+            text = getString(R.string.ctl_manage_conference)
+            textSize = 18f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            val p = (20 * resources.displayMetrics.density).toInt()
+            setPadding(p, p / 2, p, p / 2)
+        }
+        container.addView(title)
+
+        fun rebuild() {
+            // Drop everything after the title and re-list current participants.
+            while (container.childCount > 1) container.removeViewAt(1)
+            val kids = CallManager.conferenceChildren()
+            if (kids.size <= 1) { sheet.dismiss(); return }
+            for (child in kids) {
+                val row = layoutInflater.inflate(R.layout.item_conference_party, container, false)
+                row.findViewById<android.widget.TextView>(R.id.partyName).text = nameFor(child)
+                row.findViewById<View>(R.id.partyEnd).setOnClickListener {
+                    CallManager.disconnectParticipant(child)
+                    row.postDelayed({ rebuild() }, 300)
+                }
+                container.addView(row)
+            }
+        }
+        rebuild()
+        sheet.setContentView(container)
+        sheet.show()
     }
 
     private fun onRouteClick() {
@@ -338,7 +386,9 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
     private fun addCall() {
         startActivity(
-            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            Intent(this, HomeActivity::class.java)
+                .putExtra(HomeActivity.EXTRA_START_TAB, HomeActivity.TAB_DIALER)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
 
@@ -376,6 +426,16 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     // --- Identity --------------------------------------------------------------
 
     private fun bindIdentity(call: Call) {
+        // A conference shows a single "Conference call" identity with the head count.
+        if (CallManager.isConference()) {
+            val n = CallManager.conferenceChildren().size
+            binding.nameText.text = getString(R.string.conference_call)
+            binding.numberText.text =
+                if (n > 0) resources.getQuantityString(R.plurals.conference_people, n, n) else ""
+            binding.numberText.visibility = if (n > 0) View.VISIBLE else View.GONE
+            Avatars.bind(binding.avatarInitial, binding.contactPhoto, null, null)
+            return
+        }
         val number = CallManager.number(call)
         val pretty = prettyNumber(number)
         val (name, photo) = lookupContact(number)
@@ -583,6 +643,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     private fun updateStatusFor(call: Call) {
         when (call.state) {
             Call.STATE_ACTIVE -> {
+                everConnected = true
                 // Start the fallback clock the first moment the call is active.
                 if (activeSinceRealtime == 0L) activeSinceRealtime = android.os.SystemClock.elapsedRealtime()
                 binding.statusText.text = formatDuration(elapsedMs()); startTimer()
@@ -590,9 +651,30 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             Call.STATE_DIALING, Call.STATE_PULLING_CALL -> { stopTimer(); binding.statusText.setText(R.string.state_dialing) }
             Call.STATE_RINGING -> { stopTimer(); binding.statusText.setText(R.string.state_ringing) }
             Call.STATE_HOLDING -> { stopTimer(); binding.statusText.setText(R.string.state_holding) }
-            Call.STATE_DISCONNECTED, Call.STATE_DISCONNECTING -> { stopTimer(); binding.statusText.setText(R.string.state_disconnected) }
+            Call.STATE_DISCONNECTED, Call.STATE_DISCONNECTING -> {
+                stopTimer()
+                if (isConnectFailure(call)) {
+                    // Couldn't reach the network: show the reason and hold 2s, then close.
+                    binding.statusText.setText(R.string.state_unreachable)
+                    if (!errorFinishPending) {
+                        errorFinishPending = true
+                        handler.postDelayed({ finishAndStopRecording() }, 2000)
+                    }
+                } else {
+                    binding.statusText.setText(R.string.state_disconnected)
+                }
+            }
             else -> { stopTimer(); binding.statusText.setText(R.string.state_connecting) }
         }
+    }
+
+    /** A call that ended with an error before it ever connected — e.g. no service. */
+    @Suppress("DEPRECATION")
+    private fun isConnectFailure(call: Call): Boolean {
+        if (everConnected) return false
+        val code = call.details?.disconnectCause?.code ?: return false
+        return code == android.telecom.DisconnectCause.ERROR ||
+            code == android.telecom.DisconnectCause.BUSY
     }
 
     private fun startTimer() {
@@ -659,5 +741,6 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         private const val MENU_HOLD = 103
         private const val MENU_MERGE = 104
         private const val MENU_RECORD = 105
+        private const val MENU_MANAGE_CONF = 106
     }
 }

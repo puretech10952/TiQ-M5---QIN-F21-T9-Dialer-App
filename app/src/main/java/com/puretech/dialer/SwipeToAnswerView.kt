@@ -36,7 +36,9 @@ class SwipeToAnswerView @JvmOverloads constructor(
     private val labelGrey = 0xFF3C4043.toInt()
 
     private val handleRadius = dp(33f)
-    private val pillHalfHeight = dp(26f)
+    // Pill is a pinch taller than the ball (≈3dp margin each side) so the handle
+    // nests inside it instead of overflowing.
+    private val pillHalfHeight = dp(36f)
     private val inset = dp(2f)
     private val iconHalf = dp(13f)
 
@@ -85,7 +87,7 @@ class SwipeToAnswerView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val w = resolveSize(dp(300f).toInt(), widthMeasureSpec)
-        val desiredH = (handleRadius * 2 + dp(8f)).toInt()
+        val desiredH = (maxOf(handleRadius * 2, pillHalfHeight * 2) + dp(8f)).toInt()
         val h = resolveSize(desiredH, heightMeasureSpec)
         setMeasuredDimension(w, h)
     }

@@ -62,8 +62,11 @@ object CallLogRepository {
             CallLog.Calls.DATE,
             CallLog.Calls.FEATURES
         )
-        val selection = if (missedOnly) "${CallLog.Calls.TYPE} = ?" else null
-        val args = if (missedOnly) arrayOf(CallLog.Calls.MISSED_TYPE.toString()) else null
+        // "Missed" includes declined/rejected calls.
+        val selection = if (missedOnly) "${CallLog.Calls.TYPE} IN (?, ?)" else null
+        val args = if (missedOnly) arrayOf(
+            CallLog.Calls.MISSED_TYPE.toString(), CallLog.Calls.REJECTED_TYPE.toString()
+        ) else null
 
         // Resolve SIM labels once per load (only meaningful on dual-SIM devices).
         val simLabels: Map<String, String> =

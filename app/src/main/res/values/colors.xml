@@ -22,5 +22,6 @@
     <color name="incall_control_icon">#202124</color>
     <color name="incall_control_active_bg">#202124</color>
     <color name="incall_control_active_icon">#FFFFFF</color>
-    <color name="incall_dtmf_key_bg">#E8EAED</color>
+    <color name="incall_dtmf_key_bg">#FFFFFF</color>
+    <color name="incall_osk_panel">#E2E4E8</color>
 </resources>
