@@ -103,6 +103,12 @@ object Prefs {
     fun setBlockAiNumbers(c: Context, on: Boolean) =
         sp(c).edit().putBoolean("block_ai_numbers", on).apply()
 
+    /** Reject incoming calls from numbers that aren't saved contacts (and
+     *  withheld/private numbers). Off by default. */
+    fun blockUnknownCallers(c: Context) = sp(c).getBoolean("block_unknown_callers", false)
+    fun setBlockUnknownCallers(c: Context, on: Boolean) =
+        sp(c).edit().putBoolean("block_unknown_callers", on).apply()
+
     // --- Automatic update checks --------------------------------------------
 
     const val UPDATE_MANUAL = 0

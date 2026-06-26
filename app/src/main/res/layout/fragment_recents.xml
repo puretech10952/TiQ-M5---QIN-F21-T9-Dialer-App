@@ -16,7 +16,7 @@
         android:layout_marginHorizontal="12dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="6dp"
-        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerLowest"
         app:cardCornerRadius="28dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
@@ -27,7 +27,7 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="8dp"
-            android:paddingEnd="16dp">
+            android:paddingEnd="6dp">
 
             <ImageView
                 android:id="@+id/btnMenu"
@@ -53,6 +53,18 @@
                 android:maxLines="1"
                 android:textSize="16sp"
                 android:importantForAutofill="no" />
+
+            <ImageView
+                android:id="@+id/btnVoiceSearch"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/voice_search"
+                android:padding="8dp"
+                android:src="@drawable/ic_mic"
+                app:tint="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -183,6 +195,7 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="12dp"
                     android:paddingBottom="4dp"
+                    android:layoutAnimation="@anim/fav_layout"
                     android:visibility="gone"
                     tools:visibility="visible" />
             </LinearLayout>

@@ -66,22 +66,52 @@ object Avatars {
         // Stamp the target so a late decode for a previous binding is ignored.
         photo.setTag(R.id.avatar_key, key)
 
-        // Always start from the placeholder so there's never a blank/stale frame.
-        showPlaceholder(initial, photo, name)
+        if (photoUri == null) {
+            // No photo: a colored initial or a grey person, full size.
+            showPlaceholder(initial, photo, name)
+            return
+        }
 
-        if (photoUri == null) return
-
+        // Cached photo: show it straight away, no flicker.
         cache.get(key)?.let { showBitmap(initial, photo, it); return }
+
+        // Photo still loading: show a FULL-SIZE neutral placeholder (the initial, or a
+        // plain grey circle) so the avatar never shrinks to the small padded icon and
+        // then jumps back when the photo arrives.
+        showLoadingPlaceholder(initial, photo, name)
 
         executor.execute {
             val bmp = decode(photo.context.applicationContext, photoUri)
             if (bmp != null) cache.put(key, bmp)
             main.post {
                 // Only apply if this view still wants this exact photo.
-                if (photo.getTag(R.id.avatar_key) == key && bmp != null) {
-                    showBitmap(initial, photo, bmp)
+                if (photo.getTag(R.id.avatar_key) == key) {
+                    if (bmp != null) showBitmap(initial, photo, bmp)
+                    else showPlaceholder(initial, photo, name)  // decode failed
                 }
             }
+        }
+    }
+
+    /** Full-size placeholder while a photo loads: colored initial if we have a name,
+     *  otherwise a plain grey circle (no small padded icon → no size jump). */
+    private fun showLoadingPlaceholder(initial: TextView, photo: ShapeableImageView, name: String?) {
+        val ch = initialOf(name)
+        if (ch != null) {
+            photo.setImageDrawable(null)
+            photo.visibility = View.GONE
+            initial.text = ch.toString()
+            initial.backgroundTintList = ColorStateList.valueOf(colorFor(name ?: ""))
+            initial.visibility = View.VISIBLE
+        } else {
+            initial.visibility = View.GONE
+            photo.setImageDrawable(null)
+            photo.setPadding(0, 0, 0, 0)
+            photo.scaleType = ImageView.ScaleType.CENTER_CROP
+            photo.setBackgroundResource(R.drawable.bg_circle_solid)
+            photo.backgroundTintList = ColorStateList.valueOf(GREY_BG)
+            photo.imageTintList = null
+            photo.visibility = View.VISIBLE
         }
     }
 

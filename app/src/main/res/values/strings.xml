@@ -81,6 +81,8 @@
     <string name="log_history">History</string>
     <string name="log_add_contact">Add to contacts</string>
     <string name="search_hint">Search contacts</string>
+    <string name="voice_search">Search by voice</string>
+    <string name="voice_search_unavailable">Voice search isn\'t available</string>
     <string name="nav_contacts">Contacts</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_durations">Call durations</string>
@@ -97,6 +99,8 @@
     <string name="delete_entry">Delete entry</string>
     <string name="number_blocked">Number blocked</string>
     <string name="entry_deleted">Call deleted</string>
+    <string name="history_delete">Delete history</string>
+    <string name="history_delete_confirm">Delete all call history for this number?</string>
 
     <!-- Settings entries -->
     <string name="setting_theme">Theme</string>
@@ -242,6 +246,7 @@
     <string name="state_holding">On hold</string>
     <string name="state_disconnected">Call ended</string>
     <string name="state_unreachable">Server unreachable</string>
+    <string name="wifi_call">Wi-Fi call</string>
 
     <!-- Recording feedback -->
     <string name="rec_started">Recording started</string>
@@ -261,6 +266,8 @@
     <string name="setting_swipe_answer_summary">Slide a button sideways to answer or decline incoming calls, instead of tapping</string>
     <string name="setting_block_ai">Block AI phone numbers</string>
     <string name="setting_block_ai_summary">Experimental — stop calls to AI voice services (like 1-800-ChatGPT), even from a contact</string>
+    <string name="setting_block_unknown">Block unknown callers</string>
+    <string name="setting_block_unknown_summary">Silently reject incoming calls from numbers that aren\'t saved in your contacts, including withheld or private numbers.</string>
     <string name="ai_block_toast">This is an AI phone number and is blocked in Settings</string>
     <string name="swipe_to_answer_hint">Slide to answer or decline</string>
     <string name="setting_on">On</string>

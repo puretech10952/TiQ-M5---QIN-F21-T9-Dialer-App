@@ -8,6 +8,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="12dp"
+    android:layout_marginTop="4dp"
     android:orientation="vertical"
     android:background="@drawable/bg_log_group_single">
 
@@ -94,6 +95,16 @@
                         android:visibility="gone"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
+                    <ImageView
+                        android:id="@+id/wifi"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_marginStart="6dp"
+                        android:src="@drawable/ic_wifi_call"
+                        android:contentDescription="@string/wifi_call"
+                        android:visibility="gone"
+                        app:tint="@color/call_arrow_incoming" />
+
                     <TextView
                         android:id="@+id/count"
                         android:layout_width="wrap_content"
@@ -150,8 +161,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="12dp"
-            android:paddingBottom="6dp"
+            android:paddingHorizontal="10dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="8dp"
             android:visibility="gone"
             tools:visibility="visible">
 

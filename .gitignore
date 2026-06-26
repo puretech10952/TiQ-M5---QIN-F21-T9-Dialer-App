@@ -39,6 +39,8 @@ captures/
 *.jks
 *.keystore
 android-cacerts.jks
+keystore.properties
+*.lineage
 
 # OS files
 .DS_Store

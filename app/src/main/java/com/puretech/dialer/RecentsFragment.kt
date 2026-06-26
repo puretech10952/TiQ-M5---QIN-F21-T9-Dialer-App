@@ -47,6 +47,31 @@ class RecentsFragment : Fragment() {
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) reload() else showEmpty(getString(R.string.log_perm_needed)) }
 
+    // Voice result, applied in onTabResumed (host onResume clears the field first).
+    private var pendingVoiceQuery: String? = null
+
+    private val voiceSearchLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val spoken = result.data
+                ?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+            if (!spoken.isNullOrBlank()) {
+                pendingVoiceQuery = spoken
+                if (_binding != null) binding.searchInput.post { applyPendingVoiceQuery() }
+            }
+        }
+    }
+
+    private fun applyPendingVoiceQuery() {
+        val q = pendingVoiceQuery ?: return
+        pendingVoiceQuery = null
+        if (_binding == null) return
+        binding.searchInput.setText(q)
+        binding.searchInput.setSelection(q.length)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -77,6 +102,7 @@ class RecentsFragment : Fragment() {
         binding.searchInput.doAfterTextChanged { onSearchChanged(it?.toString().orEmpty()) }
         binding.favoritesToggle.setOnClickListener { toggleFavorites() }
         binding.viewContacts.setOnClickListener { openContactsApp() }
+        binding.btnVoiceSearch.setOnClickListener { startVoiceSearch() }
 
         loadContacts()
         ensureLogPermission()
@@ -101,6 +127,8 @@ class RecentsFragment : Fragment() {
         clearMissedCalls()
         if (binding.searchInput.text.isNullOrBlank() && hasLogPermission()) reload()
         if (binding.searchInput.text.isNullOrBlank()) loadContacts()
+        // Apply a voice-search result captured while we were away (after the reset).
+        applyPendingVoiceQuery()
     }
 
     /** Home re-tap while already on Recents. */
@@ -179,6 +207,8 @@ class RecentsFragment : Fragment() {
     private fun toggleFavorites() {
         val show = binding.favoritesStrip.visibility != View.VISIBLE
         binding.favoritesStrip.visibility = if (show) View.VISIBLE else View.GONE
+        // Play the fade + scale-up "pop in" when the strip is opened.
+        if (show) binding.favoritesStrip.scheduleLayoutAnimation()
         Prefs.setFavoritesExpanded(requireContext(), show)
         updateFavoritesArrow()
     }
@@ -425,6 +455,22 @@ class RecentsFragment : Fragment() {
         val n = pendingNumber ?: return
         pendingNumber = null
         Dialer.place(requireContext(), n)
+    }
+
+    /** Launch the system (Google) speech recognizer; the result fills the search box. */
+    private fun startVoiceSearch() {
+        val intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_search))
+        }
+        try {
+            voiceSearchLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), R.string.voice_search_unavailable, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun openContactsApp() {

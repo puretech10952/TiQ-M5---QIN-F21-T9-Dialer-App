@@ -16,7 +16,6 @@ import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
@@ -197,6 +196,10 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         headerCall?.let { updateStatusFor(it) }
         binding.hdIcon.visibility =
             if (headerCall != null && CallManager.isHighDef(headerCall)) View.VISIBLE else View.GONE
+        @Suppress("DEPRECATION")
+        binding.wifiIcon.visibility =
+            if (headerCall?.details?.hasProperty(Call.Details.PROPERTY_WIFI) == true)
+                View.VISIBLE else View.GONE
 
         when {
             waiting != null -> {
@@ -302,6 +305,9 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
                 MENU_MANAGE_CONF -> showManageConference()
             }
         }
+        // Highlight the 3-dot button (black icon on the light pill) while open.
+        setActive(binding.btnMore, true)
+        menu.onDismiss = { setActive(binding.btnMore, false) }
         menu.show()
     }
 
@@ -601,11 +607,21 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     // --- DTMF ------------------------------------------------------------------
 
     private fun setupDtmfPad() {
-        val pad = binding.dtmfPad
-        for (i in 0 until pad.childCount) {
-            val btn = pad.getChildAt(i) as? Button ?: continue
-            val ch = btn.text.toString().firstOrNull() ?: continue
-            btn.setOnClickListener { onDtmf(ch) }
+        // Keys are now LinearLayout cells (digit + letters) like the dialer pad, so
+        // walk the rows and wire each cell by the digit in its first TextView.
+        wireDtmfKeys(binding.dtmfPad)
+    }
+
+    private fun wireDtmfKeys(group: android.view.ViewGroup) {
+        for (i in 0 until group.childCount) {
+            val child = group.getChildAt(i) as? android.view.ViewGroup ?: continue
+            val ch = (child.getChildAt(0) as? android.widget.TextView)
+                ?.text?.toString()?.firstOrNull()
+            if (ch != null && (ch.isDigit() || ch == '*' || ch == '#')) {
+                child.setOnClickListener { onDtmf(ch) }
+            } else {
+                wireDtmfKeys(child)   // recurse into the row
+            }
         }
     }
 

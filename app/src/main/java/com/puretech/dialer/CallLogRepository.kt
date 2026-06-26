@@ -15,6 +15,7 @@ data class CallLogEntry(
     val date: Long,
     val count: Int,
     val isHd: Boolean,
+    val isWifi: Boolean = false,
     /** Phone number type (Mobile/Home/Work…) cached on the call, when known. */
     val numberType: Int = 0,
     val numberLabel: String? = null,
@@ -44,6 +45,7 @@ data class CallStats(
 object CallLogRepository {
 
     private const val FEATURE_HD_VOICE = 0x04  // CallLog.Calls.FEATURES_HD_VOICE
+    private const val FEATURE_WIFI = 0x08      // CallLog.Calls.FEATURES_WIFI
 
     fun load(context: Context, missedOnly: Boolean = false, limit: Int = 200): List<CallLogEntry> {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
@@ -109,6 +111,7 @@ object CallLogRepository {
                 raw.add(
                     CallLogEntry(
                         number, name, photo, type, date, 1, (feat and FEATURE_HD_VOICE) != 0,
+                        isWifi = (feat and FEATURE_WIFI) != 0,
                         numberType = nType, numberLabel = nLabel, geocoded = geo,
                         simLabel = simLabels[acctId]
                     )
@@ -188,7 +191,8 @@ object CallLogRepository {
             if (last != null && sameNumber(last.number, e.number)) {
                 out[out.size - 1] = last.copy(
                     count = last.count + 1,
-                    isHd = last.isHd || e.isHd
+                    isHd = last.isHd || e.isHd,
+                    isWifi = last.isWifi || e.isWifi
                 )
             } else {
                 out.add(e)

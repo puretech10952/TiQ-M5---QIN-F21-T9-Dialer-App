@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <bool name="incall_light_status">false</bool>
+    <bool name="light_status_icons">false</bool>
 </resources>

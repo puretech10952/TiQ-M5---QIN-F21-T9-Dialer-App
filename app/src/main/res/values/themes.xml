@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Theme.M5Dialer" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:statusBarColor">?attr/colorSurface</item>
-        <item name="android:navigationBarColor">?attr/colorSurface</item>
-        <!-- Dark status-bar icons on the light dialer surface, so the bar is readable -->
-        <item name="android:windowLightStatusBar">true</item>
+        <!-- Match the app's themed background so the bar blends in. -->
+        <item name="android:statusBarColor">?attr/colorSurfaceContainer</item>
+        <item name="android:navigationBarColor">?attr/colorSurfaceContainer</item>
+        <!-- Icon contrast follows the theme: dark icons in light, light icons in dark. -->
+        <item name="android:windowLightStatusBar">@bool/light_status_icons</item>
+        <item name="android:windowLightNavigationBar">@bool/light_status_icons</item>
     </style>
 
     <!-- In-call screen: follows the app's light/dark theme via @color/incall_* -->
@@ -59,14 +61,14 @@
     <style name="LogShadeButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">52dp</item>
-        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:layout_marginTop">4dp</item>
         <item name="android:background">@drawable/bg_log_shade</item>
         <item name="android:gravity">start|center_vertical</item>
-        <item name="android:drawablePadding">20dp</item>
+        <item name="android:drawablePadding">24dp</item>
         <item name="android:paddingStart">20dp</item>
         <item name="android:paddingEnd">20dp</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
@@ -156,22 +158,20 @@
         <item name="cardCornerRadius">24dp</item>
         <item name="cardElevation">0dp</item>
         <item name="cardBackgroundColor">?attr/colorSurfaceContainerLowest</item>
+        <!-- No outline; the grouped rows provide the shape (avoids a "cage" border). -->
+        <item name="strokeWidth">0dp</item>
     </style>
 
-    <!-- Thin divider between call-log rows in a day group (inset under the text). -->
+    <!-- Small transparent gap that separates rows of the same group (≈1mm). -->
     <style name="LogRowDivider">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">1dp</item>
-        <item name="android:layout_marginStart">78dp</item>
-        <item name="android:background">?attr/colorOutlineVariant</item>
+        <item name="android:layout_height">4dp</item>
     </style>
 
-    <!-- Thin divider between rows inside a settings card (inset under the title). -->
+    <!-- Small transparent gap between rows inside a settings group. -->
     <style name="SettingRowDivider">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">1dp</item>
-        <item name="android:layout_marginStart">68dp</item>
-        <item name="android:background">?attr/colorOutlineVariant</item>
+        <item name="android:layout_height">4dp</item>
     </style>
 
     <style name="SettingRowM3">
@@ -181,7 +181,7 @@
         <item name="android:gravity">center_vertical</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
-        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:background">@drawable/bg_rowgroup_middle</item>
         <item name="android:paddingHorizontal">20dp</item>
         <item name="android:paddingVertical">16dp</item>
     </style>

@@ -24,6 +24,9 @@ class CardMenu(private val context: Context, private val anchor: View) {
 
     private val items = ArrayList<Item>()
     private var listener: ((Int) -> Unit)? = null
+    /** Called when the popup closes (tap or outside dismiss) — used to reset the
+     *  anchor's active state. */
+    var onDismiss: (() -> Unit)? = null
 
     fun add(id: Int, iconRes: Int, title: CharSequence, selected: Boolean = false): CardMenu {
         items.add(Item(id, iconRes, title, selected))
@@ -63,6 +66,7 @@ class CardMenu(private val context: Context, private val anchor: View) {
         popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         popup.elevation = 8f * context.resources.displayMetrics.density
         popup.isOutsideTouchable = true
+        popup.setOnDismissListener { onDismiss?.invoke() }
 
         // Place the card above the anchor (in-call controls sit near the bottom).
         card.measure(

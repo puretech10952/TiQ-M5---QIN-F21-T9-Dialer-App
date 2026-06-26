@@ -7,6 +7,12 @@ import com.google.android.material.color.DynamicColors
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
+        // Anti-tamper: if the app was modified and re-signed with a different key
+        // (any code/resource/package change requires re-signing), refuse to run.
+        if (!IntegrityGuard.isGenuine(this)) {
+            android.os.Process.killProcess(android.os.Process.myPid())
+            return
+        }
         // Unlock vendor hidden APIs (MTK InCallService.doMtkAction) for call recording.
         HiddenApi.unseal()
         Prefs.applyTheme(Prefs.themeMode(this))

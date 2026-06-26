@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/log_screen_bg"
+    android:background="?attr/colorSurfaceContainer"
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
@@ -84,6 +84,18 @@
                 android:textSize="13sp"
                 tools:text="+1 845-500-9824" />
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/menu"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="10dp"
+            android:src="@drawable/ic_more"
+            android:contentDescription="@string/dial_more_options"
+            app:tint="?attr/colorOnSurface" />
     </LinearLayout>
 
     <!-- Total talk time is now the first row of the list (scrolls with it). -->

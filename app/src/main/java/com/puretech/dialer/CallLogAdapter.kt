@@ -93,6 +93,7 @@ class CallLogAdapter(
         private val name: TextView = view.findViewById(R.id.name)
         private val count: TextView = view.findViewById(R.id.count)
         private val hd: ImageView = view.findViewById(R.id.hd)
+        private val wifi: ImageView = view.findViewById(R.id.wifi)
         private val typeIcon: ImageView = view.findViewById(R.id.typeIcon)
         private val time: TextView = view.findViewById(R.id.time)
         private val callBtn: ImageView = view.findViewById(R.id.callBtn)
@@ -109,16 +110,19 @@ class CallLogAdapter(
             val red = ContextCompat.getColor(ctx, R.color.missed_red)
             val number = formatNumber(e.number)
 
-            // Group consecutive same-day rows into one rounded white card.
+            // One rounded card per day: only the group's outer corners are rounded;
+            // a small gap (the item's top margin) separates rows of the same day.
+            // An expanded entry becomes its own fully-rounded standalone card.
             itemView.setBackgroundResource(
                 when {
+                    expanded -> R.drawable.bg_log_group_single
                     firstInGroup && lastInGroup -> R.drawable.bg_log_group_single
                     firstInGroup -> R.drawable.bg_log_group_top
                     lastInGroup -> R.drawable.bg_log_group_bottom
                     else -> R.drawable.bg_log_group_middle
                 }
             )
-            rowDivider.visibility = if (firstInGroup) View.GONE else View.VISIBLE
+            rowDivider.visibility = View.GONE
 
             Avatars.bind(avatarInitial, avatarPhoto, e.name, e.photoUri)
             name.text = e.name ?: number.ifBlank { ctx.getString(R.string.unknown_caller) }
@@ -128,6 +132,7 @@ class CallLogAdapter(
                 typeIcon.visibility = View.GONE
                 count.visibility = View.GONE
                 hd.visibility = View.GONE
+                wifi.visibility = View.GONE
                 time.text = number
                 time.setTextColor(variant)
             } else {
@@ -138,6 +143,7 @@ class CallLogAdapter(
                 count.text = if (e.count > 1) "(${e.count})" else ""
                 count.visibility = if (e.count > 1) View.VISIBLE else View.GONE
                 hd.visibility = if (e.isHd) View.VISIBLE else View.GONE
+                wifi.visibility = if (e.isWifi) View.VISIBLE else View.GONE
                 typeIcon.visibility = View.VISIBLE
                 typeIcon.setImageResource(
                     when (e.type) {
@@ -168,6 +174,15 @@ class CallLogAdapter(
             // Add-contact only for unknown numbers in the real call log.
             actionAddContact.visibility =
                 if (!e.asContact && e.name == null) View.VISIBLE else View.GONE
+
+            // Grouped-card shade (top/middle/bottom) like settings & the call log.
+            val addShown = actionAddContact.visibility == View.VISIBLE
+            actionAddContact.setBackgroundResource(R.drawable.bg_shade_top)
+            actionMessage.setBackgroundResource(
+                if (addShown) R.drawable.bg_shade_middle else R.drawable.bg_shade_top
+            )
+            actionHistory.setBackgroundResource(R.drawable.bg_shade_middle)
+            actionCopy.setBackgroundResource(R.drawable.bg_shade_bottom)
 
             callBtn.setOnClickListener { onCall(e) }
             row.setOnClickListener { toggle(bindingAdapterPosition) }

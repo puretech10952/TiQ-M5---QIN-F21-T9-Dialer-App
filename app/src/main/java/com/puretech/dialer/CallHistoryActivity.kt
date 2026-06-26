@@ -48,6 +48,7 @@ class CallHistoryActivity : AppCompatActivity() {
         Avatars.bind(binding.avatarInitial, binding.avatarPhoto, name, lookupPhoto(number))
 
         binding.back.setOnClickListener { finish() }
+        binding.menu.setOnClickListener { showMenu(it) }
         binding.callFab.setOnClickListener { callNumber() }
         binding.msgBtn.setOnClickListener {
             try {
@@ -100,6 +101,82 @@ class CallHistoryActivity : AppCompatActivity() {
 
     private fun placeCall() {
         Dialer.place(this, Dialer.normalize(this, number))
+    }
+
+    // --- Overflow menu ---------------------------------------------------------
+
+    private fun showMenu(anchor: View) {
+        if (number.isBlank()) return
+        androidx.appcompat.widget.PopupMenu(this, anchor).apply {
+            menu.add(0, 1, 0, R.string.log_copy)
+            menu.add(0, 2, 1, R.string.opt_edit)
+            menu.add(0, 3, 2, R.string.block_number)
+            menu.add(0, 4, 3, R.string.history_delete)
+            setOnMenuItemClickListener {
+                when (it.itemId) {
+                    1 -> { copyNumber(); true }
+                    2 -> { editBeforeCall(); true }
+                    3 -> { blockNumber(); true }
+                    4 -> { deleteHistory(); true }
+                    else -> false
+                }
+            }
+            show()
+        }
+    }
+
+    private fun copyNumber() {
+        val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        cm.setPrimaryClip(android.content.ClipData.newPlainText("number", number))
+        android.widget.Toast.makeText(this, R.string.copied, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    /** Open the dialer with this number pre-entered so it can be edited before calling. */
+    private fun editBeforeCall() {
+        startActivity(
+            android.content.Intent(this, HomeActivity::class.java)
+                .setAction(android.content.Intent.ACTION_DIAL)
+                .setData(Uri.fromParts("tel", number, null))
+        )
+    }
+
+    private fun blockNumber() {
+        val ctx = applicationContext
+        val n = number
+        Thread {
+            BlockedNumbers.add(ctx, n)
+            runOnUiThread {
+                android.widget.Toast.makeText(this, R.string.number_blocked, android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }.start()
+    }
+
+    private fun deleteHistory() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setMessage(R.string.history_delete_confirm)
+            .setPositiveButton(R.string.log_delete) { _, _ -> doDeleteHistory() }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun doDeleteHistory() {
+        val ctx = applicationContext
+        val digits = number.filter { it.isDigit() }
+        val last = if (digits.length >= 7) digits.takeLast(7) else digits
+        Thread {
+            try {
+                ctx.contentResolver.delete(
+                    CallLog.Calls.CONTENT_URI,
+                    "${CallLog.Calls.NUMBER} LIKE ?", arrayOf("%$last")
+                )
+            } catch (e: Exception) {
+                android.util.Log.w("M5CallHistory", "delete failed: ${e.message}")
+            }
+            runOnUiThread {
+                android.widget.Toast.makeText(this, R.string.entry_deleted, android.widget.Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }.start()
     }
 
     // --- Rows / grouping -------------------------------------------------------
@@ -168,7 +245,11 @@ class CallHistoryActivity : AppCompatActivity() {
             when (val row = rows[position]) {
                 is Row.Total -> (holder as TotalVH).bind(row.totalSecs, row.count)
                 is Row.Header -> (holder as HeaderVH).label.text = row.label
-                is Row.Item -> (holder as ItemVH).bind(row.detail)
+                is Row.Item -> {
+                    val first = position == 0 || rows[position - 1] !is Row.Item
+                    val last = position == rows.size - 1 || rows[position + 1] !is Row.Item
+                    (holder as ItemVH).bind(row.detail, first, last)
+                }
             }
         }
 
@@ -193,11 +274,20 @@ class CallHistoryActivity : AppCompatActivity() {
             private val time: TextView = view.findViewById(R.id.time)
             private val duration: TextView = view.findViewById(R.id.duration)
 
-            fun bind(d: CallDetail) {
+            fun bind(d: CallDetail, firstInGroup: Boolean, lastInGroup: Boolean) {
                 val ctx = title.context
                 val missed = d.type == CallLog.Calls.MISSED_TYPE || d.type == CallLog.Calls.REJECTED_TYPE
                 val red = ContextCompat.getColor(ctx, R.color.missed_red)
                 val onSurface = ctx.themeColor(com.google.android.material.R.attr.colorOnSurface)
+
+                itemView.setBackgroundResource(
+                    when {
+                        firstInGroup && lastInGroup -> R.drawable.bg_log_group_single
+                        firstInGroup -> R.drawable.bg_log_group_top
+                        lastInGroup -> R.drawable.bg_log_group_bottom
+                        else -> R.drawable.bg_log_group_middle
+                    }
+                )
 
                 title.text = getString(
                     when (d.type) {

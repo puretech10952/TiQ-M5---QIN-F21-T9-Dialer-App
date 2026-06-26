@@ -48,6 +48,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowDialpadTone.setOnClickListener { openToggle(ToggleSettingActivity.KEY_DIALPAD_TONE) }
         binding.rowSwipeAnswer.setOnClickListener { openToggle(ToggleSettingActivity.KEY_SWIPE_ANSWER) }
         binding.rowBlockAi.setOnClickListener { openToggle(ToggleSettingActivity.KEY_BLOCK_AI) }
+        binding.rowBlockUnknown.setOnClickListener { openToggle(ToggleSettingActivity.KEY_BLOCK_UNKNOWN) }
     }
 
     private fun openToggle(key: String) {

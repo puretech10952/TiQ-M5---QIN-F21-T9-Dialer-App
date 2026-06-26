@@ -98,7 +98,9 @@
             <com.google.android.material.card.MaterialCardView
                 style="@style/SettingsGroupCard"
                 android:layout_marginHorizontal="0dp"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -106,7 +108,7 @@
                     android:orientation="vertical">
 
                     <LinearLayout android:id="@+id/cardIncoming" style="@style/StatRow"
-                        android:background="?attr/selectableItemBackground"
+                        android:background="@drawable/bg_rowgroup_top"
                         android:clickable="true" android:focusable="true">
 
                         <ImageView style="@style/StatIcon"
@@ -126,7 +128,7 @@
                     <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/cardOutgoing" style="@style/StatRow"
-                        android:background="?attr/selectableItemBackground"
+                        android:background="@drawable/bg_rowgroup_middle"
                         android:clickable="true" android:focusable="true">
 
                         <ImageView style="@style/StatIcon"
@@ -146,7 +148,7 @@
                     <View style="@style/SettingRowDivider" />
 
                     <LinearLayout android:id="@+id/cardMissed" style="@style/StatRow"
-                        android:background="?attr/selectableItemBackground"
+                        android:background="@drawable/bg_rowgroup_bottom"
                         android:clickable="true" android:focusable="true">
 
                         <ImageView style="@style/StatIcon"

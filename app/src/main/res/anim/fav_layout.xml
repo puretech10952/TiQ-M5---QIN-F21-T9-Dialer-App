@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Staggers the favorite-item animation so they pop in one after another. -->
+<layoutAnimation xmlns:android="http://schemas.android.com/apk/res/android"
+    android:animation="@anim/fav_item_in"
+    android:delay="12%"
+    android:animationOrder="normal" />

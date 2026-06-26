@@ -2,4 +2,6 @@
 <resources>
     <!-- Light in-call background → dark status-bar icons. Overridden in values-night. -->
     <bool name="incall_light_status">true</bool>
+    <!-- Light app background (light theme) → dark status/nav-bar icons. Night = false. -->
+    <bool name="light_status_icons">true</bool>
 </resources>

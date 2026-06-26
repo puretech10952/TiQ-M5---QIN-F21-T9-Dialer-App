@@ -35,6 +35,12 @@ class CallService : InCallService() {
                 call.reject(false, null)
                 return
             }
+            // Optional: reject callers that aren't saved contacts (and withheld numbers).
+            if (Prefs.blockUnknownCallers(this) && isUnknownCaller(number)) {
+                Log.d(TAG, "rejecting unknown caller")
+                call.reject(false, null)
+                return
+            }
         }
 
         CallManager.service = this
@@ -49,6 +55,16 @@ class CallService : InCallService() {
             Intent(this, InCallActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
+    }
+
+    /** True when the caller is withheld/private or not a saved contact. Returns
+     *  false if we can't read contacts, so we never reject everyone by mistake. */
+    private fun isUnknownCaller(number: String?): Boolean {
+        if (number.isNullOrBlank()) return true   // private / withheld
+        if (checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
+            != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) return false
+        return ContactsRepository.displayName(this, number) == null
     }
 
     override fun onCallRemoved(call: Call) {

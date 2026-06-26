@@ -1,6 +1,5 @@
 package com.puretech.dialer
 
-import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,6 +25,7 @@ class SuggestionAdapter(
     }
 
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val avatarInitial: TextView = view.findViewById(R.id.avatarInitial)
         val photo: ShapeableImageView = view.findViewById(R.id.photo)
         val name: TextView = view.findViewById(R.id.name)
         val number: TextView = view.findViewById(R.id.number)
@@ -52,22 +52,21 @@ class SuggestionAdapter(
         holder.name.text = c.name.ifBlank { c.number }
         holder.number.text = c.number
 
-        if (c.photoUri != null) {
-            // Real photo: clear the tint (otherwise it paints over the photo).
-            holder.photo.imageTintList = null
-            holder.photo.setPadding(0, 0, 0, 0)
-            holder.photo.setImageURI(c.photoUri)
-            if (holder.photo.drawable == null) applyFallbackAvatar(holder) // uri failed
-        } else {
-            applyFallbackAvatar(holder)
-        }
-    }
+        // Grouped card: only the list's outer corners are rounded; rows are split
+        // by a small gap (the item's top margin).
+        val first = position == 0
+        val last = position == items.size - 1
+        holder.itemView.setBackgroundResource(
+            when {
+                first && last -> R.drawable.bg_group_row
+                first -> R.drawable.bg_rowgroup_top
+                last -> R.drawable.bg_rowgroup_bottom
+                else -> R.drawable.bg_rowgroup_middle
+            }
+        )
 
-    private fun applyFallbackAvatar(holder: VH) {
-        val pad = (8 * holder.itemView.resources.displayMetrics.density).toInt()
-        holder.photo.setPadding(pad, pad, pad, pad)
-        holder.photo.imageTintList = ColorStateList.valueOf(0xFF5F6368.toInt())
-        holder.photo.setImageResource(R.drawable.ic_person)
+        // Same avatar pipeline as the call log (cached, recycle-safe, no size jump).
+        Avatars.bind(holder.avatarInitial, holder.photo, c.name.ifBlank { null }, c.photoUri)
     }
 
     override fun getItemCount(): Int = items.size

@@ -23,6 +23,7 @@ class ToggleSettingActivity : AppCompatActivity() {
             KEY_DIALPAD_TONE -> R.string.setting_dialpad_tone to R.string.setting_dialpad_tone_summary
             KEY_SWIPE_ANSWER -> R.string.setting_swipe_answer to R.string.setting_swipe_answer_summary
             KEY_BLOCK_AI -> R.string.setting_block_ai to R.string.setting_block_ai_summary
+            KEY_BLOCK_UNKNOWN -> R.string.setting_block_unknown to R.string.setting_block_unknown_summary
             else -> { finish(); return }
         }
 
@@ -42,6 +43,7 @@ class ToggleSettingActivity : AppCompatActivity() {
         KEY_DIALPAD_TONE -> Prefs.dialpadTone(this)
         KEY_SWIPE_ANSWER -> Prefs.swipeToAnswer(this)
         KEY_BLOCK_AI -> Prefs.blockAiNumbers(this)
+        KEY_BLOCK_UNKNOWN -> Prefs.blockUnknownCallers(this)
         else -> false
     }
 
@@ -49,6 +51,7 @@ class ToggleSettingActivity : AppCompatActivity() {
         KEY_DIALPAD_TONE -> Prefs.setDialpadTone(this, on)
         KEY_SWIPE_ANSWER -> Prefs.setSwipeToAnswer(this, on)
         KEY_BLOCK_AI -> Prefs.setBlockAiNumbers(this, on)
+        KEY_BLOCK_UNKNOWN -> Prefs.setBlockUnknownCallers(this, on)
         else -> {}
     }
 
@@ -57,5 +60,6 @@ class ToggleSettingActivity : AppCompatActivity() {
         const val KEY_DIALPAD_TONE = "dialpad_tone"
         const val KEY_SWIPE_ANSWER = "swipe_answer"
         const val KEY_BLOCK_AI = "block_ai"
+        const val KEY_BLOCK_UNKNOWN = "block_unknown"
     }
 }
