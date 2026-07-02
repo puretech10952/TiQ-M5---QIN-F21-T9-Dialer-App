@@ -3,6 +3,7 @@ package com.puretech.dialer
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import java.util.Locale
 
 /** Central app settings (theme, assisted dialing, default SIM, quick responses). */
@@ -162,4 +163,20 @@ object Prefs {
 
     fun setQuickResponse(c: Context, index: Int, text: String) =
         sp(c).edit().putString("qr_$index", text).apply()
+
+    // --- App language override --------------------------------------------------
+
+    /** BCP-47 tag of the manually chosen language (e.g. "es"), or "" for system default. */
+    fun language(c: Context): String = sp(c).getString("app_language", "").orEmpty()
+
+    fun setLanguage(c: Context, tag: String) {
+        sp(c).edit().putString("app_language", tag).apply()
+    }
+
+    fun applyLanguage(c: Context) {
+        val tag = language(c)
+        val locales = if (tag.isEmpty()) LocaleListCompat.getEmptyLocaleList()
+                      else LocaleListCompat.forLanguageTags(tag)
+        AppCompatDelegate.setApplicationLocales(locales)
+    }
 }

@@ -47,7 +47,7 @@ object CallLogRepository {
     private const val FEATURE_HD_VOICE = 0x04  // CallLog.Calls.FEATURES_HD_VOICE
     private const val FEATURE_WIFI = 0x08      // CallLog.Calls.FEATURES_WIFI
 
-    fun load(context: Context, missedOnly: Boolean = false, limit: Int = 200): List<CallLogEntry> {
+    fun load(context: Context, missedOnly: Boolean = false): List<CallLogEntry> {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
             != PackageManager.PERMISSION_GRANTED
         ) return emptyList()
@@ -93,7 +93,6 @@ object CallLogRepository {
             val dateIdx = c.getColumnIndex(CallLog.Calls.DATE)
             val featIdx = c.getColumnIndex(CallLog.Calls.FEATURES)
             while (c.moveToNext()) {
-                if (raw.size >= limit) break
                 val number = if (numIdx >= 0) c.getString(numIdx) ?: "" else ""
                 // CACHED_NAME/PHOTO come back as "" (not null) when the system never
                 // matched the number to a contact — treat blank as "no name" so the
@@ -121,7 +120,10 @@ object CallLogRepository {
         } catch (e: Exception) {
             android.util.Log.w("M5CallLog", "load failed: ${e.message}")
         }
-        return resolveNames(context, group(raw))
+
+        // Merge in local-store entries that the system log has already trimmed away.
+        val combined = mergeLocal(context, raw, missedOnly)
+        return resolveNames(context, group(combined))
     }
 
     private data class ContactInfo(val name: String, val photo: Uri?, val type: Int, val label: String?)
@@ -201,8 +203,21 @@ object CallLogRepository {
         return out
     }
 
+    /**
+     * Searches all call log entries (system log + local store) for entries whose
+     * number or cached name contains [query]. Reuses [load] so the result is
+     * already grouped, name-resolved, and sorted newest-first.
+     */
+    fun search(context: Context, query: String): List<CallLogEntry> {
+        if (query.isBlank()) return emptyList()
+        val q = query.trim().lowercase()
+        return load(context).filter { e ->
+            e.number.contains(q) || e.name?.lowercase()?.contains(q) == true
+        }
+    }
+
     /** Every individual call (with duration) for one number — for the History screen. */
-    fun loadForNumber(context: Context, number: String, limit: Int = 200): List<CallDetail> {
+    fun loadForNumber(context: Context, number: String): List<CallDetail> {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
             != PackageManager.PERMISSION_GRANTED
         ) return emptyList()
@@ -220,7 +235,7 @@ object CallLogRepository {
                 val typeIdx = c.getColumnIndex(CallLog.Calls.TYPE)
                 val dateIdx = c.getColumnIndex(CallLog.Calls.DATE)
                 val durIdx = c.getColumnIndex(CallLog.Calls.DURATION)
-                while (c.moveToNext() && out.size < limit) {
+                while (c.moveToNext()) {
                     val n = if (numIdx >= 0) c.getString(numIdx) ?: "" else ""
                     if (!sameNumber(n, number)) continue
                     out.add(
@@ -235,26 +250,38 @@ object CallLogRepository {
         } catch (e: Exception) {
             android.util.Log.w("M5CallLog", "history failed: ${e.message}")
         }
+
+        // Append local-store entries for this number not already in the system log.
+        val sysKeys = out.map { dedupKey(number, it.type, it.date) }.toHashSet()
+        LocalCallStore.loadForNumber(context, last)
+            .filter { sameNumber(it.number, number) }
+            .filter { dedupKey(it.number, it.type, it.date) !in sysKeys }
+            .mapTo(out) { CallDetail(it.type, it.date, it.duration) }
+        out.sortByDescending { it.date }
         return out
     }
 
-    /** Aggregate totals over the entire call log: counts and durations by type. */
+    /** Aggregate totals over the entire call log (system + local store). */
     fun stats(context: Context): CallStats {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
             != PackageManager.PERMISSION_GRANTED
         ) return CallStats(0, 0L, 0, 0L, 0)
         var inC = 0; var inD = 0L; var outC = 0; var outD = 0L; var missed = 0
+        var sysOldest = Long.MAX_VALUE
         try {
             context.contentResolver.query(
                 CallLog.Calls.CONTENT_URI,
-                arrayOf(CallLog.Calls.TYPE, CallLog.Calls.DURATION),
+                arrayOf(CallLog.Calls.TYPE, CallLog.Calls.DURATION, CallLog.Calls.DATE),
                 null, null, null
             )?.use { c ->
                 val typeIdx = c.getColumnIndex(CallLog.Calls.TYPE)
-                val durIdx = c.getColumnIndex(CallLog.Calls.DURATION)
+                val durIdx  = c.getColumnIndex(CallLog.Calls.DURATION)
+                val dateIdx = c.getColumnIndex(CallLog.Calls.DATE)
                 while (c.moveToNext()) {
                     val type = if (typeIdx >= 0) c.getInt(typeIdx) else 0
-                    val dur = if (durIdx >= 0) c.getLong(durIdx) else 0L
+                    val dur  = if (durIdx  >= 0) c.getLong(durIdx)  else 0L
+                    val date = if (dateIdx >= 0) c.getLong(dateIdx) else Long.MAX_VALUE
+                    if (date < sysOldest) sysOldest = date
                     when (type) {
                         CallLog.Calls.OUTGOING_TYPE -> { outC++; outD += dur }
                         CallLog.Calls.INCOMING_TYPE,
@@ -266,6 +293,14 @@ object CallLogRepository {
         } catch (e: Exception) {
             android.util.Log.w("M5CallLog", "stats failed: ${e.message}")
         }
+        // Add local-store entries that predate everything in the system log.
+        LocalCallStore.loadBefore(context, sysOldest).forEach {
+            when (it.type) {
+                CallLog.Calls.OUTGOING_TYPE -> { outC++; outD += it.duration }
+                CallLog.Calls.INCOMING_TYPE -> { inC++; inD += it.duration }
+                CallLog.Calls.MISSED_TYPE, CallLog.Calls.REJECTED_TYPE -> missed++
+            }
+        }
         return CallStats(inC, inD, outC, outD, missed)
     }
 
@@ -275,6 +310,7 @@ object CallLogRepository {
             != PackageManager.PERMISSION_GRANTED
         ) return LongArray(0)
         val out = ArrayList<Long>()
+        var sysOldest = Long.MAX_VALUE
         try {
             context.contentResolver.query(
                 CallLog.Calls.CONTENT_URI,
@@ -282,11 +318,17 @@ object CallLogRepository {
                 null, null, "${CallLog.Calls.DATE} DESC"
             )?.use { c ->
                 val dateIdx = c.getColumnIndex(CallLog.Calls.DATE)
-                while (c.moveToNext()) out.add(if (dateIdx >= 0) c.getLong(dateIdx) else 0L)
+                while (c.moveToNext()) {
+                    val d = if (dateIdx >= 0) c.getLong(dateIdx) else 0L
+                    out.add(d)
+                    if (d < sysOldest) sysOldest = d
+                }
             }
         } catch (e: Exception) {
             android.util.Log.w("M5CallLog", "callDates failed: ${e.message}")
         }
+        LocalCallStore.loadBefore(context, sysOldest).mapTo(out) { it.date }
+        out.sortDescending()
         return out.toLongArray()
     }
 
@@ -295,6 +337,49 @@ object CallLogRepository {
      * 10-digit number and the same number with a "+1" country code (11 digits)
      * compare equal by looking at the last 10 digits.
      */
+    /**
+     * Appends local-store entries that are not already present in [sysRaw],
+     * then returns the combined list sorted newest-first.
+     *
+     * Deduplication uses a "bucket key": last-7 digits + call type + date
+     * rounded to 10 s. This is loose enough to absorb minor timestamp
+     * differences between the system log and our local record, but tight
+     * enough that two different calls from the same number never collide.
+     */
+    private fun mergeLocal(
+        context: Context,
+        sysRaw: List<CallLogEntry>,
+        missedOnly: Boolean
+    ): List<CallLogEntry> {
+        val sysKeys = sysRaw.map { dedupKey(it.number, it.type, it.date) }.toHashSet()
+        val extra = LocalCallStore.loadAll(context)
+            .filter { !missedOnly || it.type == CallLog.Calls.MISSED_TYPE || it.type == CallLog.Calls.REJECTED_TYPE }
+            .filter { dedupKey(it.number, it.type, it.date) !in sysKeys }
+            .map { localToEntry(it) }
+        if (extra.isEmpty()) return sysRaw
+        return (sysRaw + extra).sortedByDescending { it.date }
+    }
+
+    private fun dedupKey(number: String, type: Int, date: Long): String {
+        val digits = number.filter { it.isDigit() }.takeLast(7)
+        return "$digits:$type:${date / 10_000}"
+    }
+
+    private fun localToEntry(c: LocalCallStore.StoredCall) = CallLogEntry(
+        number      = c.number,
+        name        = c.name,
+        photoUri    = c.photoUri,
+        type        = c.type,
+        date        = c.date,
+        count       = 1,
+        isHd        = c.isHd,
+        isWifi      = c.isWifi,
+        numberType  = c.numberType,
+        numberLabel = c.numberLabel,
+        geocoded    = c.geocoded,
+        simLabel    = c.simLabel
+    )
+
     private fun sameNumber(a: String, b: String): Boolean {
         val da = a.filter { it.isDigit() }
         val db = b.filter { it.isDigit() }

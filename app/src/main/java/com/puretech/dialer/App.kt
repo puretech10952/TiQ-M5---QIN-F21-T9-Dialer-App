@@ -16,6 +16,8 @@ class App : Application() {
         // Unlock vendor hidden APIs (MTK InCallService.doMtkAction) for call recording.
         HiddenApi.unseal()
         Prefs.applyTheme(Prefs.themeMode(this))
+        // Restore manually-chosen app language (needed on Android < 13; 13+ persists via system).
+        Prefs.applyLanguage(this)
         // Material You: derive the app's colors from the device's theme/wallpaper
         // palette (Android 12+). Updates automatically when the device theme changes.
         // No-op on older devices, which keep the built-in M3 palette.

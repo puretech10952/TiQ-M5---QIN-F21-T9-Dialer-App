@@ -1,8 +1,10 @@
 package com.puretech.dialer
 
 import android.content.Intent
+import android.provider.CallLog
 import android.telecom.Call
 import android.telecom.CallAudioState
+import android.telecom.DisconnectCause
 import android.telecom.InCallService
 import android.util.Log
 
@@ -73,6 +75,8 @@ class CallService : InCallService() {
     override fun onCallRemoved(call: Call) {
         super.onCallRemoved(call)
         Log.d(TAG, "onCallRemoved")
+        // Persist to our permanent local store before the system call log can trim it.
+        archiveCall(call)
         // The missed-call notification is handled the official way via
         // MissedCallReceiver (Telecom delegates it to us as the default dialer),
         // so we deliberately do NOT post one here — that would duplicate it.
@@ -87,6 +91,52 @@ class CallService : InCallService() {
     override fun onCallAudioStateChanged(audioState: CallAudioState) {
         super.onCallAudioStateChanged(audioState)
         CallManager.notifyChanged()
+    }
+
+    /**
+     * Mirrors the finished call into [LocalCallStore] so it survives Android's
+     * automatic system call-log trimming (~500 rows). Runs on a background thread
+     * to avoid blocking [onCallRemoved]. All data is captured synchronously from
+     * the Call object first, then only the DB write happens off-thread.
+     */
+    private fun archiveCall(call: Call) {
+        val details = call.details ?: return
+        val number  = details.handle?.schemeSpecificPart ?: ""
+
+        // Date = when the call was created in Telecom (matches what the system log stores).
+        val date = details.creationTimeMillis.takeIf { it > 0L } ?: System.currentTimeMillis()
+
+        // Duration = seconds from answer to hang-up (0 for unanswered calls).
+        val connectTime = details.connectTimeMillis
+        val duration = if (connectTime > 0L) (System.currentTimeMillis() - connectTime) / 1000L else 0L
+
+        val isOutgoing = details.callDirection == Call.Details.DIRECTION_OUTGOING
+        val dCode = details.disconnectCause?.code ?: DisconnectCause.UNKNOWN
+        val type = when {
+            isOutgoing                         -> CallLog.Calls.OUTGOING_TYPE
+            dCode == DisconnectCause.MISSED    -> CallLog.Calls.MISSED_TYPE
+            dCode == DisconnectCause.REJECTED  -> CallLog.Calls.REJECTED_TYPE
+            else                               -> CallLog.Calls.INCOMING_TYPE
+        }
+
+        val isHd   = details.hasProperty(Call.Details.PROPERTY_HIGH_DEF_AUDIO)
+        val isWifi = details.hasProperty(Call.Details.PROPERTY_WIFI)
+        val acctId = details.accountHandle?.id
+
+        val ctx = applicationContext
+        Thread {
+            val name = if (number.isNotBlank()) ContactsRepository.displayName(ctx, number) else null
+            val simLabel = acctId?.let { id ->
+                if (CallingAccounts.isMultiSim(ctx))
+                    CallingAccounts.list(ctx).find { it.id == id }
+                        ?.let { CallingAccounts.label(ctx, it) }
+                else null
+            }
+            LocalCallStore.record(
+                ctx, number, type, date, duration, isHd, isWifi,
+                name, null, 0, null, null, simLabel
+            )
+        }.start()
     }
 
     companion object {

@@ -20,6 +20,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowTheme.setOnClickListener {
             startActivity(Intent(this, ThemeSettingsActivity::class.java))
         }
+        binding.rowLanguage.setOnClickListener {
+            startActivity(Intent(this, LanguageSettingsActivity::class.java))
+        }
         binding.rowBlocked.setOnClickListener {
             startActivity(Intent(this, BlockedNumbersActivity::class.java))
         }

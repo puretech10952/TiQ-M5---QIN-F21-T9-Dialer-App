@@ -163,6 +163,9 @@ class RecentsFragment : Fragment() {
 
     private fun clearMissedCalls() {
         MissedCallNotifier.cancelAll(requireContext())
+        // Clear the NEW flag ourselves: on the M5/F21, cancelMissedCallsNotification()
+        // alone leaves rows NEW=1 and Telecom re-posts them all after a reboot.
+        MissedCallNotifier.markAllMissedRead(requireContext())
         try {
             requireContext().getSystemService(TelecomManager::class.java)
                 ?.cancelMissedCallsNotification()

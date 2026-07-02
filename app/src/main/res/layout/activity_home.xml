@@ -20,26 +20,18 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- The ONE persistent Material 3 NavigationBar (animated tonal indicator). -->
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNav"
-            style="@style/Widget.Material3.BottomNavigationView"
+        <!-- Bottom stack: the on-screen keypad (when visible) sits above the nav bar. -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:background="@drawable/bg_bottom_nav"
-            android:elevation="10dp"
-            app:itemPaddingTop="6dp"
-            app:itemPaddingBottom="8dp"
-            app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_nav_menu" />
+            android:orientation="vertical">
 
-        <!-- On-screen dial pad (OSK). Overlays the bottom, covering the nav bar. -->
+        <!-- On-screen dial pad (OSK). Always above the nav bar when shown. -->
         <LinearLayout
             android:id="@+id/dialpadPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
             android:background="?attr/colorSurfaceContainerHigh"
             android:orientation="vertical"
             android:paddingBottom="6dp"
@@ -137,6 +129,21 @@
                 app:tint="#FFFFFF"
                 tools:visibility="visible" />
         </LinearLayout>
+
+        <!-- The ONE persistent Material 3 NavigationBar (animated tonal indicator). -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNav"
+            style="@style/Widget.Material3.BottomNavigationView"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_bottom_nav"
+            android:elevation="10dp"
+            app:itemPaddingTop="6dp"
+            app:itemPaddingBottom="8dp"
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/bottom_nav_menu" />
+
+        </LinearLayout><!-- end bottom stack -->
     </FrameLayout>
 
     <com.google.android.material.navigation.NavigationView

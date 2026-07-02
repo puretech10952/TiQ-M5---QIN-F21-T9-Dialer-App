@@ -335,4 +335,22 @@
     <string name="redirect_service_label">PureTech Phone redirect</string>
     <string name="redirect_service_desc">Lets the Home screen Send/Call key open PureTech Phone instead of the built-in stock dialer. It only reacts to the stock dialer opening and does not read any screen content.</string>
     <string name="redirect_service_summary">Opens PureTech Phone when the Send key triggers the stock dialer</string>
+
+    <!-- Call log search -->
+    <string name="nav_search_calls">Search call log</string>
+    <string name="search_calls_hint">Number or name…</string>
+    <string name="search_calls_prompt">Enter a number or name to search</string>
+    <string name="search_calls_no_results">No results for "%1$s"</string>
+    <string name="search_clear">Clear search</string>
+    <string name="nav_back">Back</string>
+    <plurals name="search_result_count">
+        <item quantity="one">1 result</item>
+        <item quantity="other">%1$d results</item>
+    </plurals>
+
+    <!-- Language settings -->
+    <string name="setting_language">Language</string>
+    <string name="setting_language_summary">App display language</string>
+    <string name="language_title">Language</string>
+    <string name="language_system">System default</string>
 </resources>

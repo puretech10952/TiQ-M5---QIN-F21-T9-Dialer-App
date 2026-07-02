@@ -104,6 +104,7 @@ class HomeActivity : AppCompatActivity() {
         binding.drawerVersion.text = getString(R.string.drawer_version, appVersionName())
         binding.navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
+                R.id.nav_search -> startActivity(Intent(this, CallLogSearchActivity::class.java))
                 R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
                 R.id.nav_durations -> startActivity(Intent(this, CallStatsActivity::class.java))
                 R.id.nav_updates -> startActivity(Intent(this, UpdateActivity::class.java))
@@ -208,12 +209,15 @@ class HomeActivity : AppCompatActivity() {
 
     private fun setKeypadShown(shown: Boolean) {
         binding.dialpadPanel.visibility = if (shown) View.VISIBLE else View.GONE
-        binding.bottomNav.visibility = if (shown) View.GONE else View.VISIBLE
+        // bottomNav stays visible at all times; the dialpad sits above it in the layout.
         barHider.enabled = !shown
         if (!shown) barHider.show()
-        val fallback = (72 * resources.displayMetrics.density).toInt()
         binding.dialpadPanel.post {
-            val pad = if (shown) binding.dialpadPanel.height.coerceAtLeast(fallback) else fallback
+            // Pad the suggestions list enough to clear both the dialpad (when open)
+            // and the always-visible nav bar beneath it.
+            val navH = binding.bottomNav.height
+            val fallback = (72 * resources.displayMetrics.density).toInt()
+            val pad = if (shown) binding.dialpadPanel.height.coerceAtLeast(fallback) + navH else navH
             dialerFragment.setSuggestionsBottomPadding(pad)
         }
     }

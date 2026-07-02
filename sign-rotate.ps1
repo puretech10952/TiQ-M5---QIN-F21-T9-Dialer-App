@@ -26,8 +26,25 @@ $apksigner = (Get-ChildItem "$env:LOCALAPPDATA\Android\Sdk\build-tools" -Recurse
     Sort-Object FullName -Descending | Select-Object -First 1).FullName
 
 if ($Build) {
-    Write-Host "Building assembleDebug..."
-    & "$PSScriptRoot\gradlew.bat" assembleDebug --console=plain | Select-Object -Last 2
+    # First pass (dry-run) counts tasks so we can show a real percentage.
+    Write-Host "Preparing build..."
+    $dryLines = & "$PSScriptRoot\gradlew.bat" assembleDebug --dry-run --console=plain 2>&1
+    $totalTasks = [Math]::Max(($dryLines | Where-Object { $_ -match '^> Task' }).Count, 1)
+
+    Write-Host "Building ($totalTasks tasks)..."
+    $done = 0
+    & "$PSScriptRoot\gradlew.bat" assembleDebug --console=plain 2>&1 | ForEach-Object {
+        if ($_ -match '^> Task') {
+            $done++
+            $pct = [int]([Math]::Min([Math]::Round($done * 100.0 / $totalTasks), 99))
+            Write-Host ("[{0,3}%] {1}" -f $pct, $_)
+        } elseif ($_ -match 'BUILD SUCCESSFUL') {
+            Write-Host "[100%] BUILD SUCCESSFUL"
+        } elseif ($_ -match 'BUILD FAILED|error:|FAILED') {
+            Write-Host $_
+        }
+    }
+    if ($LASTEXITCODE -ne 0) { throw "Gradle build failed (exit $LASTEXITCODE)" }
 }
 
 $srcApk = "$PSScriptRoot\app\build\outputs\apk\debug\app-debug.apk"
