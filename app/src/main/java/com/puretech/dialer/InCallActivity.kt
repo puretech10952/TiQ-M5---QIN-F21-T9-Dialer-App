@@ -61,6 +61,14 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         }
     }
 
+    private var holdTiming = false
+    private val holdTicker = object : Runnable {
+        override fun run() {
+            updateRemoteHoldBanner()
+            handler.postDelayed(this, 1000)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityIncallBinding.inflate(layoutInflater)
@@ -124,6 +132,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     override fun onDestroy() {
         super.onDestroy()
         stopTimer()
+        stopHoldTimer()
         // NOTE: do not stop recording here — the framework keeps recording with the
         // call and stops on its own when the call ends.
     }
@@ -238,6 +247,31 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         }
         // Keep the REC indicator in sync (e.g. if the framework rejects recording).
         updateRecordIndicator()
+
+        updateRemoteHoldBanner()
+    }
+
+    /** Remote hold chip: visible only when the other party has held this call.
+     *  Shows "[Name] has placed you on hold · MM:SS" with its own running timer —
+     *  the regular statusText keeps counting the overall call duration untouched. */
+    private fun updateRemoteHoldBanner() {
+        val remoteHold = CallManager.isRemoteHold()
+        binding.remoteHoldBanner.visibility = if (remoteHold) View.VISIBLE else View.GONE
+        if (remoteHold) {
+            // Remote hold keeps the call at STATE_ACTIVE (no STATE_HOLDING transition),
+            // so heldCall() won't find it — fall back to the active call for the name.
+            val other = CallManager.heldCall() ?: CallManager.activeCall()
+            val name = other?.let { nameFor(it) } ?: ""
+            val base = if (name.isNotBlank())
+                getString(R.string.remote_hold_named, name)
+            else
+                getString(R.string.remote_hold_unknown)
+            val elapsed = formatHoldDuration()
+            binding.remoteHoldText.text = if (elapsed.isNotEmpty()) "$base · $elapsed" else base
+            startHoldTimer()
+        } else {
+            stopHoldTimer()
+        }
     }
 
     /** Show either the slide-to-answer control or the round Answer/Decline
@@ -273,14 +307,17 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             getString(if (CallManager.recording) R.string.ctl_stop_record else R.string.ctl_record)
         )
         menu.add(MENU_ADD, R.drawable.ic_add_call, getString(R.string.ctl_add))
-        // Two calls → Swap; a single call on hold → Resume; an active call → Hold.
-        val (holdIcon, holdLabel) = when {
-            CallManager.activeCall() != null && CallManager.heldCall() != null ->
-                R.drawable.ic_swap to R.string.ctl_swap
-            CallManager.heldCall() != null -> R.drawable.ic_play to R.string.ctl_resume
-            else -> R.drawable.ic_hold to R.string.ctl_hold
+        // Two calls → Swap; a single locally-held call → Resume; active → Hold.
+        // When the remote party is holding us, we can't act on hold state — omit the item.
+        if (!CallManager.isRemoteHold()) {
+            val (holdIcon, holdLabel) = when {
+                CallManager.activeCall() != null && CallManager.heldCall() != null ->
+                    R.drawable.ic_swap to R.string.ctl_swap
+                CallManager.heldCall() != null -> R.drawable.ic_play to R.string.ctl_resume
+                else -> R.drawable.ic_hold to R.string.ctl_hold
+            }
+            menu.add(MENU_HOLD, holdIcon, getString(holdLabel))
         }
-        menu.add(MENU_HOLD, holdIcon, getString(holdLabel))
         if (CallManager.activeCall() != null && CallManager.heldCall() != null) {
             menu.add(MENU_MERGE, R.drawable.ic_merge, getString(R.string.ctl_merge))
         }
@@ -629,6 +666,10 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
     @Suppress("DEPRECATION")
     private fun updateStatusFor(call: Call) {
+        // Note: remote hold does NOT interrupt this — the call stays STATE_ACTIVE the
+        // whole time on this telephony stack, so the duration timer below keeps running
+        // uninterrupted. The remote-hold chip (with its own timer) is driven separately
+        // by updateRemoteHoldBanner()/holdTicker.
         when (call.state) {
             Call.STATE_ACTIVE -> {
                 everConnected = true
@@ -672,6 +713,22 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     private fun stopTimer() {
         timing = false
         handler.removeCallbacks(ticker)
+    }
+
+    private fun startHoldTimer() {
+        if (!holdTiming) { holdTiming = true; handler.post(holdTicker) }
+    }
+
+    private fun stopHoldTimer() {
+        holdTiming = false
+        handler.removeCallbacks(holdTicker)
+    }
+
+    private fun formatHoldDuration(): String {
+        val startMs = CallManager.remoteHoldStartMs
+        if (startMs == 0L) return ""
+        val total = ((System.currentTimeMillis() - startMs) / 1000).coerceAtLeast(0)
+        return String.format("%02d:%02d", total / 60, total % 60)
     }
 
     private fun updateDuration() {

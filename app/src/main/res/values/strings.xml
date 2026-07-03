@@ -252,6 +252,8 @@
     <string name="state_dialing">Dialing…</string>
     <string name="state_ringing">Incoming call</string>
     <string name="state_holding">On hold</string>
+    <string name="remote_hold_named">%1$s has placed you on hold</string>
+    <string name="remote_hold_unknown">The other person has placed you on hold</string>
     <string name="state_disconnected">Call ended</string>
     <string name="state_unreachable">Server unreachable</string>
     <string name="wifi_call">Wi-Fi call</string>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">هاتف</string>
     <string name="enter_number">أدخل رقمًا</string>
@@ -221,6 +221,8 @@
     <string name="state_dialing">جاري الاتصال…</string>
     <string name="state_ringing">مكالمة واردة</string>
     <string name="state_holding">في الانتظار</string>
+    <string name="remote_hold_named">قام %1$s بتعليق المكالمة</string>
+    <string name="remote_hold_unknown">قام الطرف الآخر بتعليق المكالمة</string>
     <string name="state_disconnected">انتهت المكالمة</string>
     <string name="state_unreachable">الخادم غير متاح</string>
     <string name="wifi_call">مكالمة Wi-Fi</string>

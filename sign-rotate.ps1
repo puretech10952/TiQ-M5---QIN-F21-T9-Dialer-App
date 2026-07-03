@@ -49,9 +49,10 @@ if ($Build) {
 
 $srcApk = "$PSScriptRoot\app\build\outputs\apk\debug\app-debug.apk"
 $ver = (Select-String -Path "$PSScriptRoot\app\build.gradle" -Pattern 'versionName\s+"([^"]+)"').Matches.Groups[1].Value
+$verSafe = $ver -replace '\s+', '-'
 
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
-$outApk = "$OutDir\M5-F21-Dialer-$ver.apk"
+$outApk = "$OutDir\M5-F21-Dialer-$verSafe.apk"
 Copy-Item $srcApk $outApk -Force
 
 Write-Host "Rotation-signing $outApk ..."

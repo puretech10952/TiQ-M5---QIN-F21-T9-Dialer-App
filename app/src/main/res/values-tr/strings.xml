@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Telefon</string>
     <string name="enter_number">Numara girin</string>
@@ -213,6 +213,8 @@
     <string name="state_dialing">Çevriliyor…</string>
     <string name="state_ringing">Gelen arama</string>
     <string name="state_holding">Beklemede</string>
+    <string name="remote_hold_named">%1$s sizi beklemeye aldı</string>
+    <string name="remote_hold_unknown">Karşı taraf sizi beklemeye aldı</string>
     <string name="state_disconnected">Arama bitti</string>
     <string name="state_unreachable">Sunucuya ulaşılamıyor</string>
     <string name="wifi_call">Wi-Fi araması</string>

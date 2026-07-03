@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Telefone</string>
     <string name="enter_number">Digite um número</string>
@@ -213,6 +213,8 @@
     <string name="state_dialing">Discando…</string>
     <string name="state_ringing">Chamada recebida</string>
     <string name="state_holding">Em espera</string>
+    <string name="remote_hold_named">%1$s colocou você em espera</string>
+    <string name="remote_hold_unknown">A outra pessoa colocou você em espera</string>
     <string name="state_disconnected">Chamada encerrada</string>
     <string name="state_unreachable">Servidor inacessível</string>
     <string name="wifi_call">Chamada Wi-Fi</string>

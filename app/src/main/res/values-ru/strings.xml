@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Телефон</string>
     <string name="enter_number">Введите номер</string>
@@ -217,6 +217,8 @@
     <string name="state_dialing">Набор…</string>
     <string name="state_ringing">Входящий звонок</string>
     <string name="state_holding">На удержании</string>
+    <string name="remote_hold_named">%1$s поставил(а) вас на удержание</string>
+    <string name="remote_hold_unknown">Другой абонент поставил вас на удержание</string>
     <string name="state_disconnected">Звонок завершён</string>
     <string name="state_unreachable">Сервер недоступен</string>
     <string name="wifi_call">Звонок по Wi-Fi</string>

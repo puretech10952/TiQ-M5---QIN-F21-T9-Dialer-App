@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Telefon</string>
     <string name="enter_number">Nummer eingeben</string>
@@ -213,6 +213,8 @@
     <string name="state_dialing">Wählen…</string>
     <string name="state_ringing">Eingehender Anruf</string>
     <string name="state_holding">In der Warteschleife</string>
+    <string name="remote_hold_named">%1$s hat Sie in die Warteschleife gelegt</string>
+    <string name="remote_hold_unknown">Die andere Person hat Sie in die Warteschleife gelegt</string>
     <string name="state_disconnected">Anruf beendet</string>
     <string name="state_unreachable">Server nicht erreichbar</string>
     <string name="wifi_call">Wi-Fi-Anruf</string>

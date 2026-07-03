@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">טלפון</string>
     <string name="enter_number">הכנס מספר</string>
@@ -215,6 +215,8 @@
     <string name="state_dialing">מחייג…</string>
     <string name="state_ringing">שיחה נכנסת</string>
     <string name="state_holding">בהמתנה</string>
+    <string name="remote_hold_named">%1$s העביר/ה אותך להמתנה</string>
+    <string name="remote_hold_unknown">הצד השני העביר אותך להמתנה</string>
     <string name="state_disconnected">השיחה הסתיימה</string>
     <string name="state_unreachable">השרת אינו נגיש</string>
     <string name="wifi_call">שיחת Wi-Fi</string>

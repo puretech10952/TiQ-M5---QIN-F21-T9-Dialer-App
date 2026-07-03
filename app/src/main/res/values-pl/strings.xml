@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Telefon</string>
     <string name="enter_number">Wpisz numer</string>
@@ -217,6 +217,8 @@
     <string name="state_dialing">Wybieranie…</string>
     <string name="state_ringing">Połączenie przychodzące</string>
     <string name="state_holding">Wstrzymano</string>
+    <string name="remote_hold_named">%1$s umieścił(a) Cię na wstrzymaniu</string>
+    <string name="remote_hold_unknown">Rozmówca umieścił Cię na wstrzymaniu</string>
     <string name="state_disconnected">Połączenie zakończone</string>
     <string name="state_unreachable">Serwer niedostępny</string>
     <string name="wifi_call">Połączenie Wi-Fi</string>

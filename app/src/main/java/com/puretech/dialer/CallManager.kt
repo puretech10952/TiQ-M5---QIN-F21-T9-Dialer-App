@@ -18,6 +18,17 @@ object CallManager {
     /** True while the full-screen in-call UI is visible — suppresses the notification. */
     var uiVisible = false
 
+    /** True when WE put the call on hold (as opposed to the remote party holding us). */
+    private var isLocalHold = false
+
+    /** True while the remote party has us on hold. MTK/IMS calls stay STATE_ACTIVE the
+     *  whole time — remote hold is only signalled via EVENT_CALL_REMOTELY_HELD/_UNHELD. */
+    private var remoteHeld = false
+
+    /** Epoch millis when the remote party placed this call on hold; 0 if not remote-held. */
+    var remoteHoldStartMs = 0L
+        private set
+
     private val _calls = mutableListOf<Call>()
     val calls: List<Call> get() = _calls
 
@@ -31,12 +42,27 @@ object CallManager {
     }
 
     private val callback = object : Call.Callback() {
-        override fun onStateChanged(call: Call, state: Int) = notifyChanged()
+        override fun onStateChanged(call: Call, state: Int) {
+            if (state == Call.STATE_ACTIVE) isLocalHold = false
+            notifyChanged()
+        }
         override fun onDetailsChanged(call: Call, details: Call.Details) = notifyChanged()
         override fun onConnectionEvent(call: Call, event: String?, extras: android.os.Bundle?) {
             // The telephony framework reports a failed operation (e.g. recording
             // request rejected) with this event — reflect it so our UI recovers.
             if (event == EVENT_OPERATION_FAILED) recording = false
+            // Remote hold: MTK/IMS calls stay STATE_ACTIVE the whole time, so this
+            // connection event is the only signal that the other party held us.
+            when (event) {
+                EVENT_CALL_REMOTELY_HELD -> {
+                    remoteHeld = true
+                    if (remoteHoldStartMs == 0L) remoteHoldStartMs = System.currentTimeMillis()
+                }
+                EVENT_CALL_REMOTELY_UNHELD -> {
+                    remoteHeld = false
+                    remoteHoldStartMs = 0L
+                }
+            }
             notifyChanged()
         }
     }
@@ -54,7 +80,9 @@ object CallManager {
         _calls.remove(c)
         if (_calls.isEmpty()) {
             recording = false
-            // Call finished: file the recorder's output into Music/Call recordings.
+            isLocalHold = false
+            remoteHeld = false
+            remoteHoldStartMs = 0L
             service?.let { CallRecordings.scheduleOrganize(it) }
         }
         notifyChanged()
@@ -97,13 +125,26 @@ object CallManager {
 
     fun hangup(c: Call? = primaryCall()) = c?.disconnect() ?: Unit
 
-    fun hold(c: Call? = activeCall()) = c?.hold() ?: Unit
-    fun unhold(c: Call? = heldCall()) = c?.unhold() ?: Unit
+    fun hold(c: Call? = activeCall()) {
+        isLocalHold = true
+        c?.hold() ?: Unit
+    }
+
+    fun unhold(c: Call? = heldCall()) {
+        isLocalHold = false
+        remoteHoldStartMs = 0L
+        c?.unhold() ?: Unit
+    }
 
     /** Swap foreground/background: unholding the held call auto-holds the active. */
     fun swap() {
+        isLocalHold = false
+        remoteHoldStartMs = 0L
         heldCall()?.unhold()
     }
+
+    /** True when the remote party (not the user) has placed this call on hold. */
+    fun isRemoteHold(): Boolean = remoteHeld
 
     /** Merge the active and held calls into a conference. */
     fun merge() {
@@ -132,6 +173,7 @@ object CallManager {
 
     /** Answer a waiting call, putting the current one on hold (call waiting). */
     fun answerAndHold() {
+        isLocalHold = true
         activeCall()?.hold()
         ringingCall()?.answer(VideoProfile.STATE_AUDIO_ONLY)
     }
@@ -268,6 +310,8 @@ object CallManager {
         "mediatek.telecom.event.REQUEST_STOP_VOICE_RECORDING"
     private const val EVENT_OPERATION_FAILED =
         "mediatek.telecom.event.OPERATION_FAILED"
+    private const val EVENT_CALL_REMOTELY_HELD = "android.telecom.event.CALL_REMOTELY_HELD"
+    private const val EVENT_CALL_REMOTELY_UNHELD = "android.telecom.event.CALL_REMOTELY_UNHELD"
 
     // --- Details ---------------------------------------------------------------
 

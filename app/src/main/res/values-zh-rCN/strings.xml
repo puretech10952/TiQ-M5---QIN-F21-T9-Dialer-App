@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">电话</string>
     <string name="enter_number">输入号码</string>
@@ -211,6 +211,8 @@
     <string name="state_dialing">拨号中…</string>
     <string name="state_ringing">来电</string>
     <string name="state_holding">保持中</string>
+    <string name="remote_hold_named">%1$s已将您置于保留状态</string>
+    <string name="remote_hold_unknown">对方已将您置于保留状态</string>
     <string name="state_disconnected">通话已结束</string>
     <string name="state_unreachable">服务器不可达</string>
     <string name="wifi_call">Wi-Fi 通话</string>

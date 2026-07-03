@@ -14,7 +14,8 @@ import android.view.accessibility.AccessibilityEvent
  * Home-screen Send key to the stock dialer (com.android.dialer). A normal app
  * can't redirect an explicit component launch, so instead we watch — via an
  * Accessibility service scoped to ONLY the stock dialer — for its main screen
- * appearing and instantly bring our own recents to the front.
+ * appearing and instantly bring our own recents (or the in-call screen, if a
+ * call is ongoing) to the front.
  *
  * Disabled until the user turns it on in Settings → Accessibility.
  */
@@ -40,8 +41,13 @@ class DialerRedirectService : AccessibilityService() {
         if (now - lastRedirect < 1500) return
         lastRedirect = now
 
+        // While a call is ongoing, the Send key should bring up the call screen,
+        // not the recents/dialer home screen.
+        val target = if (CallManager.calls.isNotEmpty()) InCallActivity::class.java
+                     else HomeActivity::class.java
+
         startActivity(
-            Intent(this, HomeActivity::class.java).addFlags(
+            Intent(this, target).addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_SINGLE_TOP or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">電話</string>
     <string name="enter_number">番号を入力</string>
@@ -211,6 +211,8 @@
     <string name="state_dialing">発信中…</string>
     <string name="state_ringing">着信</string>
     <string name="state_holding">保留中</string>
+    <string name="remote_hold_named">%1$sが通話を保留にしました</string>
+    <string name="remote_hold_unknown">相手が通話を保留にしました</string>
     <string name="state_disconnected">通話終了</string>
     <string name="state_unreachable">サーバーに接続できません</string>
     <string name="wifi_call">Wi-Fi 通話</string>

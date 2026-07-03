@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">फ़ोन</string>
     <string name="enter_number">नंबर दर्ज करें</string>
@@ -213,6 +213,8 @@
     <string name="state_dialing">डायल कर रहा है…</string>
     <string name="state_ringing">आने वाली कॉल</string>
     <string name="state_holding">होल्ड पर</string>
+    <string name="remote_hold_named">%1$s ने आपको होल्ड पर रखा है</string>
+    <string name="remote_hold_unknown">दूसरे व्यक्ति ने आपको होल्ड पर रखा है</string>
     <string name="state_disconnected">कॉल समाप्त</string>
     <string name="state_unreachable">सर्वर अनुपलब्ध</string>
     <string name="wifi_call">Wi-Fi कॉल</string>
