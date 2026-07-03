@@ -164,6 +164,7 @@
     <string name="welcome_get_started">התחל</string>
     <string name="welcome_consent">קראתי ואני מסכים/ה לתנאי השירות ולמדיניות הפרטיות.</string>
     <string name="welcome_agree_continue">הסכם והמשך</string>
+    <string name="welcome_private_use">אפליקציה זו מיועדת לשימושך הפרטי בלבד. מכירה חוזרת של האפליקציה או הצעתה לציבור או למטרות מסחריות מחייבת אישור בכתב מראש מ-PureTech.</string>
     <string name="imei_title">מזהי מכשיר</string>
     <string name="imei_copy">העתק</string>
     <string name="imei_in_settings">ה-IMEI מוצג כאן בפרטי המכשיר שלך</string>

@@ -167,6 +167,7 @@
     <string name="welcome_get_started">ابدأ</string>
     <string name="welcome_consent">لقد قرأت وأوافق على شروط الخدمة وسياسة الخصوصية.</string>
     <string name="welcome_agree_continue">موافق ومتابعة</string>
+    <string name="welcome_private_use">هذا التطبيق مخصص لاستخدامك الشخصي فقط. تتطلب إعادة بيع هذا التطبيق أو تقديمه للجمهور أو تجاريًا الحصول على إذن كتابي مسبق من PureTech.</string>
     <string name="imei_title">معرّفات الجهاز</string>
     <string name="imei_copy">نسخ</string>
     <string name="imei_in_settings">يظهر رقم IMEI هنا في تفاصيل جهازك</string>

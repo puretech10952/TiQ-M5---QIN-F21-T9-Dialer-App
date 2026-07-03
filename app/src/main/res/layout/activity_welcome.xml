@@ -169,6 +169,15 @@
                             android:textSize="14sp"
                             android:textStyle="bold" />
                     </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/welcome_private_use"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="12sp"
+                        android:lineSpacingMultiplier="1.15" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

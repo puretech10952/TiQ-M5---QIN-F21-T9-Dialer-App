@@ -163,6 +163,7 @@
     <string name="welcome_get_started">Aan de slag</string>
     <string name="welcome_consent">Ik heb de Gebruiksvoorwaarden en het Privacybeleid gelezen en ga ermee akkoord.</string>
     <string name="welcome_agree_continue">Accepteren en doorgaan</string>
+    <string name="welcome_private_use">Alleen voor persoonlijk gebruik. Het doorverkopen van deze app of het openbaar of commercieel aanbieden ervan vereist voorafgaande schriftelijke toestemming van PureTech.</string>
     <string name="imei_title">Apparaat-ID\'s</string>
     <string name="imei_copy">Kopiëren</string>
     <string name="imei_in_settings">IMEI wordt hier weergegeven in uw apparaatgegevens</string>

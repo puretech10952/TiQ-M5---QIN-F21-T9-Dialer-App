@@ -162,6 +162,7 @@
     <string name="welcome_get_started">시작하기</string>
     <string name="welcome_consent">서비스 약관 및 개인정보처리방침을 읽었으며 이에 동의합니다.</string>
     <string name="welcome_agree_continue">동의하고 계속하기</string>
+    <string name="welcome_private_use">이 앱은 개인적인 사적 용도로만 사용이 허가됩니다. PureTech의 사전 서면 허가 없이 이 앱을 재판매하거나 공개적으로 또는 상업적으로 제공할 수 없습니다.</string>
     <string name="imei_title">기기 식별 정보</string>
     <string name="imei_copy">복사</string>
     <string name="imei_in_settings">IMEI는 기기 상세 정보에서 확인할 수 있습니다</string>

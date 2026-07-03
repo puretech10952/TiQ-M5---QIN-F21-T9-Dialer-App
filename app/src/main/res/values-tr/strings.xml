@@ -163,6 +163,7 @@
     <string name="welcome_get_started">Başlayın</string>
     <string name="welcome_consent">Kullanım Koşulları\'nı ve Gizlilik Politikası\'nı okudum ve kabul ediyorum.</string>
     <string name="welcome_agree_continue">Kabul et ve devam et</string>
+    <string name="welcome_private_use">Yalnızca özel kullanımınız içindir. Bu uygulamanın yeniden satılması veya kamuya açık ya da ticari olarak sunulması, PureTech\'in önceden yazılı iznini gerektirir.</string>
     <string name="imei_title">Cihaz tanımlayıcıları</string>
     <string name="imei_copy">Kopyala</string>
     <string name="imei_in_settings">IMEI burada cihaz ayrıntılarınızda gösterilir</string>

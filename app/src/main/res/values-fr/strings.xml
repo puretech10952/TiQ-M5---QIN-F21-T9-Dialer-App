@@ -163,6 +163,7 @@
     <string name="welcome_get_started">Commencer</string>
     <string name="welcome_consent">J\'ai lu et j\'accepte les Conditions d\'utilisation et la Politique de confidentialité.</string>
     <string name="welcome_agree_continue">Accepter et continuer</string>
+    <string name="welcome_private_use">Réservé à votre usage privé. La revente de cette application ou son utilisation publique ou commerciale nécessite l\'autorisation écrite préalable de PureTech.</string>
     <string name="imei_title">Identifiants de l\'appareil</string>
     <string name="imei_copy">Copier</string>
     <string name="imei_in_settings">L\'IMEI est affiché ici dans les détails de votre appareil</string>

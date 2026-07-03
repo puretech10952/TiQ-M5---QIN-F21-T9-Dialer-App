@@ -163,6 +163,7 @@
     <string name="welcome_get_started">शुरू करें</string>
     <string name="welcome_consent">मैंने सेवा की शर्तें और गोपनीयता नीति पढ़ी और स्वीकार की है।</string>
     <string name="welcome_agree_continue">सहमत हों और जारी रखें</string>
+    <string name="welcome_private_use">यह ऐप केवल आपके निजी उपयोग के लिए लाइसेंस प्राप्त है। इसे पुनः बेचना या सार्वजनिक अथवा व्यावसायिक रूप से पेश करना PureTech की पूर्व लिखित अनुमति के बिना संभव नहीं है।</string>
     <string name="imei_title">डिवाइस पहचानकर्ता</string>
     <string name="imei_copy">कॉपी करें</string>
     <string name="imei_in_settings">IMEI यहां आपके डिवाइस विवरण में दिखाया गया है</string>

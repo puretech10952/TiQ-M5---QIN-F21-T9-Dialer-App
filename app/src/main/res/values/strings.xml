@@ -189,6 +189,7 @@
     <string name="welcome_get_started">Get started</string>
     <string name="welcome_consent">I have read and agree to the Terms of Service and Privacy Policy.</string>
     <string name="welcome_agree_continue">Agree &amp; continue</string>
+    <string name="welcome_private_use">For your private use only. Reselling this app or offering it publicly or commercially requires PureTech\'s prior written permission.</string>
 
     <!-- Device IMEI (*#06#) -->
     <string name="imei_title">Device identifiers</string>

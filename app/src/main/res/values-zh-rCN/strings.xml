@@ -162,6 +162,7 @@
     <string name="welcome_get_started">开始使用</string>
     <string name="welcome_consent">我已阅读并同意服务条款和隐私政策。</string>
     <string name="welcome_agree_continue">同意并继续</string>
+    <string name="welcome_private_use">本应用仅供您个人私人使用。未经 PureTech 事先书面许可，不得转售本应用，也不得将其用于公开或商业用途。</string>
     <string name="imei_title">设备标识符</string>
     <string name="imei_copy">复制</string>
     <string name="imei_in_settings">IMEI 显示在设备详情中</string>

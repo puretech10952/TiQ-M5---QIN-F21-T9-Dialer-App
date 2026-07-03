@@ -162,6 +162,7 @@
     <string name="welcome_get_started">はじめる</string>
     <string name="welcome_consent">利用規約とプライバシーポリシーを読み、同意します。</string>
     <string name="welcome_agree_continue">同意して続ける</string>
+    <string name="welcome_private_use">本アプリはお客様個人の私的利用に限りライセンスされています。PureTech の事前の書面による許可なく、本アプリを再販売したり、公開・商業目的で提供したりすることはできません。</string>
     <string name="imei_title">端末識別情報</string>
     <string name="imei_copy">コピー</string>
     <string name="imei_in_settings">IMEI は端末の詳細に表示されます</string>
