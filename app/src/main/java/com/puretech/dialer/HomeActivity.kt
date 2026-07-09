@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -107,6 +108,7 @@ class HomeActivity : AppCompatActivity() {
                 R.id.nav_search -> startActivity(Intent(this, CallLogSearchActivity::class.java))
                 R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
                 R.id.nav_durations -> startActivity(Intent(this, CallStatsActivity::class.java))
+                R.id.nav_delete_all_logs -> confirmDeleteAllLogs()
                 R.id.nav_updates -> startActivity(Intent(this, UpdateActivity::class.java))
                 R.id.nav_about -> startActivity(Intent(this, AboutActivity::class.java))
             }
@@ -116,6 +118,25 @@ class HomeActivity : AppCompatActivity() {
     }
 
     fun openDrawer() = binding.drawerLayout.openDrawer(GravityCompat.START)
+
+    private fun confirmDeleteAllLogs() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setMessage(R.string.delete_all_logs_confirm)
+            .setPositiveButton(R.string.log_delete) { _, _ -> deleteAllLogs() }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun deleteAllLogs() {
+        val ctx = applicationContext
+        Thread {
+            CallLogRepository.deleteAll(ctx)
+            runOnUiThread {
+                Toast.makeText(this, R.string.all_logs_deleted, Toast.LENGTH_SHORT).show()
+                recentsFragment.reload()
+            }
+        }.start()
+    }
 
     private fun setupBottomBar() {
         // Set the initial selection before wiring the listener so it doesn't fire.

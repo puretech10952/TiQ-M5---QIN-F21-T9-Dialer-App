@@ -42,7 +42,7 @@ class MissedCallsActivity : AppCompatActivity() {
             onAddContact  = { n -> addContact(n) },
             onCopy        = { n -> copyNumber(n) },
             onOpenContact = { e -> openContact(e) },
-            onLongPress   = {}
+            onLongPress   = { _, _ -> }
         )
         binding.list.layoutManager = LinearLayoutManager(this)
         binding.list.adapter = adapter

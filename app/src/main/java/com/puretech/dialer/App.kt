@@ -10,6 +10,7 @@ class App : Application() {
         // Anti-tamper: if the app was modified and re-signed with a different key
         // (any code/resource/package change requires re-signing), refuse to run.
         if (!IntegrityGuard.isGenuine(this)) {
+            android.util.Log.e("M5Integrity", "Signing check failed after retries — killing process")
             android.os.Process.killProcess(android.os.Process.myPid())
             return
         }

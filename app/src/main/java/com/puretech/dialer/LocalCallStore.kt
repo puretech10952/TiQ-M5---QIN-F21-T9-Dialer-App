@@ -135,6 +135,20 @@ object LocalCallStore {
         return out
     }
 
+    /** Removes stored calls matching [number] — by trailing-digits match when
+     *  digits are present, otherwise an exact match (withheld/blank numbers). */
+    fun delete(ctx: Context, last7: String, exactFallback: String) {
+        try {
+            if (last7.isNotEmpty()) db(ctx).delete(TABLE, "$C_NUMBER LIKE ?", arrayOf("%$last7"))
+            else db(ctx).delete(TABLE, "$C_NUMBER = ?", arrayOf(exactFallback))
+        } catch (_: Exception) {}
+    }
+
+    /** Wipes the entire local call history. */
+    fun deleteAll(ctx: Context) {
+        try { db(ctx).delete(TABLE, null, null) } catch (_: Exception) {}
+    }
+
     /** Calls older than [beforeDate] (epoch ms), for stats / graph augmentation. */
     fun loadBefore(ctx: Context, beforeDate: Long): List<StoredCall> {
         val out = mutableListOf<StoredCall>()

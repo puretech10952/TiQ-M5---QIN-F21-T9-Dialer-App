@@ -163,17 +163,9 @@ class CallHistoryActivity : AppCompatActivity() {
 
     private fun doDeleteHistory() {
         val ctx = applicationContext
-        val digits = number.filter { it.isDigit() }
-        val last = if (digits.length >= 7) digits.takeLast(7) else digits
+        val num = number
         Thread {
-            try {
-                ctx.contentResolver.delete(
-                    CallLog.Calls.CONTENT_URI,
-                    "${CallLog.Calls.NUMBER} LIKE ?", arrayOf("%$last")
-                )
-            } catch (e: Exception) {
-                android.util.Log.w("M5CallHistory", "delete failed: ${e.message}")
-            }
+            CallLogRepository.delete(ctx, num)
             runOnUiThread {
                 android.widget.Toast.makeText(this, R.string.entry_deleted, android.widget.Toast.LENGTH_SHORT).show()
                 finish()

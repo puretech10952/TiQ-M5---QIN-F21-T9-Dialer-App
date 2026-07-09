@@ -33,7 +33,7 @@ class CallLogAdapter(
     private val onAddContact: (String) -> Unit,
     private val onCopy: (String) -> Unit,
     private val onOpenContact: (CallLogEntry) -> Unit,
-    private val onLongPress: (CallLogEntry) -> Unit
+    private val onLongPress: (CallLogEntry, View) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val rows = ArrayList<CallLogRow>()
@@ -195,7 +195,7 @@ class CallLogAdapter(
                 row.setOnLongClickListener(null)
                 row.isLongClickable = false
             } else {
-                row.setOnLongClickListener { onLongPress(e); true }
+                row.setOnLongClickListener { onLongPress(e, row); true }
             }
             actionAddContact.setOnClickListener { onAddContact(e.number) }
             actionMessage.setOnClickListener { onMessage(e.number) }

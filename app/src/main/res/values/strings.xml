@@ -103,8 +103,12 @@
     <string name="delete_entry">Delete entry</string>
     <string name="number_blocked">Number blocked</string>
     <string name="entry_deleted">Call deleted</string>
+    <string name="entry_delete_confirm">Delete this call log entry?</string>
     <string name="history_delete">Delete history</string>
     <string name="history_delete_confirm">Delete all call history for this number?</string>
+    <string name="nav_delete_all_logs">Delete all call logs</string>
+    <string name="delete_all_logs_confirm">Delete all call log history? This can\'t be undone.</string>
+    <string name="all_logs_deleted">Call log cleared</string>
 
     <!-- Settings entries -->
     <string name="setting_theme">Theme</string>

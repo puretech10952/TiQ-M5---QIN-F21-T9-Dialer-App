@@ -78,7 +78,7 @@ class CallLogSearchActivity : AppCompatActivity() {
             onAddContact  = { n -> addContact(n) },
             onCopy        = { n -> copyNumber(n) },
             onOpenContact = { e -> openContact(e) },
-            onLongPress   = { /* no block/delete in search results */ }
+            onLongPress   = { _, _ -> /* no block/delete in search results */ }
         )
         binding.results.layoutManager = LinearLayoutManager(this)
         binding.results.adapter = adapter

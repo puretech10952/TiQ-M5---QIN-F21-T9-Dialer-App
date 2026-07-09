@@ -13,6 +13,10 @@
         android:icon="@drawable/ic_history"
         android:title="@string/nav_durations" />
     <item
+        android:id="@+id/nav_delete_all_logs"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/nav_delete_all_logs" />
+    <item
         android:id="@+id/nav_updates"
         android:icon="@drawable/ic_update"
         android:title="@string/update_title" />

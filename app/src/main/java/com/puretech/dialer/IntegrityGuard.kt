@@ -27,18 +27,30 @@ object IntegrityGuard {
         "A35486E7B9D924499F2CA3C88BBCDB511B6C0A63B009D58336713FC02DD58E4B"  // debug (rotation root)
     )
 
-    /** True if the app is genuine. Fails closed on a definite mismatch (wrong key
-     *  or wrong package); fails open if signatures can't be read at all, so an
-     *  OEM quirk never bricks a legitimate install. */
+    // Some OEM ROMs return an incomplete/stale signing-cert list from
+    // PackageManager on the first query or two right after the process is
+    // started fresh (e.g. right after the app was killed from Recents) —
+    // observed as the app self-killing on launch for a few tries in a row
+    // before working normally. Retry briefly before concluding real tampering.
+    private const val SIGNATURE_RETRIES = 3
+    private const val SIGNATURE_RETRY_DELAY_MS = 150L
+
+    /** True if the app is genuine. Fails closed on a mismatch that persists
+     *  across retries (wrong key or wrong package); fails open if signatures
+     *  can't be read at all, so an OEM quirk never bricks a legitimate install. */
     fun isGenuine(context: Context): Boolean {
         if (context.packageName != EXPECTED_PACKAGE) return false
-        val hashes = try {
-            signingHashes(context)
-        } catch (e: Exception) {
-            return true   // couldn't determine — don't brick a real install
+        repeat(SIGNATURE_RETRIES) { attempt ->
+            val hashes = try {
+                signingHashes(context)
+            } catch (e: Exception) {
+                return true   // couldn't determine — don't brick a real install
+            }
+            if (hashes.isEmpty()) return true
+            if (hashes.any { it in PINNED }) return true
+            if (attempt < SIGNATURE_RETRIES - 1) Thread.sleep(SIGNATURE_RETRY_DELAY_MS)
         }
-        if (hashes.isEmpty()) return true
-        return hashes.any { it in PINNED }
+        return false
     }
 
     private fun signingHashes(context: Context): Set<String> {

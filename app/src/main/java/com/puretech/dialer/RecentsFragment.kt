@@ -87,7 +87,7 @@ class RecentsFragment : Fragment() {
             onAddContact = { addContact(it) },
             onCopy = { copyNumber(it) },
             onOpenContact = { openContact(it) },
-            onLongPress = { showEntryMenu(it) }
+            onLongPress = { entry, anchor -> showEntryMenu(entry, anchor) }
         )
         binding.recents.layoutManager = LinearLayoutManager(requireContext())
         binding.recents.adapter = logAdapter
@@ -261,7 +261,7 @@ class RecentsFragment : Fragment() {
         ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CALL_LOG) ==
             PackageManager.PERMISSION_GRANTED
 
-    private fun reload() {
+    fun reload() {
         if (_binding == null) return
         if (!hasLogPermission() || !binding.searchInput.text.isNullOrBlank()) return
         val missedOnly = binding.chipMissed.isChecked
@@ -374,20 +374,20 @@ class RecentsFragment : Fragment() {
     }
 
     /** Long-press popup: block number / delete entry. */
-    private fun showEntryMenu(entry: CallLogEntry) {
-        val sheet = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
-        val view = layoutInflater.inflate(R.layout.sheet_entry_actions, null)
-        view.findViewById<android.widget.TextView>(R.id.sheetTitle).text =
-            entry.name ?: android.telephony.PhoneNumberUtils
-                .formatNumber(entry.number, java.util.Locale.US.country) ?: entry.number
-        view.findViewById<View>(R.id.sheetBlock).setOnClickListener {
-            sheet.dismiss(); blockNumber(entry.number)
-        }
-        view.findViewById<View>(R.id.sheetDelete).setOnClickListener {
-            sheet.dismiss(); deleteEntry(entry.number)
-        }
-        sheet.setContentView(view)
-        sheet.show()
+    private fun showEntryMenu(entry: CallLogEntry, anchor: View) {
+        val title = entry.name ?: android.telephony.PhoneNumberUtils
+            .formatNumber(entry.number, java.util.Locale.US.country) ?: entry.number
+        CardMenu(requireContext(), anchor)
+            .title(title)
+            .add(MENU_BLOCK, R.drawable.ic_block, getString(R.string.block_number))
+            .add(MENU_DELETE, R.drawable.ic_delete, getString(R.string.delete_entry))
+            .onClick { id ->
+                when (id) {
+                    MENU_BLOCK -> blockNumber(entry.number)
+                    MENU_DELETE -> deleteEntry(entry.number)
+                }
+            }
+            .show()
     }
 
     private fun blockNumber(number: String) {
@@ -402,16 +402,17 @@ class RecentsFragment : Fragment() {
     }
 
     private fun deleteEntry(number: String) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setMessage(R.string.entry_delete_confirm)
+            .setPositiveButton(R.string.log_delete) { _, _ -> doDeleteEntry(number) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun doDeleteEntry(number: String) {
         val ctx = requireContext().applicationContext
         Thread {
-            try {
-                ctx.contentResolver.delete(
-                    android.provider.CallLog.Calls.CONTENT_URI,
-                    "${android.provider.CallLog.Calls.NUMBER} = ?", arrayOf(number)
-                )
-            } catch (e: Exception) {
-                android.util.Log.w("M5CallLog", "delete failed: ${e.message}")
-            }
+            CallLogRepository.delete(ctx, number)
             ui {
                 Toast.makeText(requireContext(), R.string.entry_deleted, Toast.LENGTH_SHORT).show()
                 reload()
@@ -492,5 +493,10 @@ class RecentsFragment : Fragment() {
     /** Run [block] on the UI thread only if the view is still alive. */
     private fun ui(block: () -> Unit) {
         _binding?.root?.post { if (_binding != null) block() }
+    }
+
+    private companion object {
+        const val MENU_BLOCK = 1
+        const val MENU_DELETE = 2
     }
 }

@@ -24,6 +24,7 @@ class CardMenu(private val context: Context, private val anchor: View) {
 
     private val items = ArrayList<Item>()
     private var listener: ((Int) -> Unit)? = null
+    private var headerTitle: CharSequence? = null
     /** Called when the popup closes (tap or outside dismiss) — used to reset the
      *  anchor's active state. */
     var onDismiss: (() -> Unit)? = null
@@ -32,6 +33,10 @@ class CardMenu(private val context: Context, private val anchor: View) {
         items.add(Item(id, iconRes, title, selected))
         return this
     }
+
+    /** Shows [text] (e.g. a contact name/number) as a header above the items,
+     *  with a divider below it, so the menu makes clear what it's acting on. */
+    fun title(text: CharSequence): CardMenu { headerTitle = text; return this }
 
     fun onClick(l: (Int) -> Unit): CardMenu { listener = l; return this }
 
@@ -47,6 +52,12 @@ class CardMenu(private val context: Context, private val anchor: View) {
         val popup = PopupWindow(
             card, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true
         )
+
+        headerTitle?.let { text ->
+            val header = inflater.inflate(R.layout.item_popup_menu_title, container, false)
+            header.findViewById<TextView>(R.id.title).text = text
+            container.addView(header)
+        }
 
         for (item in items) {
             val rowView = inflater.inflate(R.layout.item_popup_menu, container, false)

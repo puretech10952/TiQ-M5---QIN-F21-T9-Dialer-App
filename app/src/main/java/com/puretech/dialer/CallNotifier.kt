@@ -26,7 +26,18 @@ object CallNotifier {
     private const val NOTIF_ID = 42
 
     fun update(context: Context) {
-        val call = CallManager.call ?: run { cancel(context); return }
+        // A call that just hung up briefly stays in CallManager.calls (Telecom
+        // removes it a moment later) — CallManager.call/primaryCall() still
+        // returns it during that window, which InCallActivity relies on to show
+        // "Call ended" for 2s. But that same window let this update() re-post a
+        // fresh sticky notification for the already-ended call moments before
+        // CallService.onCallRemoved()'s cancel() ran, leaving a ghost ongoing-call
+        // notification with nothing left to clear it. Treat a disconnecting call
+        // as "no call" here specifically, so the notification never comes back.
+        @Suppress("DEPRECATION")
+        val call = CallManager.call?.takeIf {
+            it.state != Call.STATE_DISCONNECTED && it.state != Call.STATE_DISCONNECTING
+        } ?: run { cancel(context); return }
         // While our full-screen call UI is visible, show NO notification — the
         // screen is the UI. If we get backgrounded (uiVisible=false, e.g. an OEM
         // like DuraSpeed pushes us back), onStop re-posts the full-screen-intent

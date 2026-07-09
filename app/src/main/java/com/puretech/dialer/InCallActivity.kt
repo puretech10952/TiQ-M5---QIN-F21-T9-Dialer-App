@@ -14,10 +14,10 @@ import android.telephony.PhoneNumberUtils
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -74,9 +74,21 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         binding = ActivityIncallBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setShowWhenLocked(true)
         setTurnScreenOn(true)
+
+        // Back never lets the user navigate into our own dialer/call-log screens
+        // while a call is live — it just backgrounds the whole task (call keeps
+        // running via the notification), revealing whatever was really in the
+        // foreground before the call (or the launcher, if the call was placed
+        // from our own app). InCallActivity shares a task with HomeActivity
+        // (same implicit taskAffinity), so default Back would otherwise pop
+        // into it instead.
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                moveTaskToBack(true)
+            }
+        })
 
         binding.btnEnd.setOnClickListener { CallManager.hangup() }
         binding.btnAnswer.setOnClickListener { CallManager.answer() }

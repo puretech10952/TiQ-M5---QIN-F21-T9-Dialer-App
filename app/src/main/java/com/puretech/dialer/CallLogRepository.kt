@@ -216,6 +216,45 @@ object CallLogRepository {
         }
     }
 
+    /**
+     * Deletes every call matching [number] from BOTH the system call log and
+     * [LocalCallStore]. Deleting only the system provider left entries that had
+     * already been mirrored to (or exist only in) the local store — the local
+     * store exists specifically because some ROMs trim/represent the system log
+     * differently, so a row that "deletes" from one can still resurface from the
+     * other on the next [load]. Matches by trailing-digits, like [loadForNumber],
+     * since the exact string stored in CallLog.Calls.NUMBER isn't guaranteed to
+     * match what's held in memory across ROMs.
+     */
+    fun delete(context: Context, number: String) {
+        val digits = number.filter { it.isDigit() }
+        val last7 = if (digits.length >= 7) digits.takeLast(7) else digits
+        try {
+            if (last7.isNotEmpty()) {
+                context.contentResolver.delete(
+                    CallLog.Calls.CONTENT_URI, "${CallLog.Calls.NUMBER} LIKE ?", arrayOf("%$last7")
+                )
+            } else {
+                context.contentResolver.delete(
+                    CallLog.Calls.CONTENT_URI, "${CallLog.Calls.NUMBER} = ?", arrayOf(number)
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("M5CallLog", "delete failed: ${e.message}")
+        }
+        LocalCallStore.delete(context, last7, number)
+    }
+
+    /** Wipes every call log entry — system log + local store. */
+    fun deleteAll(context: Context) {
+        try {
+            context.contentResolver.delete(CallLog.Calls.CONTENT_URI, null, null)
+        } catch (e: Exception) {
+            android.util.Log.w("M5CallLog", "deleteAll failed: ${e.message}")
+        }
+        LocalCallStore.deleteAll(context)
+    }
+
     /** Every individual call (with duration) for one number — for the History screen. */
     fun loadForNumber(context: Context, number: String): List<CallDetail> {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)

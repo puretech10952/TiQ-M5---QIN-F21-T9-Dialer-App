@@ -135,9 +135,9 @@ object Prefs {
     fun setLastNotifiedTag(c: Context, tag: String) =
         sp(c).edit().putString("last_notified_tag", tag).apply()
 
-    /** Play a DTMF tone when pressing a key on the dial screen. On by default.
+    /** Play a DTMF tone when pressing a key on the dial screen. Off by default.
      *  (In-call keypad tones always play, regardless of this setting.) */
-    fun dialpadTone(c: Context) = sp(c).getBoolean("dialpad_tone", true)
+    fun dialpadTone(c: Context) = sp(c).getBoolean("dialpad_tone", false)
     fun setDialpadTone(c: Context, on: Boolean) =
         sp(c).edit().putBoolean("dialpad_tone", on).apply()
 
