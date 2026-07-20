@@ -311,7 +311,8 @@ class CallHistoryActivity : AppCompatActivity() {
                 duration.text = when {
                     missed -> ""
                     s < 60 -> "${s}s"
-                    else -> "${s / 60} min ${s % 60} s"
+                    s < 3600 -> "${s / 60} min ${s % 60} s"
+                    else -> "${s / 3600}h ${(s % 3600) / 60}m ${s % 60}s"
                 }
             }
         }

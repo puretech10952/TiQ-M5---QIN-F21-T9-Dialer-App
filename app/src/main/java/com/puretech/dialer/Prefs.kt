@@ -36,6 +36,34 @@ object Prefs {
         )
     }
 
+    // --- Screen profile -------------------------------------------------------
+
+    const val PROFILE_SMALL = 0
+    const val PROFILE_LARGE = 1
+
+    /** SMALL = keypad-phone design (default). LARGE = smartphone-optimized:
+     *  bigger in-call controls, on-screen keypad auto-opens every time the
+     *  dial screen is visited, bottom nav bar never hides on scroll. */
+    fun screenProfile(c: Context) = sp(c).getInt("screen_profile", PROFILE_SMALL)
+
+    fun setScreenProfile(c: Context, profile: Int) {
+        sp(c).edit().putInt("screen_profile", profile).apply()
+        if (profile == PROFILE_LARGE) {
+            setKeypadDefaultOpen(c, true)
+            setBigKeypad(c, true)
+        }
+        // Switching back to SMALL intentionally leaves these two alone from
+        // here on — they become the user's own independent choice, same as
+        // any other setting in KeypadSettingsActivity.
+    }
+
+    /** Whether the user has been asked (onboarding or Settings) to pick a
+     *  screen profile at least once. Independent of [welcomeShown] so
+     *  upgrading users who already passed the old onboarding are asked once too. */
+    fun screenProfileChosen(c: Context) = sp(c).getBoolean("screen_profile_chosen", false)
+    fun setScreenProfileChosen(c: Context) =
+        sp(c).edit().putBoolean("screen_profile_chosen", true).apply()
+
     /** In-app color theme id (0 = Default / device dynamic color). See [DialerThemes]. */
     fun colorTheme(c: Context) = sp(c).getInt("color_theme", DialerThemes.DEFAULT)
     fun setColorTheme(c: Context, id: Int) {

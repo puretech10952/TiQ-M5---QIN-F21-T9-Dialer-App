@@ -12,10 +12,13 @@ import android.telecom.Call
 import android.telecom.CallAudioState
 import android.telephony.PhoneNumberUtils
 import android.text.InputType
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -113,6 +116,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         // Vibrant green echo waves for incoming calls (matches the Answer button).
         binding.pulseRing.setRingColor(0xFF00C853.toInt())
 
+        applyScreenProfile()
         if (isPreview) renderPreview()
     }
 
@@ -123,6 +127,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
     override fun onResume() {
         super.onResume()
+        applyScreenProfile()
         if (!isPreview) {
             CallManager.uiVisible = true
             // Full-screen call UI is up → remove any notification entirely. It is
@@ -649,6 +654,74 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         // Keys are now LinearLayout cells (digit + letters) like the dialer pad, so
         // walk the rows and wire each cell by the digit in its first TextView.
         wireDtmfKeys(binding.dtmfPad)
+    }
+
+    /** Scales up the in-call controls when the user's screen profile is
+     *  smartphone-sized (see Prefs.PROFILE_LARGE) — bigger avatar, buttons,
+     *  and text, matching the ~30% ratio HomeActivity.applyBigKeypad() uses. */
+    private fun applyScreenProfile() {
+        val large = Prefs.screenProfile(this) == Prefs.PROFILE_LARGE
+        val d = resources.displayMetrics.density
+        fun px(dp: Int) = (dp * d).toInt()
+        fun sp(v: TextView, s: Float) = v.setTextSize(TypedValue.COMPLEX_UNIT_SP, s)
+
+        binding.avatar.layoutParams = binding.avatar.layoutParams.apply {
+            width = px(if (large) 200 else 150); height = px(if (large) 200 else 150)
+        }
+        listOf(binding.avatarInitial, binding.contactPhoto).forEach {
+            it.layoutParams = it.layoutParams.apply {
+                width = px(if (large) 128 else 96); height = px(if (large) 128 else 96)
+            }
+        }
+        sp(binding.avatarInitial, if (large) 52f else 40f)
+
+        val icons = listOf(
+            binding.btnMute, binding.btnKeypad, binding.btnRoute, binding.btnMore,
+            binding.btnWaitDecline, binding.btnWaitHold, binding.btnWaitEnd
+        )
+        val iconBox = px(if (large) 76 else 56)
+        val iconPad = px(if (large) 20 else 16)
+        for (v in icons) {
+            v.layoutParams = v.layoutParams.apply { width = iconBox; height = iconBox }
+            v.setPadding(iconPad, iconPad, iconPad, iconPad)
+        }
+        listOf(binding.lblMute, binding.lblKeypad, binding.lblRoute, binding.lblMore)
+            .forEach { sp(it, if (large) 15f else 12f) }
+
+        val ansBox = px(if (large) 84 else 64)
+        val ansPad = px(if (large) 22 else 17)
+        listOf(binding.btnAnswer, binding.btnDecline).forEach {
+            it.layoutParams = it.layoutParams.apply { width = ansBox; height = ansBox }
+            it.setPadding(ansPad, ansPad, ansPad, ansPad)
+        }
+
+        binding.btnEnd.layoutParams = binding.btnEnd.layoutParams.apply {
+            width = px(if (large) 190 else 150); height = px(if (large) 72 else 56)
+        }
+        val endPad = px(if (large) 19 else 15)
+        binding.btnEnd.setPadding(endPad, endPad, endPad, endPad)
+
+        sp(binding.nameText, if (large) 32f else 26f)
+        sp(binding.numberText, if (large) 18f else 15f)
+        sp(binding.statusText, if (large) 18f else 15f)
+
+        resizeDtmfKeys(binding.dtmfPad, px(if (large) 60 else 46), if (large) 32f else 26f)
+    }
+
+    /** Same traversal shape as [wireDtmfKeys] — walk the DTMF pad's rows and
+     *  resize each digit cell by the digit in its first TextView. */
+    private fun resizeDtmfKeys(group: ViewGroup, heightPx: Int, digitSp: Float) {
+        for (i in 0 until group.childCount) {
+            val child = group.getChildAt(i) as? ViewGroup ?: continue
+            val digit = child.getChildAt(0) as? TextView
+            val ch = digit?.text?.toString()?.firstOrNull()
+            if (ch != null && (ch.isDigit() || ch == '*' || ch == '#')) {
+                child.layoutParams = child.layoutParams.apply { height = heightPx }
+                digit.setTextSize(TypedValue.COMPLEX_UNIT_SP, digitSp)
+            } else {
+                resizeDtmfKeys(child, heightPx, digitSp)
+            }
+        }
     }
 
     private fun wireDtmfKeys(group: android.view.ViewGroup) {

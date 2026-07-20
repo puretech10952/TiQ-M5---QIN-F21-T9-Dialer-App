@@ -38,6 +38,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowFloating.setOnClickListener {
             startActivity(Intent(this, KeypadSettingsActivity::class.java))
         }
+        binding.rowScreenProfile.setOnClickListener {
+            startActivity(Intent(this, ScreenProfileActivity::class.java))
+        }
         binding.rowRedirect.setOnClickListener {
             startActivity(Intent(this, RedirectSettingsActivity::class.java))
         }

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurfaceContainer"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="6dp">
+
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/setting_screen_profile"
+            android:padding="10dp"
+            android:src="@drawable/ic_back"
+            app:tint="?attr/colorOnSurface" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="@string/setting_screen_profile"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginBottom="14dp"
+                android:text="@string/screen_profile_subtitle"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp"
+                android:lineSpacingMultiplier="1.15" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/SettingsGroupCard">
+
+                <RadioGroup
+                    android:id="@+id/profileGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/rowSmall"
+                        style="@style/StatRow"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <RadioButton
+                            android:id="@+id/profileSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="14dp"
+                            android:clickable="false" />
+
+                        <ImageView style="@style/StatIcon" android:src="@drawable/ic_dialpad" />
+
+                        <LinearLayout style="@style/StatText">
+                            <TextView style="@style/StatLabel" android:text="@string/screen_profile_small_title" />
+                            <TextView style="@style/StatSub" android:text="@string/screen_profile_small_desc" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout
+                        android:id="@+id/rowLarge"
+                        style="@style/StatRow"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <RadioButton
+                            android:id="@+id/profileLarge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="14dp"
+                            android:clickable="false" />
+
+                        <ImageView style="@style/StatIcon" android:src="@drawable/ic_screen_size" />
+
+                        <LinearLayout style="@style/StatText">
+                            <TextView style="@style/StatLabel" android:text="@string/screen_profile_large_title" />
+                            <TextView style="@style/StatSub" android:text="@string/screen_profile_large_desc" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </RadioGroup>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/continueButton"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="14dp"
+        android:text="@string/screen_profile_continue"
+        android:textSize="16sp"
+        app:cornerRadius="28dp" />
+
+</LinearLayout>

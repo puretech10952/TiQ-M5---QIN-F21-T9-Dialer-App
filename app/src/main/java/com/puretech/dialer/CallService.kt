@@ -56,10 +56,18 @@ class CallService : InCallService() {
         // UI over another foreground app — a direct background startActivity from
         // this service is often blocked by OEM background-launch limits.
         CallManager.registerListener(notifListener)
-        startActivity(
-            Intent(this, InCallActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
+        // Outgoing calls were just dialed from inside this app, so always go
+        // full screen. Incoming (ringing) calls only take over the screen when
+        // the device is actually locked — unlocked always just shows the
+        // CallStyle notification instead (matches the real Google Dialer's
+        // behavior, verified live: it does not distinguish home screen from
+        // any other foreground app, only lock state). See CallUiGate.
+        if (call.state != Call.STATE_RINGING || CallUiGate.shouldShowFullScreen(this)) {
+            startActivity(
+                Intent(this, InCallActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
     }
 
     /** True when the caller is withheld/private or not a saved contact. Returns

@@ -119,6 +119,16 @@
     <string name="theme_color">Color</string>
     <string name="theme_color_summary">Pick a color for the app. Works on every phone, even without Material You.</string>
     <string name="theme_default">Default</string>
+
+    <!-- Screen profile -->
+    <string name="setting_screen_profile">Screen profile</string>
+    <string name="screen_profile_subtitle">Choose the phone this app is running on. You can change this anytime.</string>
+    <string name="screen_profile_small_title">Small screen (keypad phone)</string>
+    <string name="screen_profile_small_desc">For phones like the TiQ Mini M5 or Qin F21. Dial with the hardware keys.</string>
+    <string name="screen_profile_large_title">Large screen (smartphone)</string>
+    <string name="screen_profile_large_desc">Bigger in-call buttons, the on-screen keypad opens automatically, and the bottom bar always stays visible.</string>
+    <string name="screen_profile_continue">Continue</string>
+
     <string name="setting_blocked">Blocked numbers</string>
     <string name="setting_blocked_summary">Calls and texts from blocked numbers are rejected</string>
     <string name="setting_quick_responses">Quick responses</string>

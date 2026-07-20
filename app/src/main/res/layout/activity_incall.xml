@@ -511,7 +511,7 @@
 
             <LinearLayout style="@style/ControlGroup">
                 <ImageView android:id="@+id/btnMore" style="@style/ControlIcon" android:src="@drawable/ic_more" />
-                <TextView style="@style/ControlLabel" android:text="@string/ctl_more" />
+                <TextView android:id="@+id/lblMore" style="@style/ControlLabel" android:text="@string/ctl_more" />
             </LinearLayout>
         </LinearLayout>
 

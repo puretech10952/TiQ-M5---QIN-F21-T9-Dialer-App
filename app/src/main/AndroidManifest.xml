@@ -87,6 +87,7 @@
         <activity android:name=".CallingAccountsActivity" android:exported="false" />
         <activity android:name=".AboutActivity" android:exported="false" />
         <activity android:name=".KeypadSettingsActivity" android:exported="false" />
+        <activity android:name=".ScreenProfileActivity" android:exported="false" />
         <activity android:name=".RedirectSettingsActivity" android:exported="false" />
         <activity android:name=".KeepAliveSettingsActivity" android:exported="false" />
         <activity android:name=".RecordingSettingsActivity" android:exported="false" />

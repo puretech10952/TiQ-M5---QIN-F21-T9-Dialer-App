@@ -81,11 +81,23 @@ class HomeActivity : AppCompatActivity() {
         super.onResume()
         if (Gates.enforce(this)) return
         ensureBarHider()
+        refreshBarHiderForProfile()
         if (currentTab == Tab.DIALER) {
             applyKeypadSetting()
             dialerFragment.onTabResumed()
         } else {
             recentsFragment.onTabResumed()
+        }
+    }
+
+    /** Reflects a screen-profile change made elsewhere (Settings) the moment
+     *  this activity resumes, regardless of which tab is showing. */
+    private fun refreshBarHiderForProfile() {
+        if (Prefs.screenProfile(this) == Prefs.PROFILE_LARGE) {
+            barHider.enabled = false
+            barHider.show()
+        } else if (binding.dialpadPanel.visibility != View.VISIBLE) {
+            barHider.enabled = true
         }
     }
 
@@ -218,6 +230,7 @@ class HomeActivity : AppCompatActivity() {
         )
         barHider.show()
         if (tab == Tab.DIALER) {
+            if (Prefs.screenProfile(this) == Prefs.PROFILE_LARGE) didAutoOpenKeypad = false
             applyKeypadSetting()
             dialerFragment.onTabResumed()
         } else {
@@ -231,8 +244,9 @@ class HomeActivity : AppCompatActivity() {
     private fun setKeypadShown(shown: Boolean) {
         binding.dialpadPanel.visibility = if (shown) View.VISIBLE else View.GONE
         // bottomNav stays visible at all times; the dialpad sits above it in the layout.
-        barHider.enabled = !shown
-        if (!shown) barHider.show()
+        val large = Prefs.screenProfile(this) == Prefs.PROFILE_LARGE
+        barHider.enabled = !shown && !large
+        if (!barHider.enabled) barHider.show()
         binding.dialpadPanel.post {
             // Pad the suggestions list enough to clear both the dialpad (when open)
             // and the always-visible nav bar beneath it.
@@ -306,10 +320,13 @@ class HomeActivity : AppCompatActivity() {
                 showTab(Tab.DIALER)
                 dialerFragment.prefillFromIntent(intent)
             }
-            // The call/send button (CALL_BUTTON) always opens the call log, even if
-            // the app was last left on the dialer or elsewhere.
-            intent.action == Intent.ACTION_CALL_BUTTON -> showTab(Tab.RECENTS)
-            // else: MAIN → stay on the default Recents tab.
+            // The call/send button (CALL_BUTTON) and the launcher icon (MAIN) both
+            // always open the call log, even if the app was already running and
+            // was left on the dialer or elsewhere — singleTask brings the existing
+            // instance back via onNewIntent rather than a fresh onCreate, so this
+            // has to be forced explicitly rather than relying on the tab default.
+            intent.action == Intent.ACTION_CALL_BUTTON || intent.action == Intent.ACTION_MAIN ->
+                showTab(Tab.RECENTS)
         }
     }
 
