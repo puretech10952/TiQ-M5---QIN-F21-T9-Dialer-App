@@ -132,6 +132,15 @@ object Prefs {
     fun setSwipeToAnswer(c: Context, on: Boolean) =
         sp(c).edit().putBoolean("swipe_to_answer", on).apply()
 
+    /** When off (default): an incoming call only takes over the full screen
+     *  if the device is locked; while unlocked it shows as a notification
+     *  instead, whether you're on the home screen or in another app. When
+     *  on: always take over the full screen for a ringing call, even while
+     *  the phone is unlocked and in use — the classic phone-ringing look. */
+    fun alwaysFullScreenCalls(c: Context) = sp(c).getBoolean("always_full_screen_calls", false)
+    fun setAlwaysFullScreenCalls(c: Context, on: Boolean) =
+        sp(c).edit().putBoolean("always_full_screen_calls", on).apply()
+
     /** Experimental: block outgoing calls to known AI phone-call services
      *  (see [AiBlocklist]), even from a contact. Off by default. */
     fun blockAiNumbers(c: Context) = sp(c).getBoolean("block_ai_numbers", false)

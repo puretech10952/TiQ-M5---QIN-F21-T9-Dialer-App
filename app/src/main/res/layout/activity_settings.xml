@@ -123,6 +123,14 @@
 
                     <View style="@style/SettingRowDivider" />
 
+                    <LinearLayout android:id="@+id/rowAlwaysFullScreenCalls" style="@style/SettingRowM3">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_screen_size" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_always_full_screen_calls" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
+
                     <LinearLayout android:id="@+id/rowBlockAi" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"

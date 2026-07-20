@@ -14,10 +14,15 @@ import android.os.PowerManager
  * exemption, specifically for drawing over the keyguard) or when the user
  * taps the notification themselves. So the only signal that matters is lock
  * state, not what app happens to be in front.
+ *
+ * User-overridable via [Prefs.alwaysFullScreenCalls] — when set, always
+ * take over the full screen for a ringing call, matching the classic
+ * always-full-screen behavior this replaced as the default.
  */
 object CallUiGate {
 
     fun shouldShowFullScreen(context: Context): Boolean {
+        if (Prefs.alwaysFullScreenCalls(context)) return true
         val km = context.getSystemService(KeyguardManager::class.java)
         if (km == null || km.isKeyguardLocked) return true
         val pm = context.getSystemService(PowerManager::class.java)

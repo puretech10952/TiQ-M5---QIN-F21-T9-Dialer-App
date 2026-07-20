@@ -24,6 +24,8 @@ class ToggleSettingActivity : AppCompatActivity() {
             KEY_SWIPE_ANSWER -> R.string.setting_swipe_answer to R.string.setting_swipe_answer_summary
             KEY_BLOCK_AI -> R.string.setting_block_ai to R.string.setting_block_ai_summary
             KEY_BLOCK_UNKNOWN -> R.string.setting_block_unknown to R.string.setting_block_unknown_summary
+            KEY_ALWAYS_FULL_SCREEN_CALLS ->
+                R.string.setting_always_full_screen_calls to R.string.setting_always_full_screen_calls_summary
             else -> { finish(); return }
         }
 
@@ -44,6 +46,7 @@ class ToggleSettingActivity : AppCompatActivity() {
         KEY_SWIPE_ANSWER -> Prefs.swipeToAnswer(this)
         KEY_BLOCK_AI -> Prefs.blockAiNumbers(this)
         KEY_BLOCK_UNKNOWN -> Prefs.blockUnknownCallers(this)
+        KEY_ALWAYS_FULL_SCREEN_CALLS -> Prefs.alwaysFullScreenCalls(this)
         else -> false
     }
 
@@ -52,6 +55,7 @@ class ToggleSettingActivity : AppCompatActivity() {
         KEY_SWIPE_ANSWER -> Prefs.setSwipeToAnswer(this, on)
         KEY_BLOCK_AI -> Prefs.setBlockAiNumbers(this, on)
         KEY_BLOCK_UNKNOWN -> Prefs.setBlockUnknownCallers(this, on)
+        KEY_ALWAYS_FULL_SCREEN_CALLS -> Prefs.setAlwaysFullScreenCalls(this, on)
         else -> {}
     }
 
@@ -61,5 +65,6 @@ class ToggleSettingActivity : AppCompatActivity() {
         const val KEY_SWIPE_ANSWER = "swipe_answer"
         const val KEY_BLOCK_AI = "block_ai"
         const val KEY_BLOCK_UNKNOWN = "block_unknown"
+        const val KEY_ALWAYS_FULL_SCREEN_CALLS = "always_full_screen_calls"
     }
 }

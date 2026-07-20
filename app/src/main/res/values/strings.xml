@@ -289,6 +289,8 @@
     <string name="setting_dialpad_tone_summary">Play a dial tone when you press a key (always on during a call)</string>
     <string name="setting_swipe_answer">Swipe to answer</string>
     <string name="setting_swipe_answer_summary">Slide a button sideways to answer or decline incoming calls, instead of tapping</string>
+    <string name="setting_always_full_screen_calls">Always show full-screen calls</string>
+    <string name="setting_always_full_screen_calls_summary">By default, an incoming call only takes over the whole screen when your phone is locked — while it\'s unlocked, whether you\'re on the home screen or using another app, you\'ll just see a notification with Answer and Decline instead. Turn this on to always show the full-screen call, even while your phone is unlocked and in use.</string>
     <string name="setting_block_ai">Block AI phone numbers</string>
     <string name="setting_block_ai_summary">Experimental — stop calls to AI voice services (like 1-800-ChatGPT), even from a contact</string>
     <string name="setting_block_unknown">Block unknown callers</string>

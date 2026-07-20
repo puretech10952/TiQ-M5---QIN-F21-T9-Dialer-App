@@ -54,6 +54,9 @@ class SettingsActivity : AppCompatActivity() {
         // On/off settings now open their own detail page (switch lives inside).
         binding.rowDialpadTone.setOnClickListener { openToggle(ToggleSettingActivity.KEY_DIALPAD_TONE) }
         binding.rowSwipeAnswer.setOnClickListener { openToggle(ToggleSettingActivity.KEY_SWIPE_ANSWER) }
+        binding.rowAlwaysFullScreenCalls.setOnClickListener {
+            openToggle(ToggleSettingActivity.KEY_ALWAYS_FULL_SCREEN_CALLS)
+        }
         binding.rowBlockAi.setOnClickListener { openToggle(ToggleSettingActivity.KEY_BLOCK_AI) }
         binding.rowBlockUnknown.setOnClickListener { openToggle(ToggleSettingActivity.KEY_BLOCK_UNKNOWN) }
     }
