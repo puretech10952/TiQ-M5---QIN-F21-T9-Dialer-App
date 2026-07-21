@@ -158,6 +158,7 @@
     <string name="opt_message">Message</string>
     <string name="opt_copy">Copy number</string>
     <string name="copied">Number copied</string>
+    <string name="favorite_number_dont_ask_again">Don\'t ask again</string>
     <string name="banner_not_default">M5 Dialer isn\'t your default phone app</string>
     <string name="banner_set_default">Set as default</string>
     <string name="banner_default_title">Set PureTech as your phone app</string>

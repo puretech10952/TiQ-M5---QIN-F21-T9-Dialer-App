@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 
 /** Horizontal strip of starred contacts shown under "Favorites". */
-class FavoritesAdapter(private val onClick: (Contact) -> Unit) :
+class FavoritesAdapter(private val onClick: (Contact, View) -> Unit) :
     RecyclerView.Adapter<FavoritesAdapter.VH>() {
 
     private val items = ArrayList<Contact>()
@@ -33,7 +33,7 @@ class FavoritesAdapter(private val onClick: (Contact) -> Unit) :
         fun bind(c: Contact) {
             Avatars.bind(initial, photo, c.name, c.photoUri)
             name.text = c.name
-            itemView.setOnClickListener { onClick(c) }
+            itemView.setOnClickListener { onClick(c, itemView) }
         }
     }
 }

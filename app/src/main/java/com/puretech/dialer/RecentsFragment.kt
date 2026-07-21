@@ -92,7 +92,7 @@ class RecentsFragment : Fragment() {
         binding.recents.layoutManager = LinearLayoutManager(requireContext())
         binding.recents.adapter = logAdapter
 
-        favoritesAdapter = FavoritesAdapter { callNumber(it.number) }
+        favoritesAdapter = FavoritesAdapter { contact, anchor -> onFavoriteClick(contact, anchor) }
         binding.favoritesStrip.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         binding.favoritesStrip.adapter = favoritesAdapter
@@ -446,6 +446,33 @@ class RecentsFragment : Fragment() {
     }
 
     // --- Calling ---------------------------------------------------------------
+
+    /** Tapping a favorite either dials straight away (single-number contact, or a
+     *  remembered default), or shows an anchored popup to pick which number when
+     *  there's more than one — with an option to remember the choice. */
+    private fun onFavoriteClick(contact: Contact, anchor: View) {
+        val key = contact.lookupKey
+        if (key == null) { callNumber(contact.number); return }
+        val remembered = Prefs.defaultNumberForContact(requireContext(), key)
+        if (remembered != null) { callNumber(remembered); return }
+        Thread {
+            val numbers = ContactsRepository.numbersFor(requireContext().applicationContext, key)
+            ui {
+                if (numbers.size <= 1) {
+                    callNumber(numbers.firstOrNull()?.number ?: contact.number)
+                } else {
+                    NumberPickerPopup(requireContext(), anchor)
+                        .title(contact.name)
+                        .numbers(numbers)
+                        .onPick { number, remember ->
+                            if (remember) Prefs.setDefaultNumberForContact(requireContext(), key, number)
+                            callNumber(number)
+                        }
+                        .show()
+                }
+            }
+        }.start()
+    }
 
     private fun callNumber(raw: String) {
         if (raw.isBlank()) return

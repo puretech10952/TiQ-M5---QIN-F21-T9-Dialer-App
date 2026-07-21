@@ -201,6 +201,16 @@ object Prefs {
     fun setQuickResponse(c: Context, index: Int, text: String) =
         sp(c).edit().putString("qr_$index", text).apply()
 
+    // --- Favorites: default number for multi-number contacts -------------------
+
+    /** The number to dial without asking, for a favorite with several numbers —
+     *  null if the user hasn't picked "don't ask again" for this contact yet. */
+    fun defaultNumberForContact(c: Context, lookupKey: String): String? =
+        sp(c).getString("fav_default_number_$lookupKey", null)
+
+    fun setDefaultNumberForContact(c: Context, lookupKey: String, number: String) =
+        sp(c).edit().putString("fav_default_number_$lookupKey", number).apply()
+
     // --- App language override --------------------------------------------------
 
     /** BCP-47 tag of the manually chosen language (e.g. "es"), or "" for system default. */

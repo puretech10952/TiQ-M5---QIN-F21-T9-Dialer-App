@@ -15,8 +15,13 @@ data class Contact(
     val wordT9: List<String>,      // T9 of each name word (first/last-name prefix match)
     val photoUri: Uri?,
     val timesContacted: Int,
-    val lastTimeContacted: Long
+    val lastTimeContacted: Long,
+    val lookupKey: String? = null  // stable per-contact id; set for favorites, used to
+                                    // remember a chosen number when a contact has several
 )
+
+/** One of a contact's phone numbers, with its type label (Mobile/Home/Work/...). */
+data class ContactNumber(val number: String, val label: String)
 
 /** Maps letters to their T9 keypad digit. */
 object T9 {
@@ -196,13 +201,14 @@ object ContactsRepository {
         }
     }
 
-    /** Starred contacts, for the Favorites strip. */
+    /** Starred contacts, for the Favorites strip. One row per contact (first number
+     *  wins for display) — use [numbersFor] to get the rest when there's more than one. */
     fun loadFavorites(context: Context, limit: Int = 30): List<Contact> {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
             != PackageManager.PERMISSION_GRANTED
         ) return emptyList()
         val projection = arrayOf(
-            Phone.DISPLAY_NAME, Phone.NUMBER, Phone.PHOTO_THUMBNAIL_URI
+            Phone.DISPLAY_NAME, Phone.NUMBER, Phone.PHOTO_THUMBNAIL_URI, Phone.LOOKUP_KEY
         )
         val out = ArrayList<Contact>()
         val seen = HashSet<String>()
@@ -212,12 +218,50 @@ object ContactsRepository {
             val nameIdx = c.getColumnIndex(Phone.DISPLAY_NAME)
             val numIdx = c.getColumnIndex(Phone.NUMBER)
             val photoIdx = c.getColumnIndex(Phone.PHOTO_THUMBNAIL_URI)
+            val keyIdx = c.getColumnIndex(Phone.LOOKUP_KEY)
             while (c.moveToNext() && out.size < limit) {
                 val name = if (nameIdx >= 0) c.getString(nameIdx) ?: "" else ""
-                if (name.isBlank() || !seen.add(name)) continue
+                val lookupKey = if (keyIdx >= 0) c.getString(keyIdx) else null
+                // Dedupe by contact, not name — a starred contact with several
+                // numbers must collapse to one favorite row, not one per number.
+                val dedupeKey = lookupKey ?: name
+                if (name.isBlank() || dedupeKey.isBlank() || !seen.add(dedupeKey)) continue
                 val number = if (numIdx >= 0) c.getString(numIdx) ?: "" else ""
                 val photo = if (photoIdx >= 0) c.getString(photoIdx)?.let { Uri.parse(it) } else null
-                out.add(Contact(name, number, number.filter { it.isDigit() }, "", emptyList(), photo, 0, 0L))
+                out.add(
+                    Contact(
+                        name, number, number.filter { it.isDigit() }, "", emptyList(), photo, 0, 0L,
+                        lookupKey = lookupKey
+                    )
+                )
+            }
+        }
+        return out
+    }
+
+    /** All phone numbers for the contact identified by [lookupKey], with type labels
+     *  (Mobile/Home/Work/...) — used to let the user pick which one to call when a
+     *  favorite has more than one. */
+    fun numbersFor(context: Context, lookupKey: String): List<ContactNumber> {
+        if (context.checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return emptyList()
+        val out = ArrayList<ContactNumber>()
+        val seen = HashSet<String>()
+        val projection = arrayOf(Phone.NUMBER, Phone.TYPE, Phone.LABEL)
+        context.contentResolver.query(
+            Phone.CONTENT_URI, projection, "${Phone.LOOKUP_KEY} = ?", arrayOf(lookupKey), null
+        )?.use { c ->
+            val numIdx = c.getColumnIndex(Phone.NUMBER)
+            val typeIdx = c.getColumnIndex(Phone.TYPE)
+            val labelIdx = c.getColumnIndex(Phone.LABEL)
+            while (c.moveToNext()) {
+                val number = if (numIdx >= 0) c.getString(numIdx) ?: "" else ""
+                if (number.isBlank() || !seen.add(number.filter { it.isDigit() })) continue
+                val type = if (typeIdx >= 0) c.getInt(typeIdx) else Phone.TYPE_OTHER
+                val customLabel = if (labelIdx >= 0) c.getString(labelIdx) else null
+                val label = Phone.getTypeLabel(context.resources, type, customLabel).toString()
+                out.add(ContactNumber(number, label))
             }
         }
         return out

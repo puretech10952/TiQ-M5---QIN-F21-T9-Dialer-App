@@ -131,6 +131,25 @@
             </intent-filter>
         </service>
 
+        <!-- Telecom binds this as part of its incoming-call filtering pipeline,
+             BEFORE the call ever reaches CallService/InCallService — and it will
+             start our process for it even if the app was force-stopped or fully
+             killed (confirmed via logcat: Google Dialer's own CallScreeningService
+             gets exactly this early process-start treatment, which is why calls
+             surface for it reliably while ours, having no such service declared,
+             gets "no call screening service defined" and never gets an early
+             wake at all). This makes our app do the same: no actual screening
+             logic, just a legitimate, OS-sanctioned reason for Telecom to start
+             our process ahead of the call, the same way Google's does. -->
+        <service
+            android:name=".CallScreener"
+            android:exported="true"
+            android:permission="android.permission.BIND_SCREENING_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
+        </service>
+
         <!-- Optional keep-alive: pins our process so incoming calls still
              surface on ROMs that freeze background apps (DuraSpeed). Off until
              enabled in Settings → Keep running in background. -->
