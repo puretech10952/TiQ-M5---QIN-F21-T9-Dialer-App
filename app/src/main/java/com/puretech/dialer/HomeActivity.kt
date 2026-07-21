@@ -122,6 +122,7 @@ class HomeActivity : AppCompatActivity() {
                 R.id.nav_durations -> startActivity(Intent(this, CallStatsActivity::class.java))
                 R.id.nav_delete_all_logs -> confirmDeleteAllLogs()
                 R.id.nav_updates -> startActivity(Intent(this, UpdateActivity::class.java))
+                R.id.nav_feedback -> Feedback.send(this)
                 R.id.nav_about -> startActivity(Intent(this, AboutActivity::class.java))
             }
             binding.drawerLayout.closeDrawers()

@@ -133,6 +133,19 @@
     <string name="setting_blocked_summary">Calls and texts from blocked numbers are rejected</string>
     <string name="setting_quick_responses">Quick responses</string>
     <string name="setting_quick_responses_summary">Edit replies sent when declining a call</string>
+    <string name="setting_quick_dial">Quick dial</string>
+    <string name="setting_quick_dial_summary">Assign a number (1-99) to jump straight to a contact</string>
+    <string name="quick_dial_badge">Quick dial</string>
+    <string name="quick_dial_desc">While dialing the exact number you assign here, that contact appears pinned at the top of the suggestions — before the usual matches. Typing further digits drops back to normal suggestions unless that longer number is also assigned.</string>
+    <string name="quick_dial_empty">No quick dial numbers set yet</string>
+    <string name="quick_dial_add">Add quick dial</string>
+    <string name="quick_dial_pick_contact">Choose a contact</string>
+    <string name="quick_dial_code_title">Assign a number (1-99)</string>
+    <string name="quick_dial_code_hint">Number</string>
+    <string name="quick_dial_code_invalid">Enter a number from 1 to 99</string>
+    <string name="quick_dial_code_taken">%1$d is already assigned to %2$s. Replace it?</string>
+    <string name="quick_dial_remove">Remove</string>
+    <string name="quick_dial_remove_confirm">Remove this quick dial number?</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
@@ -157,6 +170,7 @@
     <string name="opt_edit">Edit before dialing</string>
     <string name="opt_message">Message</string>
     <string name="opt_copy">Copy number</string>
+    <string name="opt_contact_details">Contact details</string>
     <string name="copied">Number copied</string>
     <string name="favorite_number_dont_ask_again">Don\'t ask again</string>
     <string name="banner_not_default">M5 Dialer isn\'t your default phone app</string>

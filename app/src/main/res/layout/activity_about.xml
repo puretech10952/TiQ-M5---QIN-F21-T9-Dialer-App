@@ -114,29 +114,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Feedback -->
-            <com.google.android.material.card.MaterialCardView
-                style="@style/SettingsGroupCard"
-                android:layout_marginTop="14dp">
-
-                <LinearLayout android:id="@+id/rowFeedback" style="@style/SettingRowM3">
-                    <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_mail" />
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-                        <TextView style="@style/SettingTitle" android:text="@string/about_feedback" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/about_feedback_email"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- Legal -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/SettingsGroupCard"

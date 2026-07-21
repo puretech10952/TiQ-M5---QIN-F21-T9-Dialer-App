@@ -163,6 +163,14 @@
 
                     <View style="@style/SettingRowDivider" />
 
+                    <LinearLayout android:id="@+id/rowQuickDial" style="@style/SettingRowM3">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_bolt" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_quick_dial" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
+
                     <LinearLayout android:id="@+id/rowAssisted" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_call" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"

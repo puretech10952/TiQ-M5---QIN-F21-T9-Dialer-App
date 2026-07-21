@@ -38,7 +38,8 @@ class ContactsActivity : AppCompatActivity() {
         binding.back.setOnClickListener { finish() }
         adapter = SuggestionAdapter(
             onCall = { callNumber(it.number) },
-            onOptions = { c, v -> showOptions(c.number, v) }
+            onOptions = { c, v -> showOptions(c.number, v) },
+            onMessage = { messageNumber(it.number) }
         )
         binding.contactList.layoutManager = LinearLayoutManager(this)
         binding.contactList.adapter = adapter
@@ -64,16 +65,20 @@ class ContactsActivity : AppCompatActivity() {
         Dialer.place(this, Dialer.normalize(this, n))
     }
 
+    private fun messageNumber(number: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${Uri.encode(number)}")))
+        } catch (_: Exception) {
+        }
+    }
+
     private fun showOptions(number: String, anchor: View) {
         PopupMenu(this, anchor).apply {
             menu.add(0, 1, 0, R.string.log_message)
             menu.add(0, 2, 1, R.string.log_copy)
             setOnMenuItemClickListener {
                 when (it.itemId) {
-                    1 -> try {
-                        startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${Uri.encode(number)}")))
-                    } catch (_: Exception) {
-                    }
+                    1 -> messageNumber(number)
                     2 -> {
                         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         cm.setPrimaryClip(ClipData.newPlainText("number", number))

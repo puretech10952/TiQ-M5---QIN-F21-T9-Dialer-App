@@ -21,6 +21,10 @@
         android:icon="@drawable/ic_update"
         android:title="@string/update_title" />
     <item
+        android:id="@+id/nav_feedback"
+        android:icon="@drawable/ic_mail"
+        android:title="@string/about_feedback" />
+    <item
         android:id="@+id/nav_about"
         android:icon="@drawable/ic_info"
         android:title="@string/setting_about" />

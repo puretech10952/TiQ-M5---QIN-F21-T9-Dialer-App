@@ -90,7 +90,8 @@ class DialerFragment : Fragment() {
 
         suggestionAdapter = SuggestionAdapter(
             onCall = { callContact(it.number) },
-            onOptions = { c, v -> showOptions(c, v) }
+            onOptions = { c, v -> showOptions(c, v) },
+            onMessage = { messageNumber(it.number) }
         )
         binding.suggestions.layoutManager = LinearLayoutManager(requireContext())
         binding.suggestions.adapter = suggestionAdapter
@@ -323,11 +324,32 @@ class DialerFragment : Fragment() {
     private fun updateSuggestions() {
         val q = binding.numberInput.text?.filter { it.isDigit() }?.toString() ?: ""
         val showFrequent = q.isEmpty()
-        suggestionAdapter.submit(
-            if (showFrequent) frequentContacts else ContactsRepository.search(q, allContacts)
-        )
+        val base = if (showFrequent) frequentContacts else ContactsRepository.search(q, allContacts)
+        suggestionAdapter.submit(if (showFrequent) base else applyQuickDial(q, base))
         binding.frequentLabel.visibility =
             if (showFrequent && frequentContacts.isNotEmpty()) View.VISIBLE else View.GONE
+    }
+
+    /** Pins the Quick Dial contact assigned to the exact typed digits (if any) at
+     *  the top of the suggestions, marked as such, ahead of the regular ranked
+     *  matches below it — with that same number filtered out of the rest so it
+     *  doesn't also show up a second time. */
+    private fun applyQuickDial(q: String, base: List<Contact>): List<Contact> {
+        val entry = QuickDial.get(requireContext(), q) ?: return base
+        val pinnedDigits = entry.number.filter { it.isDigit() }
+        val rest = base.filter { !sameTailDigits(it.digits, pinnedDigits) }
+        val pinned = Contact(
+            name = entry.name, number = entry.number, digits = pinnedDigits,
+            nameT9 = "", wordT9 = emptyList(), photoUri = null,
+            timesContacted = 0, lastTimeContacted = 0, isQuickDial = true
+        )
+        return listOf(pinned) + rest
+    }
+
+    private fun sameTailDigits(a: String, b: String): Boolean {
+        if (a.isEmpty() || b.isEmpty()) return false
+        val n = minOf(a.length, b.length, 7)
+        return a.takeLast(n) == b.takeLast(n)
     }
 
     private fun numberFromIntent(intent: Intent?): String? {
@@ -382,15 +404,54 @@ class DialerFragment : Fragment() {
             menu.add(0, 1, 0, R.string.opt_edit)
             menu.add(0, 2, 1, R.string.opt_message)
             menu.add(0, 3, 2, R.string.opt_copy)
+            menu.add(0, 4, 3, R.string.opt_contact_details)
             setOnMenuItemClickListener {
                 when (it.itemId) {
                     1 -> { editBeforeDial(c.number); true }
                     2 -> { messageNumber(c.number); true }
                     3 -> { copyNumber(c.number); true }
+                    4 -> { openContactDetails(c.number); true }
                     else -> false
                 }
             }
             show()
+        }
+    }
+
+    /** Opens the matching contact's details, or offers to add one if this
+     *  number isn't saved yet — same pattern used from Recents/History. */
+    private fun openContactDetails(number: String) {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+        val lookupUri = Uri.withAppendedPath(
+            ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number)
+        )
+        val contactUri: Uri? = try {
+            requireContext().contentResolver.query(
+                lookupUri,
+                arrayOf(ContactsContract.PhoneLookup._ID, ContactsContract.PhoneLookup.LOOKUP_KEY),
+                null, null, null
+            )?.use { c ->
+                if (c.moveToFirst())
+                    ContactsContract.Contacts.getLookupUri(c.getLong(0), c.getString(1))
+                else null
+            }
+        } catch (e: Exception) {
+            null
+        }
+        try {
+            if (contactUri != null) {
+                startActivity(Intent(Intent.ACTION_VIEW, contactUri))
+            } else {
+                startActivity(
+                    Intent(ContactsContract.Intents.Insert.ACTION).apply {
+                        type = ContactsContract.RawContacts.CONTENT_TYPE
+                        putExtra(ContactsContract.Intents.Insert.PHONE, number)
+                    }
+                )
+            }
+        } catch (_: Exception) {
         }
     }
 

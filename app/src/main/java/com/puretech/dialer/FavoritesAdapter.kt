@@ -7,9 +7,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 
-/** Horizontal strip of starred contacts shown under "Favorites". */
-class FavoritesAdapter(private val onClick: (Contact, View) -> Unit) :
-    RecyclerView.Adapter<FavoritesAdapter.VH>() {
+/** Horizontal strip of starred contacts shown under "Favorites". Long-press
+ *  lets the user change (or one-time override) a remembered default number. */
+class FavoritesAdapter(
+    private val onClick: (Contact, View) -> Unit,
+    private val onLongPress: (Contact, View) -> Unit
+) : RecyclerView.Adapter<FavoritesAdapter.VH>() {
 
     private val items = ArrayList<Contact>()
 
@@ -34,6 +37,7 @@ class FavoritesAdapter(private val onClick: (Contact, View) -> Unit) :
             Avatars.bind(initial, photo, c.name, c.photoUri)
             name.text = c.name
             itemView.setOnClickListener { onClick(c, itemView) }
+            itemView.setOnLongClickListener { onLongPress(c, itemView); true }
         }
     }
 }

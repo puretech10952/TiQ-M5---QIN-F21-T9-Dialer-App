@@ -29,6 +29,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowQuick.setOnClickListener {
             startActivity(Intent(this, QuickResponsesActivity::class.java))
         }
+        binding.rowQuickDial.setOnClickListener {
+            startActivity(Intent(this, QuickDialActivity::class.java))
+        }
         binding.rowAssisted.setOnClickListener {
             startActivity(Intent(this, AssistedDialingActivity::class.java))
         }

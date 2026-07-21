@@ -16,8 +16,10 @@ data class Contact(
     val photoUri: Uri?,
     val timesContacted: Int,
     val lastTimeContacted: Long,
-    val lookupKey: String? = null  // stable per-contact id; set for favorites, used to
+    val lookupKey: String? = null, // stable per-contact id; set for favorites, used to
                                     // remember a chosen number when a contact has several
+    val isQuickDial: Boolean = false // true for the synthetic row QuickDial pins to the
+                                      // top of the dialer suggestions
 )
 
 /** One of a contact's phone numbers, with its type label (Mobile/Home/Work/...). */

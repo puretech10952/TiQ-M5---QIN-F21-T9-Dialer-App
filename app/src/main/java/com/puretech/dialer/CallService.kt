@@ -103,9 +103,16 @@ class CallService : InCallService() {
 
     /**
      * Mirrors the finished call into [LocalCallStore] so it survives Android's
-     * automatic system call-log trimming (~500 rows). Runs on a background thread
-     * to avoid blocking [onCallRemoved]. All data is captured synchronously from
-     * the Call object first, then only the DB write happens off-thread.
+     * automatic system call-log trimming (~500 rows). Runs synchronously, before
+     * onCallRemoved returns: a call ending drops this process out of the
+     * phoneCall foreground-service priority almost immediately, and this ROM
+     * kills backgrounded processes aggressively enough that a fire-and-forget
+     * background thread here previously lost the write often enough to make
+     * the merged (system + local) call total appear permanently stuck once the
+     * system log started trimming — each new call's write raced process death,
+     * so a trimmed row and a lost row cancelled out. The write itself (one
+     * contact lookup + one SQLite insert) is a few ms, well within what a
+     * Telecom callback can absorb.
      */
     private fun archiveCall(call: Call) {
         val details = call.details ?: return
@@ -132,19 +139,17 @@ class CallService : InCallService() {
         val acctId = details.accountHandle?.id
 
         val ctx = applicationContext
-        Thread {
-            val name = if (number.isNotBlank()) ContactsRepository.displayName(ctx, number) else null
-            val simLabel = acctId?.let { id ->
-                if (CallingAccounts.isMultiSim(ctx))
-                    CallingAccounts.list(ctx).find { it.id == id }
-                        ?.let { CallingAccounts.label(ctx, it) }
-                else null
-            }
-            LocalCallStore.record(
-                ctx, number, type, date, duration, isHd, isWifi,
-                name, null, 0, null, null, simLabel
-            )
-        }.start()
+        val name = if (number.isNotBlank()) ContactsRepository.displayName(ctx, number) else null
+        val simLabel = acctId?.let { id ->
+            if (CallingAccounts.isMultiSim(ctx))
+                CallingAccounts.list(ctx).find { it.id == id }
+                    ?.let { CallingAccounts.label(ctx, it) }
+            else null
+        }
+        LocalCallStore.record(
+            ctx, number, type, date, duration, isHd, isWifi,
+            name, null, 0, null, null, simLabel
+        )
     }
 
     companion object {

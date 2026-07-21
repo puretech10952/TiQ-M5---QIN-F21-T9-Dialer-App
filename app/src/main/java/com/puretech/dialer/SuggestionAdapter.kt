@@ -3,17 +3,23 @@ package com.puretech.dialer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.imageview.ShapeableImageView
 
 /**
  * Shows ranked contact suggestions. Tap = call immediately; long-press = the
- * caller-provided options popup (edit / message / copy).
+ * caller-provided options popup (edit / message / copy). The message icon is
+ * a touch-only shortcut for the same "message" action — it's excluded from
+ * D-pad/keypad focus traversal (focusable="false" in the layout) so the
+ * hardware OK/Send key always calls the highlighted suggestion directly
+ * instead of landing on the icon.
  */
 class SuggestionAdapter(
     private val onCall: (Contact) -> Unit,
-    private val onOptions: (Contact, View) -> Unit
+    private val onOptions: (Contact, View) -> Unit,
+    private val onMessage: (Contact) -> Unit
 ) : RecyclerView.Adapter<SuggestionAdapter.VH>() {
 
     private val items = ArrayList<Contact>()
@@ -29,6 +35,8 @@ class SuggestionAdapter(
         val photo: ShapeableImageView = view.findViewById(R.id.photo)
         val name: TextView = view.findViewById(R.id.name)
         val number: TextView = view.findViewById(R.id.number)
+        val message: ImageView = view.findViewById(R.id.btnMessage)
+        val quickDialBadge: View = view.findViewById(R.id.quickDialBadge)
 
         init {
             view.setOnClickListener {
@@ -37,6 +45,9 @@ class SuggestionAdapter(
             view.setOnLongClickListener {
                 items.getOrNull(bindingAdapterPosition)?.let { onOptions(it, view) }
                 true
+            }
+            message.setOnClickListener {
+                items.getOrNull(bindingAdapterPosition)?.let(onMessage)
             }
         }
     }
@@ -51,6 +62,7 @@ class SuggestionAdapter(
         val c = items[position]
         holder.name.text = c.name.ifBlank { c.number }
         holder.number.text = c.number
+        holder.quickDialBadge.visibility = if (c.isQuickDial) View.VISIBLE else View.GONE
 
         // Grouped card: only the list's outer corners are rounded; rows are split
         // by a small gap (the item's top margin).

@@ -30,6 +30,8 @@ class CallHistoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCallHistoryBinding
     private val telecomManager by lazy { getSystemService(TelecomManager::class.java) }
     private var number = ""
+    private lateinit var adapter: HistoryAdapter
+    private var allDetails: List<CallDetail> = emptyList()
 
     private val callPermLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -48,6 +50,7 @@ class CallHistoryActivity : AppCompatActivity() {
         Avatars.bind(binding.avatarInitial, binding.avatarPhoto, name, lookupPhoto(number))
 
         binding.back.setOnClickListener { finish() }
+        binding.headerInfo.setOnClickListener { openContact() }
         binding.menu.setOnClickListener { showMenu(it) }
         binding.callFab.setOnClickListener { callNumber() }
         binding.msgBtn.setOnClickListener {
@@ -59,22 +62,41 @@ class CallHistoryActivity : AppCompatActivity() {
             }
         }
 
-        val adapter = HistoryAdapter()
+        adapter = HistoryAdapter()
         binding.history.layoutManager = LinearLayoutManager(this)
         binding.history.adapter = adapter
         // Slide the Call/Message bar down on scroll, like the rest of the app.
         binding.history.addOnScrollListener(BottomBarHider(binding.bottomBar))
 
+        binding.filterChips.setOnCheckedStateChangeListener { _, _ -> applyFilter() }
+
         Thread {
             val details = CallLogRepository.loadForNumber(applicationContext, number)
-            val totalSecs = details.sumOf { it.duration }
-            val answered = details.count { it.duration > 0 }
-            val rows = ArrayList<Row>()
-            // Total talk time leads the list so it scrolls away with the calls.
-            if (totalSecs > 0) rows.add(Row.Total(totalSecs, answered))
-            rows.addAll(buildRows(details))
-            runOnUiThread { adapter.submit(rows) }
+            runOnUiThread {
+                allDetails = details
+                applyFilter()
+            }
         }.start()
+    }
+
+    /** Same All / Missed / Received / Outgoing filters as the main call log,
+     *  applied to this number's own calls. */
+    private fun applyFilter() {
+        val filtered = when {
+            binding.chipMissed.isChecked -> allDetails.filter {
+                it.type == CallLog.Calls.MISSED_TYPE || it.type == CallLog.Calls.REJECTED_TYPE
+            }
+            binding.chipReceived.isChecked -> allDetails.filter { it.type == CallLog.Calls.INCOMING_TYPE }
+            binding.chipOutgoing.isChecked -> allDetails.filter { it.type == CallLog.Calls.OUTGOING_TYPE }
+            else -> allDetails
+        }
+        val totalSecs = filtered.sumOf { it.duration }
+        val answered = filtered.count { it.duration > 0 }
+        val rows = ArrayList<Row>()
+        // Total talk time leads the list so it scrolls away with the calls.
+        if (totalSecs > 0) rows.add(Row.Total(totalSecs, answered))
+        rows.addAll(buildRows(filtered))
+        adapter.submit(rows)
     }
 
     private fun lookupPhoto(num: String): Uri? {
@@ -91,6 +113,47 @@ class CallHistoryActivity : AppCompatActivity() {
             )?.use { c -> if (c.moveToFirst()) c.getString(0)?.let { Uri.parse(it) } else null }
         } catch (e: SecurityException) {
             null
+        }
+    }
+
+    /** Tapping the header (avatar/name/number) opens the matching contact, or
+     *  offers to add one if this number isn't saved yet. */
+    private fun openContact() {
+        if (number.isBlank()) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+        val lookupUri = Uri.withAppendedPath(
+            ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number)
+        )
+        val contactUri: Uri? = try {
+            contentResolver.query(
+                lookupUri,
+                arrayOf(ContactsContract.PhoneLookup._ID, ContactsContract.PhoneLookup.LOOKUP_KEY),
+                null, null, null
+            )?.use { c ->
+                if (c.moveToFirst())
+                    ContactsContract.Contacts.getLookupUri(c.getLong(0), c.getString(1))
+                else null
+            }
+        } catch (e: Exception) {
+            null
+        }
+        if (contactUri != null) {
+            try {
+                startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, contactUri))
+            } catch (_: Exception) {
+            }
+        } else {
+            try {
+                startActivity(
+                    android.content.Intent(ContactsContract.Intents.Insert.ACTION).apply {
+                        type = ContactsContract.RawContacts.CONTENT_TYPE
+                        putExtra(ContactsContract.Intents.Insert.PHONE, number)
+                    }
+                )
+            } catch (_: Exception) {
+            }
         }
     }
 

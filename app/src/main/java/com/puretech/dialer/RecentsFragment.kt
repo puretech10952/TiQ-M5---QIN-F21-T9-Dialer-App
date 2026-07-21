@@ -92,7 +92,10 @@ class RecentsFragment : Fragment() {
         binding.recents.layoutManager = LinearLayoutManager(requireContext())
         binding.recents.adapter = logAdapter
 
-        favoritesAdapter = FavoritesAdapter { contact, anchor -> onFavoriteClick(contact, anchor) }
+        favoritesAdapter = FavoritesAdapter(
+            onClick = { contact, anchor -> onFavoriteClick(contact, anchor) },
+            onLongPress = { contact, anchor -> onFavoriteLongPress(contact, anchor) }
+        )
         binding.favoritesStrip.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         binding.favoritesStrip.adapter = favoritesAdapter
@@ -455,11 +458,23 @@ class RecentsFragment : Fragment() {
         if (key == null) { callNumber(contact.number); return }
         val remembered = Prefs.defaultNumberForContact(requireContext(), key)
         if (remembered != null) { callNumber(remembered); return }
+        showNumberPicker(contact, anchor, key, dialIfSingle = true)
+    }
+
+    /** Long-press always reopens the picker, even when a default number is
+     *  already remembered — lets the user change the default or place a
+     *  one-time call to a different number without clearing it. */
+    private fun onFavoriteLongPress(contact: Contact, anchor: View) {
+        val key = contact.lookupKey ?: return
+        showNumberPicker(contact, anchor, key, dialIfSingle = false)
+    }
+
+    private fun showNumberPicker(contact: Contact, anchor: View, key: String, dialIfSingle: Boolean) {
         Thread {
             val numbers = ContactsRepository.numbersFor(requireContext().applicationContext, key)
             ui {
                 if (numbers.size <= 1) {
-                    callNumber(numbers.firstOrNull()?.number ?: contact.number)
+                    if (dialIfSingle) callNumber(numbers.firstOrNull()?.number ?: contact.number)
                 } else {
                     NumberPickerPopup(requireContext(), anchor)
                         .title(contact.name)
