@@ -232,11 +232,8 @@
     <string name="setting_dialpad_tone_summary">Reproduce un tono al pulsar una tecla (siempre activo durante una llamada)</string>
     <string name="setting_swipe_answer">Deslizar para contestar</string>
     <string name="setting_swipe_answer_summary">Desliza un botón para contestar o rechazar llamadas entrantes, en vez de tocar</string>
-    <string name="setting_block_ai">Bloquear números de IA</string>
-    <string name="setting_block_ai_summary">Experimental — bloquea llamadas a servicios de voz de IA, incluso desde un contacto</string>
     <string name="setting_block_unknown">Bloquear llamadas desconocidas</string>
     <string name="setting_block_unknown_summary">Rechaza silenciosamente llamadas de números no guardados en tus contactos, incluidos números privados u ocultos.</string>
-    <string name="ai_block_toast">Este es un número de IA y está bloqueado en Ajustes</string>
     <string name="swipe_to_answer_hint">Desliza para contestar o rechazar</string>
     <string name="setting_on">Activado</string>
     <string name="setting_off">Desactivado</string>

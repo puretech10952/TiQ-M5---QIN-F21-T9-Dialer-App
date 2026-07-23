@@ -8,7 +8,8 @@ import android.telecom.TelecomManager
 
 /**
  * Handles notification action buttons: the ongoing-call controls (Hang up / Mute
- * / Speaker), "Call back" from a missed-call notification, and "dial voicemail".
+ * / Speaker), "Call back" / "Message" from a missed-call notification, and
+ * "dial voicemail".
  */
 class NotificationActionReceiver : BroadcastReceiver() {
 
@@ -25,6 +26,22 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 // Acting on the missed call also clears it so it won't return on reboot.
                 MissedCallNotifier.markCallsRead(context, number ?: "")
                 if (!number.isNullOrBlank()) Dialer.place(context, Dialer.normalize(context, number))
+                return
+            }
+            ACTION_MESSAGE -> {
+                val number = intent.getStringExtra(EXTRA_NUMBER)
+                val id = intent.getIntExtra(EXTRA_NOTIF_ID, -1)
+                if (id != -1) MissedCallNotifier.cancel(context, id)
+                MissedCallNotifier.markCallsRead(context, number ?: "")
+                if (!number.isNullOrBlank()) {
+                    try {
+                        context.startActivity(
+                            Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${Uri.encode(number)}"))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    } catch (_: Exception) {
+                    }
+                }
                 return
             }
             ACTION_MISSED_DISMISSED -> {
@@ -59,6 +76,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         const val ACTION_MUTE = "com.puretech.dialer.action.MUTE"
         const val ACTION_SPEAKER = "com.puretech.dialer.action.SPEAKER"
         const val ACTION_CALL_BACK = "com.puretech.dialer.action.CALL_BACK"
+        const val ACTION_MESSAGE = "com.puretech.dialer.action.MESSAGE"
         const val ACTION_MISSED_DISMISSED = "com.puretech.dialer.action.MISSED_DISMISSED"
         const val ACTION_CALL_VOICEMAIL = "com.puretech.dialer.action.CALL_VOICEMAIL"
         const val EXTRA_NUMBER = "com.puretech.dialer.extra.NUMBER"

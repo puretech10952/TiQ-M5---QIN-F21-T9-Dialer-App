@@ -79,11 +79,13 @@
         <activity android:name=".ContactsActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".ThemeSettingsActivity" android:exported="false" />
+        <activity android:name=".NameFormatSettingsActivity" android:exported="false" />
         <activity android:name=".LanguageSettingsActivity" android:exported="false" />
         <activity android:name=".ToggleSettingActivity" android:exported="false" />
         <activity android:name=".BlockedNumbersActivity" android:exported="false" />
         <activity android:name=".QuickResponsesActivity" android:exported="false" />
         <activity android:name=".QuickDialActivity" android:exported="false" />
+        <activity android:name=".QuickDialRecentsActivity" android:exported="false" />
         <activity android:name=".AssistedDialingActivity" android:exported="false" />
         <activity android:name=".CallingAccountsActivity" android:exported="false" />
         <activity android:name=".AboutActivity" android:exported="false" />

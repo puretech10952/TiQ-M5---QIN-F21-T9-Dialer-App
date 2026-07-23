@@ -123,7 +123,11 @@ object CallLogRepository {
 
         // Merge in local-store entries that the system log has already trimmed away.
         val combined = mergeLocal(context, raw, missedOnly)
-        return resolveNames(context, group(combined))
+        val resolved = resolveNames(context, group(combined))
+        // Display-only reformat ("Name format" setting) — applied last, after
+        // grouping/dedup/sort all keyed off the original names, so it never
+        // affects matching, only what's shown.
+        return resolved.map { it.copy(name = NameFormat.apply(context, it.name)) }
     }
 
     private data class ContactInfo(val name: String, val photo: Uri?, val type: Int, val label: String?)
@@ -131,20 +135,65 @@ object CallLogRepository {
     /**
      * The system's CACHED_NAME can be empty when a call arrived as "+1 845…" but
      * the contact is saved as a bare 10-digit number (or the cache is stale).
-     * Fill in the contact name/photo ourselves via PhoneLookup, which normalizes
-     * the country code, so those rows show the contact instead of a bare number.
+     * Fill in the contact name/photo ourselves so those rows show the contact
+     * instead of a bare number.
+     *
+     * This used to run one PhoneLookup ContentResolver query per row missing a
+     * name/photo — for call logs with many unknown/uncached numbers that's
+     * dozens of sequential IPC round-trips, the single biggest cost in loading
+     * the list. One bulk query over every phone number on the device, matched
+     * in memory by trailing digits (the same matching convention used
+     * everywhere else in this file), replaces all of them.
      */
     private fun resolveNames(context: Context, entries: List<CallLogEntry>): List<CallLogEntry> {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
             != PackageManager.PERMISSION_GRANTED
         ) return entries
-        val cache = HashMap<String, ContactInfo?>()
+        if (entries.none { (it.name == null || it.photoUri == null) && it.number.isNotBlank() }) return entries
+
+        val byDigits = HashMap<String, ContactInfo>()
+        try {
+            context.contentResolver.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.NUMBER,
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.PHOTO_URI,
+                    ContactsContract.CommonDataKinds.Phone.TYPE,
+                    ContactsContract.CommonDataKinds.Phone.LABEL
+                ),
+                null, null, null
+            )?.use { c ->
+                val numIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val nameIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                val photoIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI)
+                val typeIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)
+                val labelIdx = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LABEL)
+                while (c.moveToNext()) {
+                    val num = if (numIdx >= 0) c.getString(numIdx) else null
+                    val digits = num?.filter { it.isDigit() }?.takeLast(10) ?: continue
+                    if (digits.length < 7) continue
+                    val name = if (nameIdx >= 0) c.getString(nameIdx) else null
+                    if (name.isNullOrBlank()) continue
+                    // First match wins per number; don't overwrite once set.
+                    if (!byDigits.containsKey(digits)) {
+                        byDigits[digits] = ContactInfo(
+                            name,
+                            (if (photoIdx >= 0) c.getString(photoIdx) else null)?.let { Uri.parse(it) },
+                            if (typeIdx >= 0) c.getInt(typeIdx) else 0,
+                            if (labelIdx >= 0) c.getString(labelIdx) else null
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            return entries
+        }
+
         return entries.map { e ->
-            // The system call log caches the name but often NOT the photo URI, so
-            // look the contact up whenever we're missing the name OR the photo.
             if ((e.name != null && e.photoUri != null) || e.number.isBlank()) e
             else {
-                val info = cache.getOrPut(e.number) { lookupContact(context, e.number) }
+                val info = byDigits[e.number.filter { it.isDigit() }.takeLast(10)]
                 if (info != null) e.copy(
                     name = e.name ?: info.name,
                     photoUri = e.photoUri ?: info.photo,
@@ -152,36 +201,6 @@ object CallLogRepository {
                     numberLabel = e.numberLabel ?: info.label
                 ) else e
             }
-        }
-    }
-
-    private fun lookupContact(context: Context, number: String): ContactInfo? {
-        val uri = Uri.withAppendedPath(
-            ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number)
-        )
-        return try {
-            context.contentResolver.query(
-                uri,
-                arrayOf(
-                    ContactsContract.PhoneLookup.DISPLAY_NAME,
-                    ContactsContract.PhoneLookup.PHOTO_URI,
-                    ContactsContract.PhoneLookup.TYPE,
-                    ContactsContract.PhoneLookup.LABEL
-                ),
-                null, null, null
-            )?.use { c ->
-                if (c.moveToFirst()) {
-                    val name = c.getString(0)
-                    if (!name.isNullOrBlank()) ContactInfo(
-                        name,
-                        c.getString(1)?.let { Uri.parse(it) },
-                        c.getInt(2),
-                        c.getString(3)
-                    ) else null
-                } else null
-            }
-        } catch (e: Exception) {
-            null
         }
     }
 
@@ -390,8 +409,18 @@ object CallLogRepository {
         sysRaw: List<CallLogEntry>,
         missedOnly: Boolean
     ): List<CallLogEntry> {
+        // Only entries older than everything still in the system log can possibly
+        // be missing from it — anything the system already has doesn't need a
+        // local fallback. Bounding the local query by date (like stats()/
+        // callDates() already do) lets SQLite do the filtering instead of
+        // pulling the entire local history into memory on every load, which
+        // got slower and slower as that table grew past the system's ~500-row
+        // cap. The dedup check stays as a cheap safety net, but by construction
+        // a local row with date < sysOldest can never collide with a system row
+        // (they're all >= sysOldest), so it should rarely find anything to drop.
+        val sysOldest = sysRaw.minOfOrNull { it.date } ?: Long.MAX_VALUE
         val sysKeys = sysRaw.map { dedupKey(it.number, it.type, it.date) }.toHashSet()
-        val extra = LocalCallStore.loadAll(context)
+        val extra = LocalCallStore.loadBefore(context, sysOldest)
             .filter { !missedOnly || it.type == CallLog.Calls.MISSED_TYPE || it.type == CallLog.Calls.REJECTED_TYPE }
             .filter { dedupKey(it.number, it.type, it.date) !in sysKeys }
             .map { localToEntry(it) }

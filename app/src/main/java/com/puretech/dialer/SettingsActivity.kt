@@ -23,6 +23,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowLanguage.setOnClickListener {
             startActivity(Intent(this, LanguageSettingsActivity::class.java))
         }
+        binding.rowNameFormat.setOnClickListener {
+            startActivity(Intent(this, NameFormatSettingsActivity::class.java))
+        }
         binding.rowBlocked.setOnClickListener {
             startActivity(Intent(this, BlockedNumbersActivity::class.java))
         }
@@ -60,7 +63,6 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowAlwaysFullScreenCalls.setOnClickListener {
             openToggle(ToggleSettingActivity.KEY_ALWAYS_FULL_SCREEN_CALLS)
         }
-        binding.rowBlockAi.setOnClickListener { openToggle(ToggleSettingActivity.KEY_BLOCK_AI) }
         binding.rowBlockUnknown.setOnClickListener { openToggle(ToggleSettingActivity.KEY_BLOCK_UNKNOWN) }
     }
 

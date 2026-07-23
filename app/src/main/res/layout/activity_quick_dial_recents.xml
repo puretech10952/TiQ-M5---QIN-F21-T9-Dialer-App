@@ -25,7 +25,7 @@
             android:focusable="true"
             android:padding="10dp"
             android:src="@drawable/ic_back"
-            android:contentDescription="@string/setting_quick_dial"
+            android:contentDescription="@string/quick_dial_from_recents"
             app:tint="?attr/colorOnSurface" />
 
         <TextView
@@ -33,33 +33,30 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="6dp"
-            android:text="@string/setting_quick_dial"
+            android:text="@string/quick_dial_from_recents"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="28sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Only shown in assign mode (launched from a call log entry's "Add to
-         Quick dial"), as the "Tap a number to assign it to X" banner. The
-         generic how-it-works explanation lives in the help popup instead. -->
     <TextView
-        android:id="@+id/quickDialDesc"
-        android:layout_width="match_parent"
+        android:id="@+id/emptyText"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="10dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"
+        android:text="@string/quick_dial_no_recents"
         android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="13sp"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/quickDialGrid"
+        android:id="@+id/recentsList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingHorizontal="8dp"
-        android:paddingBottom="16dp"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="4dp"
         android:scrollbars="vertical" />
 
 </LinearLayout>

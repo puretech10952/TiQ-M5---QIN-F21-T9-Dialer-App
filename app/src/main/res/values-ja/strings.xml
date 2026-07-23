@@ -230,11 +230,8 @@
     <string name="setting_dialpad_tone_summary">キー押下時にトーンを再生（通話中は常にオン）</string>
     <string name="setting_swipe_answer">スワイプで応答</string>
     <string name="setting_swipe_answer_summary">ボタンをスワイプして着信に応答または拒否</string>
-    <string name="setting_block_ai">AI 番号をブロック</string>
-    <string name="setting_block_ai_summary">実験的 — AI 音声サービスへの通話を連絡先からのものも含めてブロック</string>
     <string name="setting_block_unknown">不明な発信者をブロック</string>
     <string name="setting_block_unknown_summary">連絡先に保存されていない番号（匿名番号を含む）からの着信をサイレントで拒否します。</string>
-    <string name="ai_block_toast">これは AI 番号で設定でブロックされています</string>
     <string name="swipe_to_answer_hint">スワイプして応答または拒否</string>
     <string name="setting_on">オン</string>
     <string name="setting_off">オフ</string>

@@ -93,6 +93,13 @@ class CallService : InCallService() {
             CallManager.unregisterListener(notifListener)
             ProximityController.detach()
             CallNotifier.cancel(this)
+            // Best-effort: warm the Recents list now, while the user is still on the
+            // post-call screen, instead of leaving this device's slow call-log query
+            // to run only once they've already navigated back and are staring at a
+            // blank list. Unlike archiveCall above this is a pure perf hint, not
+            // correctness-critical, so it's fine if this ROM kills the process before
+            // it finishes — that just means no speedup that one time, same as today.
+            CallLogCache.prefetch(this)
         }
     }
 

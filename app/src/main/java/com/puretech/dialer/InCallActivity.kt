@@ -543,7 +543,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
                 null, null, null
             )?.use { c ->
                 if (c.moveToFirst()) {
-                    c.getString(0) to (c.getString(1)?.let { Uri.parse(it) })
+                    NameFormat.apply(this, c.getString(0)) to (c.getString(1)?.let { Uri.parse(it) })
                 } else null to null
             } ?: (null to null)
         } catch (e: SecurityException) {

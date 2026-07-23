@@ -305,20 +305,34 @@ class DialerFragment : Fragment() {
         val ctx = requireContext().applicationContext
         Thread {
             val list = ContactsRepository.load(ctx)
+            val activity = ContactsRepository.recentActivity(ctx)
             ui {
                 allContacts = list
-                frequentContacts = list.asSequence()
-                    .filter { it.timesContacted > 0 }
-                    .sortedWith(
-                        compareByDescending<Contact> { it.timesContacted }
-                            .thenByDescending { it.lastTimeContacted }
-                    )
-                    .distinctBy { it.digits.takeLast(10) }
-                    .take(5)
-                    .toList()
+                frequentContacts = buildFrequentContacts(list, activity)
                 updateSuggestions()
             }
         }.start()
+    }
+
+    /** Pre-dial suggestions: whoever's been called twice or more in the last 2
+     *  hours first (most likely who you're actively trying to reach), then the
+     *  rest of the last 7 days' most-called, ranked by that week's count —
+     *  never lifetime totals. Each Contact row is a specific number, so a
+     *  contact's other numbers the user never actually dialed can't qualify.
+     *  Capped at 5; shows fewer if fewer qualify. */
+    private fun buildFrequentContacts(
+        list: List<Contact>,
+        activity: ContactsRepository.RecentActivity
+    ): List<Contact> {
+        fun key(c: Contact) = c.digits.takeLast(10)
+        val urgent = list.asSequence()
+            .filter { key(it) in activity.urgentNumbers }
+            .distinctBy { key(it) }
+        val weekly = list.asSequence()
+            .filter { (activity.weekCounts[key(it)] ?: 0) > 0 }
+            .sortedByDescending { activity.weekCounts[key(it)] ?: 0 }
+            .distinctBy { key(it) }
+        return (urgent + weekly).distinctBy { key(it) }.take(5).toList()
     }
 
     private fun updateSuggestions() {

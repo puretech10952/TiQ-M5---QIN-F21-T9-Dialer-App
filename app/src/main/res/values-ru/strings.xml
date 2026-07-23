@@ -236,11 +236,8 @@
     <string name="setting_dialpad_tone_summary">Воспроизводить тон при нажатии клавиши (всегда включено во время звонка)</string>
     <string name="setting_swipe_answer">Смахивание для ответа</string>
     <string name="setting_swipe_answer_summary">Сдвиньте кнопку для ответа или отклонения входящего звонка</string>
-    <string name="setting_block_ai">Блокировать ИИ-номера</string>
-    <string name="setting_block_ai_summary">Экспериментально — блокирует звонки на ИИ-сервисы, даже из контактов</string>
     <string name="setting_block_unknown">Блокировать неизвестных</string>
     <string name="setting_block_unknown_summary">Тихо отклонять звонки с номеров, не сохранённых в контактах, включая скрытые номера.</string>
-    <string name="ai_block_toast">Это номер ИИ и он заблокирован в настройках</string>
     <string name="swipe_to_answer_hint">Смахните для ответа или отклонения</string>
     <string name="setting_on">Вкл.</string>
     <string name="setting_off">Выкл.</string>

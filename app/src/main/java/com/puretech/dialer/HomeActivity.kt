@@ -80,6 +80,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (Gates.enforce(this)) return
+        WhatsNewSheet.maybeShowIfUpdated(this)
         ensureBarHider()
         refreshBarHiderForProfile()
         if (currentTab == Tab.DIALER) {
@@ -274,10 +275,13 @@ class HomeActivity : AppCompatActivity() {
         val density = resources.displayMetrics.density
         val keyHeight = ((if (big) 76 else 56) * density).toInt()
         val digitSp = if (big) 32f else 26f
+        val lettersSp = if (big) 16f else 12f
         for (key in dialKeys) {
             key.layoutParams = key.layoutParams.apply { height = keyHeight }
             (key.getChildAt(0) as? android.widget.TextView)
                 ?.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, digitSp)
+            (key.getChildAt(1) as? android.widget.TextView)
+                ?.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, lettersSp)
         }
         binding.btnDialBig.visibility = if (big) View.VISIBLE else View.GONE
     }

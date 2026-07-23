@@ -30,6 +30,11 @@ class WelcomeActivity : AppCompatActivity() {
         binding.getStarted.setOnClickListener {
             if (!binding.agree.isChecked) return@setOnClickListener
             Prefs.setWelcomeShown(this)
+            // A fresh install has nothing to compare "what's new" against —
+            // baseline it here so WhatsNewSheet doesn't fire right after
+            // onboarding; only an existing user updating into a new version
+            // (whose baseline is already set from before) should ever see it.
+            WhatsNewSheet.recordCurrentVersion(this)
             finish()
         }
 

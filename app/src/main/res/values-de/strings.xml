@@ -232,11 +232,8 @@
     <string name="setting_dialpad_tone_summary">Ton beim Drücken einer Taste abspielen (immer aktiv während eines Anrufs)</string>
     <string name="setting_swipe_answer">Zum Annehmen wischen</string>
     <string name="setting_swipe_answer_summary">Schieben Sie eine Taste seitwärts, um eingehende Anrufe anzunehmen oder abzulehnen</string>
-    <string name="setting_block_ai">KI-Nummern sperren</string>
-    <string name="setting_block_ai_summary">Experimentell — Anrufe zu KI-Sprachdiensten sperren, auch von Kontakten</string>
     <string name="setting_block_unknown">Unbekannte Anrufer sperren</string>
     <string name="setting_block_unknown_summary">Eingehende Anrufe von Nummern, die nicht in Ihren Kontakten gespeichert sind, lautlos ablehnen.</string>
-    <string name="ai_block_toast">Dies ist eine KI-Nummer und in den Einstellungen gesperrt</string>
     <string name="swipe_to_answer_hint">Wischen zum Annehmen oder Ablehnen</string>
     <string name="setting_on">Ein</string>
     <string name="setting_off">Aus</string>

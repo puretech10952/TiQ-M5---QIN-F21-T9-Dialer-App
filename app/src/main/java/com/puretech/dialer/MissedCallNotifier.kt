@@ -15,8 +15,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 
 /**
- * Posts a "Missed call" notification with Call back / View actions. Detected by
- * [CallService] when an incoming call is removed with a MISSED disconnect cause.
+ * Posts a "Missed call" notification with Call back / Message actions; tapping
+ * the notification itself opens [MissedCallsActivity]. Detected by [CallService]
+ * when an incoming call is removed with a MISSED disconnect cause.
  */
 object MissedCallNotifier {
 
@@ -28,12 +29,12 @@ object MissedCallNotifier {
 
     fun show(context: Context, number: String) {
         ensureChannel(context)
-        val name = ContactsRepository.displayName(context, number)
+        val name = NameFormat.apply(context, ContactsRepository.displayName(context, number))
             ?: number.ifBlank { context.getString(R.string.unknown_caller) }
         val id = BASE_ID + (number.ifBlank { "unknown" }.hashCode() and 0xFFFF)
         activeIds.add(id)
 
-        // Tap or "View" → open dedicated Missed Calls page.
+        // Tap the notification → open dedicated Missed Calls page.
         val viewPi = PendingIntent.getActivity(
             context, id,
             Intent(context, MissedCallsActivity::class.java)
@@ -59,6 +60,15 @@ object MissedCallNotifier {
                 .putExtra(NotificationActionReceiver.EXTRA_NOTIF_ID, id),
             piFlags()
         )
+        // "Message" → broadcast that opens the SMS app and dismisses this notification.
+        val messagePi = PendingIntent.getBroadcast(
+            context, id,
+            Intent(context, NotificationActionReceiver::class.java)
+                .setAction(NotificationActionReceiver.ACTION_MESSAGE)
+                .putExtra(NotificationActionReceiver.EXTRA_NUMBER, number)
+                .putExtra(NotificationActionReceiver.EXTRA_NOTIF_ID, id),
+            piFlags()
+        )
 
         val builder = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_call_missed)
@@ -73,10 +83,10 @@ object MissedCallNotifier {
             builder.addAction(
                 R.drawable.ic_call, context.getString(R.string.missed_call_back), callBackPi
             )
+            builder.addAction(
+                R.drawable.ic_message, context.getString(R.string.missed_call_message), messagePi
+            )
         }
-        builder.addAction(
-            R.drawable.ic_history, context.getString(R.string.missed_call_view), viewPi
-        )
 
         manager(context).notify(id, builder.build())
     }

@@ -79,10 +79,13 @@ object ContactsRepository {
                 val photo = if (photoIdx >= 0) c.getString(photoIdx)?.let { Uri.parse(it) } else null
                 val times = if (timesIdx >= 0) c.getInt(timesIdx) else 0
                 val last = if (lastIdx >= 0) c.getLong(lastIdx) else 0L
+                // T9 fields are computed from the RAW name, before any display
+                // reformatting below, so search matching never depends on the
+                // "Name format" setting.
                 val words = name.split(Regex("[^\\p{L}]+")).filter { it.isNotBlank() }
                 out.add(
                     Contact(
-                        name = name,
+                        name = NameFormat.apply(context, name) ?: name,
                         number = number,
                         digits = number.filter { it.isDigit() },
                         nameT9 = T9.encode(name),
@@ -142,6 +145,43 @@ object ContactsRepository {
                 lastTimeContacted = maxOf(c.lastTimeContacted, lasts[freqKey(c.digits)] ?: 0L)
             )
         }
+    }
+
+    /** Per-number call counts in the trailing 7 days, and the set of numbers
+     *  called 2+ times in the trailing 2 hours — used to rank the dial screen's
+     *  pre-dial suggestions by recent activity (not lifetime totals). */
+    data class RecentActivity(val weekCounts: Map<String, Int>, val urgentNumbers: Set<String>)
+
+    fun recentActivity(context: Context): RecentActivity {
+        val empty = RecentActivity(emptyMap(), emptySet())
+        if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
+            != PackageManager.PERMISSION_GRANTED
+        ) return empty
+        val now = System.currentTimeMillis()
+        val weekAgo = now - 7L * 24 * 60 * 60 * 1000
+        val twoHoursAgo = now - 2L * 60 * 60 * 1000
+        val weekCounts = HashMap<String, Int>()
+        val last2hCounts = HashMap<String, Int>()
+        try {
+            context.contentResolver.query(
+                android.provider.CallLog.Calls.CONTENT_URI,
+                arrayOf(android.provider.CallLog.Calls.NUMBER, android.provider.CallLog.Calls.DATE),
+                "${android.provider.CallLog.Calls.DATE} >= ?", arrayOf(weekAgo.toString()), null
+            )?.use { c ->
+                val numIdx = c.getColumnIndex(android.provider.CallLog.Calls.NUMBER)
+                val dateIdx = c.getColumnIndex(android.provider.CallLog.Calls.DATE)
+                while (c.moveToNext()) {
+                    val key = freqKey(c.getString(numIdx) ?: continue)
+                    if (key.isEmpty()) continue
+                    weekCounts[key] = (weekCounts[key] ?: 0) + 1
+                    val d = if (dateIdx >= 0) c.getLong(dateIdx) else 0L
+                    if (d >= twoHoursAgo) last2hCounts[key] = (last2hCounts[key] ?: 0) + 1
+                }
+            }
+        } catch (e: Exception) {
+            return empty
+        }
+        return RecentActivity(weekCounts, last2hCounts.filterValues { it >= 2 }.keys)
     }
 
     /** Normalised key for matching call-log numbers to contact numbers (last 10 digits). */
@@ -232,7 +272,8 @@ object ContactsRepository {
                 val photo = if (photoIdx >= 0) c.getString(photoIdx)?.let { Uri.parse(it) } else null
                 out.add(
                     Contact(
-                        name, number, number.filter { it.isDigit() }, "", emptyList(), photo, 0, 0L,
+                        NameFormat.apply(context, name) ?: name,
+                        number, number.filter { it.isDigit() }, "", emptyList(), photo, 0, 0L,
                         lookupKey = lookupKey
                     )
                 )

@@ -232,11 +232,8 @@
     <string name="setting_dialpad_tone_summary">Bir tuşa basıldığında ton çal (arama sırasında her zaman açık)</string>
     <string name="setting_swipe_answer">Kaydırarak yanıtla</string>
     <string name="setting_swipe_answer_summary">Gelen aramaları yanıtlamak veya reddetmek için bir düğmeyi kaydırın</string>
-    <string name="setting_block_ai">Yapay zeka numaralarını engelle</string>
-    <string name="setting_block_ai_summary">Deneysel — kişilerden bile olsa yapay zeka ses servislerine yapılan aramaları engelle</string>
     <string name="setting_block_unknown">Bilinmeyen arayanları engelle</string>
     <string name="setting_block_unknown_summary">Kişilerde kayıtlı olmayan numaralardan gelen aramaları sessizce reddet.</string>
-    <string name="ai_block_toast">Bu bir yapay zeka numarasıdır ve Ayarlar\'da engellenmiştir</string>
     <string name="swipe_to_answer_hint">Yanıtlamak veya reddetmek için kaydırın</string>
     <string name="setting_on">Açık</string>
     <string name="setting_off">Kapalı</string>

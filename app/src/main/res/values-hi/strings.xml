@@ -232,11 +232,8 @@
     <string name="setting_dialpad_tone_summary">कुंजी दबाने पर टोन बजाएं (कॉल के दौरान हमेशा चालू)</string>
     <string name="setting_swipe_answer">स्वाइप करके उत्तर दें</string>
     <string name="setting_swipe_answer_summary">आने वाली कॉल उत्तर देने या अस्वीकार करने के लिए एक बटन स्वाइप करें</string>
-    <string name="setting_block_ai">AI नंबर ब्लॉक करें</string>
-    <string name="setting_block_ai_summary">प्रयोगात्मक — AI वॉयस सेवाओं पर कॉल ब्लॉक करें, संपर्कों से भी</string>
     <string name="setting_block_unknown">अज्ञात कॉलर ब्लॉक करें</string>
     <string name="setting_block_unknown_summary">संपर्कों में सहेजे नहीं गए नंबरों से कॉल चुपचाप अस्वीकार करें।</string>
-    <string name="ai_block_toast">यह एक AI नंबर है और सेटिंग में ब्लॉक है</string>
     <string name="swipe_to_answer_hint">उत्तर देने या अस्वीकार करने के लिए स्वाइप करें</string>
     <string name="setting_on">चालू</string>
     <string name="setting_off">बंद</string>

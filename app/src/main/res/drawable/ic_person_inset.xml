@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The grey person glyph inset inside its own bounds. Used by Avatars instead
+     of view padding: ShapeableImageView only recomputes its circular mask on
+     size change, so per-state padding/scaleType flips on a recycled avatar
+     leave a stale mask and the photo renders uncropped/mis-scaled. The avatar
+     view therefore keeps a constant centerCrop + zero padding, and the inset
+     lives in the drawable itself (square, so centerCrop never crops it). -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_person"
+    android:inset="10dp" />

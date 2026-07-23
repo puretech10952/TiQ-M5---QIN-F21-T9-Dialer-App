@@ -104,6 +104,25 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- ===== Display ===== -->
+            <TextView style="@style/SettingsSectionHeader" android:text="@string/settings_group_display" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/SettingsGroupCard"
+                app:cardBackgroundColor="@android:color/transparent" app:cardCornerRadius="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout android:id="@+id/rowNameFormat" style="@style/SettingRowM3"
+                        android:background="@drawable/bg_rowgroup_solo">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_person" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_name_format" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- ===== Calls ===== -->
             <TextView style="@style/SettingsSectionHeader" android:text="@string/settings_group_calls" />
 
@@ -127,14 +146,6 @@
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_screen_size" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"
                             android:layout_weight="1" android:text="@string/setting_always_full_screen_calls" />
-                    </LinearLayout>
-
-                    <View style="@style/SettingRowDivider" />
-
-                    <LinearLayout android:id="@+id/rowBlockAi" style="@style/SettingRowM3">
-                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
-                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
-                            android:layout_weight="1" android:text="@string/setting_block_ai" />
                     </LinearLayout>
 
                     <View style="@style/SettingRowDivider" />

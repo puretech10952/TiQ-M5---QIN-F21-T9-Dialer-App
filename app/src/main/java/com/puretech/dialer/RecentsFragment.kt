@@ -272,9 +272,36 @@ class RecentsFragment : Fragment() {
         val outgoingOnly = binding.chipOutgoing.isChecked
         val contactsOnly = binding.chipContacts.isChecked
         val ctx = requireContext().applicationContext
+
+        // Paint instantly from [CallLogCache] if a prefetch already finished (fired
+        // right when the last call ended) so a just-finished call shows up the moment
+        // this tab opens, instead of waiting on this device's slow call-log query
+        // below. The full load below still runs right after to catch anything the
+        // cache missed (a fresh delete, an edit, or a prefetch that didn't finish).
+        CallLogCache.entries?.let { cached ->
+            val filtered = when {
+                missedOnly -> cached.filter {
+                    it.type == android.provider.CallLog.Calls.MISSED_TYPE ||
+                        it.type == android.provider.CallLog.Calls.REJECTED_TYPE
+                }
+                contactsOnly -> cached.filter { it.name != null }
+                receivedOnly -> cached.filter { it.type == android.provider.CallLog.Calls.INCOMING_TYPE }
+                outgoingOnly -> cached.filter { it.type == android.provider.CallLog.Calls.OUTGOING_TYPE }
+                else -> cached
+            }
+            val rows = buildRows(ctx, filtered)
+            logAdapter.submit(rows)
+            binding.emptyText.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
+            if (rows.isEmpty()) binding.emptyText.text = getString(R.string.no_recents)
+        }
+
         Thread {
             try {
                 val all = CallLogRepository.load(ctx, missedOnly)
+                // Only the unfiltered load is the full superset the cache promises —
+                // storing a missedOnly-narrowed query here would corrupt it for the
+                // other chip filters on the next tab open.
+                if (!missedOnly) CallLogCache.store(all)
                 val entries = when {
                     contactsOnly -> all.filter { it.name != null }
                     receivedOnly -> all.filter {
@@ -376,21 +403,36 @@ class RecentsFragment : Fragment() {
         }
     }
 
-    /** Long-press popup: block number / delete entry. */
+    /** Long-press popup: add to Quick dial / block number / delete entry. */
     private fun showEntryMenu(entry: CallLogEntry, anchor: View) {
         val title = entry.name ?: android.telephony.PhoneNumberUtils
             .formatNumber(entry.number, java.util.Locale.US.country) ?: entry.number
         CardMenu(requireContext(), anchor)
             .title(title)
+            .add(MENU_QUICK_DIAL, R.drawable.ic_bolt, getString(R.string.quick_dial_add_to))
             .add(MENU_BLOCK, R.drawable.ic_block, getString(R.string.block_number))
             .add(MENU_DELETE, R.drawable.ic_delete, getString(R.string.delete_entry))
             .onClick { id ->
                 when (id) {
+                    MENU_QUICK_DIAL -> addToQuickDial(entry)
                     MENU_BLOCK -> blockNumber(entry.number)
                     MENU_DELETE -> deleteEntry(entry.number)
                 }
             }
             .show()
+    }
+
+    /** Opens Quick dial in "assign mode" for this entry — tapping any number
+     *  there assigns it to this contact and returns, instead of the normal
+     *  add/manage flows. */
+    private fun addToQuickDial(entry: CallLogEntry) {
+        val name = entry.name?.ifBlank { null } ?: entry.number
+        startActivity(
+            Intent(requireContext(), QuickDialActivity::class.java)
+                .putExtra(QuickDialActivity.EXTRA_ASSIGN_NAME, name)
+                .putExtra(QuickDialActivity.EXTRA_ASSIGN_NUMBER, entry.number)
+                .putExtra(QuickDialActivity.EXTRA_ASSIGN_PHOTO_URI, entry.photoUri?.toString())
+        )
     }
 
     private fun blockNumber(number: String) {
@@ -538,7 +580,8 @@ class RecentsFragment : Fragment() {
     }
 
     private companion object {
-        const val MENU_BLOCK = 1
-        const val MENU_DELETE = 2
+        const val MENU_QUICK_DIAL = 1
+        const val MENU_BLOCK = 2
+        const val MENU_DELETE = 3
     }
 }

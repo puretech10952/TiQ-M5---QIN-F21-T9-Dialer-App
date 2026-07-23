@@ -234,11 +234,8 @@
     <string name="setting_dialpad_tone_summary">השמע צליל בלחיצה על מקש (פעיל תמיד בזמן שיחה)</string>
     <string name="setting_swipe_answer">החלק לענייה</string>
     <string name="setting_swipe_answer_summary">החלק כפתור לקבלה או דחיית שיחות נכנסות</string>
-    <string name="setting_block_ai">חסום מספרי בינה מלאכותית</string>
-    <string name="setting_block_ai_summary">ניסיוני — חסום שיחות לשירותי קול בינה מלאכותית, גם מאנשי קשר</string>
     <string name="setting_block_unknown">חסום מתקשרים לא ידועים</string>
     <string name="setting_block_unknown_summary">דחה בשקט שיחות ממספרים שאינם שמורים באנשי הקשר, כולל מספרים חסויים.</string>
-    <string name="ai_block_toast">זהו מספר בינה מלאכותית וחסום בהגדרות</string>
     <string name="swipe_to_answer_hint">החלק לענות או לדחות</string>
     <string name="setting_on">פועל</string>
     <string name="setting_off">כבוי</string>

@@ -232,11 +232,8 @@
     <string name="setting_dialpad_tone_summary">Riproduci un tono quando premi un tasto (sempre attivo durante una chiamata)</string>
     <string name="setting_swipe_answer">Scorri per rispondere</string>
     <string name="setting_swipe_answer_summary">Scorri un pulsante per rispondere o rifiutare le chiamate in entrata</string>
-    <string name="setting_block_ai">Blocca numeri AI</string>
-    <string name="setting_block_ai_summary">Sperimentale — blocca chiamate a servizi vocali AI, anche da un contatto</string>
     <string name="setting_block_unknown">Blocca chiamanti sconosciuti</string>
     <string name="setting_block_unknown_summary">Rifiuta silenziosamente le chiamate da numeri non salvati nei contatti, inclusi i numeri privati.</string>
-    <string name="ai_block_toast">Questo è un numero AI ed è bloccato nelle Impostazioni</string>
     <string name="swipe_to_answer_hint">Scorri per rispondere o rifiutare</string>
     <string name="setting_on">Attivo</string>
     <string name="setting_off">Disattivo</string>

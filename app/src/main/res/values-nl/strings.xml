@@ -232,11 +232,8 @@
     <string name="setting_dialpad_tone_summary">Geluid afspelen bij indrukken van een toets (altijd aan tijdens een gesprek)</string>
     <string name="setting_swipe_answer">Vegen om te beantwoorden</string>
     <string name="setting_swipe_answer_summary">Veeg een knop opzij om inkomende gesprekken te beantwoorden of te weigeren</string>
-    <string name="setting_block_ai">AI-nummers blokkeren</string>
-    <string name="setting_block_ai_summary">Experimenteel — blokkeer gesprekken naar AI-spraakdiensten, ook van contacten</string>
     <string name="setting_block_unknown">Onbekende bellers blokkeren</string>
     <string name="setting_block_unknown_summary">Inkomende gesprekken van nummers die niet in uw contacten zijn opgeslagen, inclusief anonieme nummers, stil weigeren.</string>
-    <string name="ai_block_toast">Dit is een AI-nummer en is geblokkeerd in Instellingen</string>
     <string name="swipe_to_answer_hint">Veeg om te beantwoorden of weigeren</string>
     <string name="setting_on">Aan</string>
     <string name="setting_off">Uit</string>

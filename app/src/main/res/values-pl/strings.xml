@@ -236,11 +236,8 @@
     <string name="setting_dialpad_tone_summary">Odtwórz dźwięk po naciśnięciu klawisza (zawsze włączone podczas rozmowy)</string>
     <string name="setting_swipe_answer">Przesuń, aby odebrać</string>
     <string name="setting_swipe_answer_summary">Przesuń przycisk, aby odebrać lub odrzucić połączenia przychodzące</string>
-    <string name="setting_block_ai">Blokuj numery AI</string>
-    <string name="setting_block_ai_summary">Eksperymentalne — blokuj połączenia do usług głosowych AI, nawet z kontaktów</string>
     <string name="setting_block_unknown">Blokuj nieznanych dzwoniących</string>
     <string name="setting_block_unknown_summary">Cicho odrzucaj połączenia z numerów niezapisanych w kontaktach, w tym numerów zastrzeżonych.</string>
-    <string name="ai_block_toast">To jest numer AI i jest zablokowany w Ustawieniach</string>
     <string name="swipe_to_answer_hint">Przesuń, aby odebrać lub odrzucić</string>
     <string name="setting_on">Włącz</string>
     <string name="setting_off">Wyłącz</string>

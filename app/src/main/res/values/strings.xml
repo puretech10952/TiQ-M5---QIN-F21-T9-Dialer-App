@@ -66,7 +66,7 @@
     <string name="nav_recents">Recents</string>
     <string name="nav_home">Home</string>
     <string name="nav_keypad">Keypad</string>
-    <string name="frequently_contacted">Frequently contacted</string>
+    <string name="frequently_contacted">Recently contacted</string>
     <string name="no_recents">No recent calls</string>
     <string name="recents_today">Today</string>
     <string name="recents_yesterday">Yesterday</string>
@@ -95,8 +95,13 @@
     <string name="settings_title">Settings</string>
     <string name="settings_placeholder">More settings coming soon.</string>
     <string name="settings_group_general">General</string>
+    <string name="settings_group_display">Display</string>
     <string name="settings_group_calls">Calls</string>
     <string name="settings_group_about">About</string>
+    <string name="setting_name_format">Name format</string>
+    <string name="setting_name_format_summary">Choose how contact and caller names are shown throughout the app.</string>
+    <string name="name_format_first_first">First name First</string>
+    <string name="name_format_last_first">Last name First</string>
 
     <!-- Long-press entry actions -->
     <string name="block_number">Block number</string>
@@ -136,16 +141,28 @@
     <string name="setting_quick_dial">Quick dial</string>
     <string name="setting_quick_dial_summary">Assign a number (1-99) to jump straight to a contact</string>
     <string name="quick_dial_badge">Quick dial</string>
-    <string name="quick_dial_desc">While dialing the exact number you assign here, that contact appears pinned at the top of the suggestions — before the usual matches. Typing further digits drops back to normal suggestions unless that longer number is also assigned.</string>
-    <string name="quick_dial_empty">No quick dial numbers set yet</string>
-    <string name="quick_dial_add">Add quick dial</string>
-    <string name="quick_dial_pick_contact">Choose a contact</string>
-    <string name="quick_dial_code_title">Assign a number (1-99)</string>
-    <string name="quick_dial_code_hint">Number</string>
-    <string name="quick_dial_code_invalid">Enter a number from 1 to 99</string>
-    <string name="quick_dial_code_taken">%1$d is already assigned to %2$s. Replace it?</string>
+    <string name="quick_dial_desc">Tap an empty number to assign a contact to it. While dialing that exact number, the contact appears pinned at the top of the suggestions — before the usual matches. Typing further digits drops back to normal suggestions unless that longer number is also assigned.</string>
+    <string name="quick_dial_change">Change</string>
     <string name="quick_dial_remove">Remove</string>
     <string name="quick_dial_remove_confirm">Remove this quick dial number?</string>
+    <string name="quick_dial_voicemail">Voicemail</string>
+    <string name="quick_dial_from_contacts">Choose from contacts</string>
+    <string name="quick_dial_from_recents">Choose from recents</string>
+    <string name="quick_dial_enter_manually">Enter a number manually</string>
+    <string name="quick_dial_manual_hint">Phone number</string>
+    <string name="quick_dial_no_recents">No recent calls yet</string>
+    <string name="quick_dial_help_title">How Quick dial works</string>
+    <string name="quick_dial_help_dont_show">Don\'t show this again</string>
+    <string name="quick_dial_help_dismiss">Got it</string>
+    <string name="quick_dial_add_to">Add to Quick dial</string>
+    <string name="quick_dial_assign_banner">Tap a number to assign it to %1$s</string>
+    <string name="quick_dial_added_toast">Added to Quick dial</string>
+    <string name="quick_dial_overwrite_confirm">%1$d is already assigned to %2$s. Replace it with %3$s?</string>
+
+    <!-- What's new -->
+    <string name="whats_new_title">What\'s new in %1$s</string>
+    <string name="whats_new_got_it">Got it</string>
+    <string name="whats_new_body">• Introducing Quick dial — a speed-dial grid of slots 1–99. Tap + to assign a contact, tap a filled slot to call, change or remove it. You can also assign straight from a call\'s long-press menu, and dialing an assigned number pins that contact to the top of your suggestions\n\n• Name format: show names as First Last or Last, First (Settings > Display)\n\n• Missed-call notifications now have Call back and Message buttons\n\n• Smarter dialing suggestions, based on who you\'ve called recently instead of all-time counts\n\n• Recents now opens right away after a call ends\n\n• Bolder, clearer keypad lettering\n\n• Call History filters (All/Missed/Received/Outgoing), and tapping the header opens the contact\n\n• Feedback moved into the side menu\n\n• Favorites: long-press a remembered number to change it or place a one-time call to a different one\n\n• Fixed contact photos in Recents sometimes losing their circular crop while scrolling\n\n• Fixed call history totals getting stuck once older calls started getting trimmed\n\n• And you\'ll now see a note like this after every update</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
@@ -306,11 +323,8 @@
     <string name="setting_swipe_answer_summary">Slide a button sideways to answer or decline incoming calls, instead of tapping</string>
     <string name="setting_always_full_screen_calls">Always show full-screen calls</string>
     <string name="setting_always_full_screen_calls_summary">By default, an incoming call only takes over the whole screen when your phone is locked — while it\'s unlocked, whether you\'re on the home screen or using another app, you\'ll just see a notification with Answer and Decline instead. Turn this on to always show the full-screen call, even while your phone is unlocked and in use.</string>
-    <string name="setting_block_ai">Block AI phone numbers</string>
-    <string name="setting_block_ai_summary">Experimental — stop calls to AI voice services (like 1-800-ChatGPT), even from a contact</string>
     <string name="setting_block_unknown">Block unknown callers</string>
     <string name="setting_block_unknown_summary">Silently reject incoming calls from numbers that aren\'t saved in your contacts, including withheld or private numbers.</string>
-    <string name="ai_block_toast">This is an AI phone number and is blocked in Settings</string>
     <string name="swipe_to_answer_hint">Slide to answer or decline</string>
     <string name="setting_on">On</string>
     <string name="setting_off">Off</string>
@@ -326,6 +340,7 @@
     <string name="missed_call_title">Missed call</string>
     <string name="missed_call_back">Call back</string>
     <string name="missed_call_view">View</string>
+    <string name="missed_call_message">Message</string>
 
     <!-- Voicemail notification -->
     <string name="notif_channel_voicemail">Voicemail</string>

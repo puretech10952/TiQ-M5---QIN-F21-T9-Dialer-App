@@ -230,11 +230,8 @@
     <string name="setting_dialpad_tone_summary">按键时播放音效（通话中始终开启）</string>
     <string name="setting_swipe_answer">滑动接听</string>
     <string name="setting_swipe_answer_summary">滑动按钮接听或拒接来电</string>
-    <string name="setting_block_ai">屏蔽 AI 号码</string>
-    <string name="setting_block_ai_summary">实验性功能——屏蔽拨打 AI 语音服务的通话，包括来自联系人的</string>
     <string name="setting_block_unknown">屏蔽未知来电</string>
     <string name="setting_block_unknown_summary">静默拒绝未存入联系人的号码来电，包括匿名号码。</string>
-    <string name="ai_block_toast">这是 AI 号码，已在设置中屏蔽</string>
     <string name="swipe_to_answer_hint">滑动接听或拒接</string>
     <string name="setting_on">开启</string>
     <string name="setting_off">关闭</string>

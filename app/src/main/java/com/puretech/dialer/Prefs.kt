@@ -36,6 +36,14 @@ object Prefs {
         )
     }
 
+    // --- Display: name format --------------------------------------------------
+
+    /** How contact/caller names are shown everywhere in the app: "First Last"
+     *  (default) or "Last, First". See [NameFormat]. */
+    fun lastNameFirst(c: Context) = sp(c).getBoolean("last_name_first", false)
+    fun setLastNameFirst(c: Context, on: Boolean) =
+        sp(c).edit().putBoolean("last_name_first", on).apply()
+
     // --- Screen profile -------------------------------------------------------
 
     const val PROFILE_SMALL = 0
@@ -141,12 +149,6 @@ object Prefs {
     fun setAlwaysFullScreenCalls(c: Context, on: Boolean) =
         sp(c).edit().putBoolean("always_full_screen_calls", on).apply()
 
-    /** Experimental: block outgoing calls to known AI phone-call services
-     *  (see [AiBlocklist]), even from a contact. Off by default. */
-    fun blockAiNumbers(c: Context) = sp(c).getBoolean("block_ai_numbers", false)
-    fun setBlockAiNumbers(c: Context, on: Boolean) =
-        sp(c).edit().putBoolean("block_ai_numbers", on).apply()
-
     /** Reject incoming calls from numbers that aren't saved contacts (and
      *  withheld/private numbers). Off by default. */
     fun blockUnknownCallers(c: Context) = sp(c).getBoolean("block_unknown_callers", false)
@@ -188,6 +190,21 @@ object Prefs {
     /** Whether the one-time welcome/onboarding screen has been shown. */
     fun welcomeShown(c: Context) = sp(c).getBoolean("welcome_shown", false)
     fun setWelcomeShown(c: Context) = sp(c).edit().putBoolean("welcome_shown", true).apply()
+
+    // --- What's new -------------------------------------------------------------
+
+    /** The versionCode we last showed (or recorded without showing) the What's
+     *  new sheet for. 0 means never recorded — used to tell a fresh install
+     *  (which gets onboarding instead) from a real update. */
+    fun lastSeenVersionCode(c: Context): Long = sp(c).getLong("whats_new_version", 0L)
+    fun setLastSeenVersionCode(c: Context, code: Long) =
+        sp(c).edit().putLong("whats_new_version", code).apply()
+
+    // --- Quick dial ---------------------------------------------------------------
+
+    fun quickDialHelpDismissed(c: Context) = sp(c).getBoolean("quick_dial_help_dismissed", false)
+    fun setQuickDialHelpDismissed(c: Context) =
+        sp(c).edit().putBoolean("quick_dial_help_dismissed", true).apply()
 
     // --- Quick responses -----------------------------------------------------
 

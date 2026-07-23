@@ -240,11 +240,8 @@
     <string name="setting_dialpad_tone_summary">تشغيل صوت عند الضغط على مفتاح (دائمًا مفعّل أثناء المكالمة)</string>
     <string name="setting_swipe_answer">التمرير للرد</string>
     <string name="setting_swipe_answer_summary">مرّر زرًا للرد على المكالمات الواردة أو رفضها</string>
-    <string name="setting_block_ai">حجب أرقام الذكاء الاصطناعي</string>
-    <string name="setting_block_ai_summary">تجريبي — حجب المكالمات إلى خدمات الصوت بالذكاء الاصطناعي، حتى من جهات الاتصال</string>
     <string name="setting_block_unknown">حجب المتصلين المجهولين</string>
     <string name="setting_block_unknown_summary">رفض المكالمات الواردة بصمت من أرقام غير محفوظة في جهات الاتصال، بما فيها الأرقام المجهولة.</string>
-    <string name="ai_block_toast">هذا رقم ذكاء اصطناعي وهو محجوب في الإعدادات</string>
     <string name="swipe_to_answer_hint">مرّر للرد أو الرفض</string>
     <string name="setting_on">تشغيل</string>
     <string name="setting_off">إيقاف</string>

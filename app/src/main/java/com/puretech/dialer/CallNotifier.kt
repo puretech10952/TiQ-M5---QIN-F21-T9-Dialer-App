@@ -49,7 +49,7 @@ object CallNotifier {
         val ringing = call.state == Call.STATE_RINGING
 
         val number = CallManager.number()
-        val title = ContactsRepository.displayName(context, number)
+        val title = NameFormat.apply(context, ContactsRepository.displayName(context, number))
             ?: number.ifBlank { context.getString(R.string.app_name) }
         val person = Person.Builder().setName(title).build()
 

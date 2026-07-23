@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One Quick dial slot: a round avatar (contact photo, or a colored initial,
+     or a neutral "+" circle when empty) with a small round number badge
+     overlapping its bottom-right corner, and the assigned name/number below
+     it. No card/box — just the circles and text. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingHorizontal="6dp">
+
+    <FrameLayout
+        android:id="@+id/avatarFrame"
+        android:layout_width="76dp"
+        android:layout_height="76dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:id="@+id/cellInitial"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_circle_solid"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="K" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/cellPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            app:shapeAppearanceOverlay="@style/CircleImageView" />
+
+        <!-- Empty slot ("+") or a fixed-meaning icon (e.g. Voicemail). Same
+             76dp circle as a photo/initial — only the glyph inside is
+             padded, so an empty slot doesn't read as smaller than a filled
+             one. -->
+        <ImageView
+            android:id="@+id/cellIcon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_circle_empty"
+            android:padding="16dp"
+            android:src="@drawable/ic_add"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/cellNumber"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/bg_circle_solid"
+            android:backgroundTint="?attr/colorPrimary"
+            android:elevation="2dp"
+            android:gravity="center"
+            android:textColor="?attr/colorOnPrimary"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="7" />
+    </FrameLayout>
+
+    <!-- Name if there is one; falls back to the number itself only when
+         there's no name — never shown alongside the name as a second line. -->
+    <TextView
+        android:id="@+id/cellName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="Kol Mevaser"
+        tools:visibility="visible" />
+
+</LinearLayout>

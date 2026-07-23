@@ -48,16 +48,6 @@ object Dialer {
     /** Place a call to an already-normalized number using the default SIM. */
     fun place(context: Context, normalized: String) {
         if (normalized.isEmpty()) return
-        // Experimental AI-number block: refuse known AI phone-call services when
-        // enabled, regardless of prefixes/country code and even from a contact.
-        if (Prefs.blockAiNumbers(context) && AiBlocklist.isBlocked(normalized)) {
-            android.os.Handler(android.os.Looper.getMainLooper()).post {
-                android.widget.Toast.makeText(
-                    context, R.string.ai_block_toast, android.widget.Toast.LENGTH_LONG
-                ).show()
-            }
-            return
-        }
         val uri = if (normalized.any { it == '#' || it == '*' || it == ',' || it == ';' })
             Uri.parse("tel:" + Uri.encode(normalized))
         else Uri.fromParts("tel", normalized, null)

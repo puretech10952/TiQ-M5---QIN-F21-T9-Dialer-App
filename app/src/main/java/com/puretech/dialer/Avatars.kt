@@ -9,7 +9,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.LruCache
 import android.view.View
-import android.widget.ImageView
 import android.widget.TextView
 import com.google.android.material.imageview.ShapeableImageView
 import java.util.concurrent.Executors
@@ -24,6 +23,13 @@ import java.util.concurrent.Executors
  * UI never blocks on disk I/O and a fast scroll can't leave the wrong photo on a
  * recycled row: every bind stamps the target view with a key and a finished
  * decode is only applied if that key still matches.
+ *
+ * Invariant: the photo view's scaleType (centerCrop, from XML) and padding
+ * (zero) are NEVER changed here. ShapeableImageView bakes its circular mask
+ * from the padding at the last size change and setPadding does not refresh it,
+ * so per-state geometry flips leave recycled avatars with a stale mask and
+ * photos render uncropped. State-specific looks (e.g. the small grey person
+ * glyph) are done inside drawables instead (ic_person_inset).
  */
 object Avatars {
 
@@ -106,8 +112,6 @@ object Avatars {
         } else {
             initial.visibility = View.GONE
             photo.setImageDrawable(null)
-            photo.setPadding(0, 0, 0, 0)
-            photo.scaleType = ImageView.ScaleType.CENTER_CROP
             photo.setBackgroundResource(R.drawable.bg_circle_solid)
             photo.backgroundTintList = ColorStateList.valueOf(GREY_BG)
             photo.imageTintList = null
@@ -125,13 +129,14 @@ object Avatars {
             initial.visibility = View.VISIBLE
             photo.visibility = View.GONE
         } else {
-            val pad = (10 * photo.resources.displayMetrics.density).toInt()
-            photo.scaleType = ImageView.ScaleType.FIT_CENTER
-            photo.setPadding(pad, pad, pad, pad)
             photo.setBackgroundResource(R.drawable.bg_circle_solid)
             photo.backgroundTintList = ColorStateList.valueOf(GREY_BG)
             photo.imageTintList = ColorStateList.valueOf(GREY)
-            photo.setImageResource(R.drawable.ic_person)
+            // The glyph's inset lives in the drawable (see ic_person_inset.xml):
+            // never change the view's padding/scaleType — ShapeableImageView only
+            // recomputes its circular mask on size change, so per-state geometry
+            // flips leave recycled rows with a stale mask (uncropped photos).
+            photo.setImageResource(R.drawable.ic_person_inset)
             photo.visibility = View.VISIBLE
             initial.visibility = View.GONE
         }
@@ -141,8 +146,6 @@ object Avatars {
         photo.background = null
         photo.backgroundTintList = null
         photo.imageTintList = null
-        photo.setPadding(0, 0, 0, 0)
-        photo.scaleType = ImageView.ScaleType.CENTER_CROP
         photo.setImageBitmap(bmp)
         photo.visibility = View.VISIBLE
         initial.visibility = View.GONE
