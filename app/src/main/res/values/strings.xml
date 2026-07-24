@@ -165,7 +165,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• The app now opens dramatically faster, including after being force-stopped or sitting idle a while\n\n• Recents also loads instantly in that situation, instead of waiting on a slow call-log lookup\n\n• Dial directly with the Send key from a highlighted contact suggestion\n\n• Favorites: tap Add to add any contact as a favorite here, without changing your Contacts app favorites\n\n• Favorites: long-press any favorite to remove it (works for your regular favorites too) — it only affects this app, your Contacts app is untouched\n\n• Favorites you add here appear after your regular ones, in the order you added them</string>
+    <string name="whats_new_body">• Faster app launch\n\n• Recents loads faster too\n\n• Use the Send key to dial a highlighted suggestion\n\n• Favorites: tap Add to add any contact (won\'t affect your Contacts app)\n\n• Favorites: long-press to remove any favorite (won\'t affect your Contacts app)\n\n• New favorites are added after your existing ones</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
