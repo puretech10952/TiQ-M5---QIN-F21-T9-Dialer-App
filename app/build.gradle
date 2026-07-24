@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'androidx.baselineprofile'
 }
 
 android {
@@ -11,10 +12,17 @@ android {
         applicationId "com.puretech.dialer"
         minSdk 29
         targetSdk 34
-        versionCode 206
-        versionName "1.1.6"
+        versionCode 214
+        versionName "1.1.7"
     }
 
+    // sign-rotate.ps1 builds "release" and signs it itself (apksigner re-signs
+    // from scratch, so Gradle's own — absent — signingConfig here doesn't
+    // matter). It must be this non-debuggable build type, not "debug": a
+    // debuggable APK is always compiled interpret-only by the OS, ignoring any
+    // baseline profile regardless of what's bundled, and separately the
+    // baseline-profile/macrobenchmark tooling only auto-targets "release" by
+    // default anyway.
     buildTypes {
         release {
             minifyEnabled false
@@ -47,4 +55,8 @@ dependencies {
     // Bypass Android's hidden-API blocklist so we can reflectively call MTK's
     // InCallService.doMtkAction(Bundle) for call recording on the F21.
     implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:4.3'
+    // Installs the generated baseline-prof.txt as an ART profile at startup so
+    // the OS AOT-compiles the app's hot startup path instead of interpreting it.
+    implementation 'androidx.profileinstaller:profileinstaller:1.3.1'
+    baselineProfile project(':baselineprofile')
 }

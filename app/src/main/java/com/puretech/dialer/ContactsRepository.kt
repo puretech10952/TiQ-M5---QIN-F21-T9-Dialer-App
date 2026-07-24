@@ -282,6 +282,55 @@ object ContactsRepository {
         return out
     }
 
+    /** The Favorites strip's actual contents: real starred contacts (minus any the
+     *  user hid from just this strip) plus any contacts added as favorites in-app —
+     *  see [Prefs.extraFavoriteKeys]/[Prefs.hiddenFavoriteKeys]. Neither overlay
+     *  touches Phone.STARRED, so it never affects the real Contacts app. */
+    fun loadDialerFavorites(context: Context, limit: Int = 30): List<Contact> {
+        val hidden = Prefs.hiddenFavoriteKeys(context)
+        // Real (starred) favorites always come first; contacts added as favorites
+        // in-app are appended after, in the order they were added (not
+        // alphabetically) — a starred contact stays "front" even if it was hidden
+        // from the strip and later re-added (see Prefs.unhideFavorite).
+        val starred = loadFavorites(context, limit)
+            .filter { it.lookupKey == null || it.lookupKey !in hidden }
+        val starredKeys = starred.mapNotNull { it.lookupKey }.toSet()
+        val extras = Prefs.extraFavoriteKeys(context)
+            .filter { it !in starredKeys }
+            .mapNotNull { contactByLookupKey(context, it) }
+        return starred + extras
+    }
+
+    /** A single Contact (first number wins) for a given lookupKey — used to resolve
+     *  in-app-only favorites (see [loadDialerFavorites]) back to current contact info. */
+    fun contactByLookupKey(context: Context, lookupKey: String): Contact? {
+        if (context.checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return null
+        val projection = arrayOf(Phone.DISPLAY_NAME, Phone.NUMBER, Phone.PHOTO_THUMBNAIL_URI)
+        return try {
+            context.contentResolver.query(
+                Phone.CONTENT_URI, projection, "${Phone.LOOKUP_KEY} = ?", arrayOf(lookupKey), null
+            )?.use { c ->
+                if (!c.moveToFirst()) return null
+                val nameIdx = c.getColumnIndex(Phone.DISPLAY_NAME)
+                val numIdx = c.getColumnIndex(Phone.NUMBER)
+                val photoIdx = c.getColumnIndex(Phone.PHOTO_THUMBNAIL_URI)
+                val name = if (nameIdx >= 0) c.getString(nameIdx) ?: "" else ""
+                val number = if (numIdx >= 0) c.getString(numIdx) ?: "" else ""
+                if (name.isBlank() || number.isBlank()) return null
+                val photo = if (photoIdx >= 0) c.getString(photoIdx)?.let { Uri.parse(it) } else null
+                Contact(
+                    NameFormat.apply(context, name) ?: name,
+                    number, number.filter { it.isDigit() }, "", emptyList(), photo, 0, 0L,
+                    lookupKey = lookupKey
+                )
+            }
+        } catch (e: SecurityException) {
+            null
+        }
+    }
+
     /** All phone numbers for the contact identified by [lookupKey], with type labels
      *  (Mobile/Home/Work/...) — used to let the user pick which one to call when a
      *  favorite has more than one. */

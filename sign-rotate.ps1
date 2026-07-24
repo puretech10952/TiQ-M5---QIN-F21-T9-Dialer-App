@@ -2,7 +2,7 @@
 # update seamlessly to the release key (key-rotation lineage, Option C).
 #
 #   Usage:  ./sign-rotate.ps1 [-Build] [-OutDir <dir>]
-#     -Build   run `gradlew assembleDebug` first (otherwise uses the existing APK)
+#     -Build   run `gradlew assembleRelease` first (otherwise uses the existing APK)
 #
 # Reads signing material from keystore.properties (gitignored). The rotated APK is
 # release-signed on Android 13+ and debug-signed on Android 12 and below; both
@@ -28,12 +28,12 @@ $apksigner = (Get-ChildItem "$env:LOCALAPPDATA\Android\Sdk\build-tools" -Recurse
 if ($Build) {
     # First pass (dry-run) counts tasks so we can show a real percentage.
     Write-Host "Preparing build..."
-    $dryLines = & "$PSScriptRoot\gradlew.bat" assembleDebug --dry-run --console=plain 2>&1
+    $dryLines = & "$PSScriptRoot\gradlew.bat" assembleRelease --dry-run --console=plain 2>&1
     $totalTasks = [Math]::Max(($dryLines | Where-Object { $_ -match '^> Task' }).Count, 1)
 
     Write-Host "Building ($totalTasks tasks)..."
     $done = 0
-    & "$PSScriptRoot\gradlew.bat" assembleDebug --console=plain 2>&1 | ForEach-Object {
+    & "$PSScriptRoot\gradlew.bat" assembleRelease --console=plain 2>&1 | ForEach-Object {
         if ($_ -match '^> Task') {
             $done++
             $pct = [int]([Math]::Min([Math]::Round($done * 100.0 / $totalTasks), 99))
@@ -47,7 +47,7 @@ if ($Build) {
     if ($LASTEXITCODE -ne 0) { throw "Gradle build failed (exit $LASTEXITCODE)" }
 }
 
-$srcApk = "$PSScriptRoot\app\build\outputs\apk\debug\app-debug.apk"
+$srcApk = "$PSScriptRoot\app\build\outputs\apk\release\app-release-unsigned.apk"
 $ver = (Select-String -Path "$PSScriptRoot\app\build.gradle" -Pattern 'versionName\s+"([^"]+)"').Matches.Groups[1].Value
 $verSafe = $ver -replace '\s+', '-'
 

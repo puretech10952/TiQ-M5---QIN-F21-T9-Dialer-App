@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.test'
+    id 'org.jetbrains.kotlin.android'
+    id 'androidx.baselineprofile'
+}
+
+android {
+    namespace 'com.puretech.dialer.baselineprofile'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 29
+        targetSdk 34
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    targetProjectPath = ':app'
+    // Real hardware only — no emulator on this machine, and the M5's weak MediaTek
+    // silicon is exactly what the profile needs to be representative of.
+    experimentalProperties["android.experimental.self-instrumenting"] = true
+}
+
+// Generate against whatever device is already connected over adb (the M5),
+// instead of spinning up a Gradle-managed virtual device.
+baselineProfile {
+    useConnectedDevices = true
+}
+
+dependencies {
+    implementation 'androidx.test.ext:junit:1.1.5'
+    implementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation 'androidx.test.uiautomator:uiautomator:2.2.0'
+    implementation 'androidx.benchmark:benchmark-macro-junit4:1.2.4'
+}

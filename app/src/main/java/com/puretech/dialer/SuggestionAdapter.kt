@@ -82,4 +82,13 @@ class SuggestionAdapter(
     }
 
     override fun getItemCount(): Int = items.size
+
+    /** The suggestion currently holding D-pad/keypad focus in [rv], if any — lets
+     *  the hardware Call/Send key dial whichever row is highlighted instead of
+     *  always dialing the typed digits (see [DialerFragment.handleKey]). */
+    fun focusedContact(rv: RecyclerView): Contact? {
+        val child = rv.focusedChild ?: return null
+        val pos = rv.getChildAdapterPosition(child)
+        return items.getOrNull(pos)
+    }
 }

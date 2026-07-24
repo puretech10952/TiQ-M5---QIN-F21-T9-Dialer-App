@@ -47,6 +47,24 @@ class RecentsFragment : Fragment() {
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) reload() else showEmpty(getString(R.string.log_perm_needed)) }
 
+    private val pickFavoriteContact = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val uri = result.data?.data ?: return@registerForActivityResult
+        val lookupKey = resolvePickedFavoriteLookupKey(uri) ?: return@registerForActivityResult
+        val ctx = requireContext().applicationContext
+        Thread {
+            // A contact that's actually starred in the real Contacts app always
+            // belongs in the "starred" (front) section — if it was hidden from
+            // this strip before, re-adding it just un-hides it rather than
+            // filing it as a separate in-app extra at the back.
+            val isRealStarred = ContactsRepository.loadFavorites(ctx).any { it.lookupKey == lookupKey }
+            if (isRealStarred) Prefs.unhideFavorite(ctx, lookupKey)
+            else Prefs.addExtraFavorite(ctx, lookupKey)
+            ui { loadContacts() }
+        }.start()
+    }
+
     // Voice result, applied in onTabResumed (host onResume clears the field first).
     private var pendingVoiceQuery: String? = null
 
@@ -94,7 +112,8 @@ class RecentsFragment : Fragment() {
 
         favoritesAdapter = FavoritesAdapter(
             onClick = { contact, anchor -> onFavoriteClick(contact, anchor) },
-            onLongPress = { contact, anchor -> onFavoriteLongPress(contact, anchor) }
+            onLongPress = { contact, anchor -> onFavoriteLongPress(contact, anchor) },
+            onAddClick = { openAddFavorite() }
         )
         binding.favoritesStrip.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -197,24 +216,63 @@ class RecentsFragment : Fragment() {
     private fun loadContacts() {
         Thread {
             val list = ContactsRepository.load(requireContext().applicationContext)
-            val favs = ContactsRepository.loadFavorites(requireContext().applicationContext)
+            val favs = ContactsRepository.loadDialerFavorites(requireContext().applicationContext)
             ui {
                 allContacts = list
                 favoritesAdapter.submit(favs)
-                binding.favoritesToggle.visibility = if (favs.isEmpty()) View.GONE else View.VISIBLE
+                // Always shown now — the strip's trailing "Add" cell is always the
+                // entry point for adding a favorite, even with zero favorites yet.
+                binding.favoritesToggle.visibility = View.VISIBLE
                 binding.favoritesStrip.visibility =
-                    if (favs.isNotEmpty() && Prefs.favoritesExpanded(requireContext())) View.VISIBLE
-                    else View.GONE
+                    if (Prefs.favoritesExpanded(requireContext())) View.VISIBLE else View.GONE
                 updateFavoritesArrow()
             }
         }.start()
     }
 
+    /** Opens the system contact picker to add a contact as a dialer-only favorite
+     *  (does not touch the real Contacts app's starred flag). */
+    private fun openAddFavorite() {
+        try {
+            pickFavoriteContact.launch(
+                Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+            )
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun resolvePickedFavoriteLookupKey(uri: Uri): String? =
+        try {
+            requireContext().contentResolver.query(
+                uri, arrayOf(ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY), null, null, null
+            )?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+        } catch (_: Exception) {
+            null
+        }
+
     private fun toggleFavorites() {
-        val show = binding.favoritesStrip.visibility != View.VISIBLE
-        binding.favoritesStrip.visibility = if (show) View.VISIBLE else View.GONE
-        // Play the fade + scale-up "pop in" when the strip is opened.
-        if (show) binding.favoritesStrip.scheduleLayoutAnimation()
+        val strip = binding.favoritesStrip
+        val show = strip.visibility != View.VISIBLE
+        strip.animate().cancel()
+        if (show) {
+            strip.alpha = 1f; strip.scaleX = 1f; strip.scaleY = 1f
+            strip.visibility = View.VISIBLE
+            // Play the fade + scale-up "pop in" when the strip is opened.
+            strip.scheduleLayoutAnimation()
+        } else {
+            // Mirror the open animation (fade + scale) in reverse before hiding.
+            strip.pivotX = 0f
+            strip.pivotY = strip.height / 2f
+            strip.animate()
+                .alpha(0f).scaleX(0.6f).scaleY(0.6f)
+                .setDuration(200)
+                .setInterpolator(android.view.animation.AccelerateInterpolator())
+                .withEndAction {
+                    strip.visibility = View.GONE
+                    strip.alpha = 1f; strip.scaleX = 1f; strip.scaleY = 1f
+                }
+                .start()
+        }
         Prefs.setFavoritesExpanded(requireContext(), show)
         updateFavoritesArrow()
     }
@@ -276,8 +334,12 @@ class RecentsFragment : Fragment() {
         // Paint instantly from [CallLogCache] if a prefetch already finished (fired
         // right when the last call ended) so a just-finished call shows up the moment
         // this tab opens, instead of waiting on this device's slow call-log query
-        // below. The full load below still runs right after to catch anything the
-        // cache missed (a fresh delete, an edit, or a prefetch that didn't finish).
+        // below. On a cold start (force-stop, or the process was killed while idle)
+        // there's nothing in memory yet, so seed it from the on-disk snapshot first —
+        // that's a few-KB local read, nothing like the multi-second provider query.
+        // The full load below still runs right after to catch anything the cache
+        // missed (a fresh delete, an edit, or a prefetch/snapshot that's stale).
+        CallLogCache.ensureLoaded(ctx)
         CallLogCache.entries?.let { cached ->
             val filtered = when {
                 missedOnly -> cached.filter {
@@ -301,7 +363,7 @@ class RecentsFragment : Fragment() {
                 // Only the unfiltered load is the full superset the cache promises —
                 // storing a missedOnly-narrowed query here would corrupt it for the
                 // other chip filters on the next tab open.
-                if (!missedOnly) CallLogCache.store(all)
+                if (!missedOnly) CallLogCache.store(all, ctx)
                 val entries = when {
                     contactsOnly -> all.filter { it.name != null }
                     receivedOnly -> all.filter {
@@ -503,12 +565,34 @@ class RecentsFragment : Fragment() {
         showNumberPicker(contact, anchor, key, dialIfSingle = true)
     }
 
-    /** Long-press always reopens the picker, even when a default number is
-     *  already remembered — lets the user change the default or place a
-     *  one-time call to a different number without clearing it. */
+    /** Long-press: choose a different number to call, or remove this contact from
+     *  the dialer's Favorites strip (never touches the real Contacts app's star). */
     private fun onFavoriteLongPress(contact: Contact, anchor: View) {
         val key = contact.lookupKey ?: return
-        showNumberPicker(contact, anchor, key, dialIfSingle = false)
+        CardMenu(requireContext(), anchor)
+            .title(contact.name)
+            .add(MENU_FAV_NUMBER, R.drawable.ic_call, getString(R.string.favorite_choose_number))
+            .add(MENU_FAV_REMOVE, R.drawable.ic_delete, getString(R.string.favorite_remove))
+            .onClick { id ->
+                when (id) {
+                    MENU_FAV_NUMBER -> showNumberPicker(contact, anchor, key, dialIfSingle = false)
+                    MENU_FAV_REMOVE -> removeFavorite(key)
+                }
+            }
+            .show()
+    }
+
+    /** Removes a favorite from just this app's strip — an in-app "extra" favorite
+     *  is dropped outright, a real starred contact is hidden from the strip only,
+     *  leaving its Contacts app star untouched (see [Prefs] favorites overlay). */
+    private fun removeFavorite(lookupKey: String) {
+        val ctx = requireContext()
+        if (Prefs.extraFavoriteKeys(ctx).contains(lookupKey)) {
+            Prefs.removeExtraFavorite(ctx, lookupKey)
+        } else {
+            Prefs.hideFavorite(ctx, lookupKey)
+        }
+        loadContacts()
     }
 
     private fun showNumberPicker(contact: Contact, anchor: View, key: String, dialIfSingle: Boolean) {
@@ -583,5 +667,7 @@ class RecentsFragment : Fragment() {
         const val MENU_QUICK_DIAL = 1
         const val MENU_BLOCK = 2
         const val MENU_DELETE = 3
+        const val MENU_FAV_NUMBER = 4
+        const val MENU_FAV_REMOVE = 5
     }
 }

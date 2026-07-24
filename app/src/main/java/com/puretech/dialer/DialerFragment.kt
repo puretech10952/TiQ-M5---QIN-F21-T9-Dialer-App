@@ -196,7 +196,12 @@ class DialerFragment : Fragment() {
         val firstDown = event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
         when (kc) {
             KeyEvent.KEYCODE_CALL -> {
-                if (event.action == KeyEvent.ACTION_UP) startCall()
+                if (event.action == KeyEvent.ACTION_UP) {
+                    // If D-pad focus has moved onto a suggestion row, Call/Send
+                    // dials that highlighted contact, not the typed digits.
+                    val focused = _binding?.suggestions?.let(suggestionAdapter::focusedContact)
+                    if (focused != null) callContact(focused.number) else startCall()
+                }
                 return true
             }
             KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0 -> {

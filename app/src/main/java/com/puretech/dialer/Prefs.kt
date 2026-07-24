@@ -228,6 +228,68 @@ object Prefs {
     fun setDefaultNumberForContact(c: Context, lookupKey: String, number: String) =
         sp(c).edit().putString("fav_default_number_$lookupKey", number).apply()
 
+    // --- Favorites: dialer-only add/remove overlay ------------------------------
+    // Lets the user add or remove a favorite from this app's Favorites strip
+    // without touching the real Contacts app's starred flag (Phone.STARRED).
+    // "Extra" favorites are added here that aren't starred in Contacts, kept in
+    // the order they were added (not alphabetical) and shown after the real
+    // starred ones; "hidden" favorites are real starred contacts the user chose
+    // to hide from just this strip. Merged with the real starred list at read
+    // time in ContactsRepository.loadDialerFavorites.
+
+    /** lookupKeys added as favorites in-app (not starred in the real Contacts
+     *  app), oldest first — this is display order, so it's a list, not a set. */
+    fun extraFavoriteKeys(c: Context): List<String> {
+        val raw = sp(c).getString("extra_favorite_keys_ordered", null) ?: return emptyList()
+        return try {
+            val arr = org.json.JSONArray(raw)
+            List(arr.length()) { arr.getString(it) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun saveExtraFavoriteKeys(c: Context, keys: List<String>) {
+        val arr = org.json.JSONArray()
+        keys.forEach { arr.put(it) }
+        sp(c).edit().putString("extra_favorite_keys_ordered", arr.toString()).apply()
+    }
+
+    /** Appends [lookupKey] as the newest extra favorite (moves it to the end if
+     *  it was already one, so re-adding after removal doesn't keep a stale spot). */
+    fun addExtraFavorite(c: Context, lookupKey: String) {
+        val keys = ArrayList(extraFavoriteKeys(c))
+        keys.remove(lookupKey)
+        keys.add(lookupKey)
+        saveExtraFavoriteKeys(c, keys)
+    }
+
+    fun removeExtraFavorite(c: Context, lookupKey: String) {
+        val keys = ArrayList(extraFavoriteKeys(c))
+        keys.remove(lookupKey)
+        saveExtraFavoriteKeys(c, keys)
+    }
+
+    /** lookupKeys of real starred contacts hidden from this app's Favorites strip
+     *  (their Contacts app star is left untouched). */
+    fun hiddenFavoriteKeys(c: Context): Set<String> =
+        sp(c).getStringSet("hidden_favorite_keys", emptySet()) ?: emptySet()
+
+    fun hideFavorite(c: Context, lookupKey: String) {
+        val set = HashSet(hiddenFavoriteKeys(c))
+        set.add(lookupKey)
+        sp(c).edit().putStringSet("hidden_favorite_keys", set).apply()
+    }
+
+    /** Un-hides a real starred contact that was previously hidden from the strip —
+     *  used when the user re-adds an already-starred contact via the Add picker,
+     *  so it returns to the starred (front) section instead of becoming an extra. */
+    fun unhideFavorite(c: Context, lookupKey: String) {
+        val set = HashSet(hiddenFavoriteKeys(c))
+        set.remove(lookupKey)
+        sp(c).edit().putStringSet("hidden_favorite_keys", set).apply()
+    }
+
     // --- App language override --------------------------------------------------
 
     /** BCP-47 tag of the manually chosen language (e.g. "es"), or "" for system default. */

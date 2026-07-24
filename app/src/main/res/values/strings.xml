@@ -73,6 +73,9 @@
     <string name="recents_older">Older</string>
     <string name="favorites">Favorites</string>
     <string name="view_contacts">View contacts</string>
+    <string name="favorite_add">Add</string>
+    <string name="favorite_choose_number">Choose number to call</string>
+    <string name="favorite_remove">Remove from favorites</string>
     <string name="hist_incoming">Incoming call</string>
     <string name="hist_outgoing">Outgoing call</string>
     <string name="hist_missed">Missed call</string>
@@ -162,7 +165,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• Introducing Quick dial — a speed-dial grid of slots 1–99. Tap + to assign a contact, tap a filled slot to call, change or remove it. You can also assign straight from a call\'s long-press menu, and dialing an assigned number pins that contact to the top of your suggestions\n\n• Name format: show names as First Last or Last, First (Settings > Display)\n\n• Missed-call notifications now have Call back and Message buttons\n\n• Smarter dialing suggestions, based on who you\'ve called recently instead of all-time counts\n\n• Recents now opens right away after a call ends\n\n• Bolder, clearer keypad lettering\n\n• Call History filters (All/Missed/Received/Outgoing), and tapping the header opens the contact\n\n• Feedback moved into the side menu\n\n• Favorites: long-press a remembered number to change it or place a one-time call to a different one\n\n• Fixed contact photos in Recents sometimes losing their circular crop while scrolling\n\n• Fixed call history totals getting stuck once older calls started getting trimmed\n\n• And you\'ll now see a note like this after every update</string>
+    <string name="whats_new_body">• The app now opens dramatically faster, including after being force-stopped or sitting idle a while\n\n• Recents also loads instantly in that situation, instead of waiting on a slow call-log lookup\n\n• Dial directly with the Send key from a highlighted contact suggestion\n\n• Favorites: tap Add to add any contact as a favorite here, without changing your Contacts app favorites\n\n• Favorites: long-press any favorite to remove it (works for your regular favorites too) — it only affects this app, your Contacts app is untouched\n\n• Favorites you add here appear after your regular ones, in the order you added them</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
