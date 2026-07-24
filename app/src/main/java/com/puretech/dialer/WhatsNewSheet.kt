@@ -42,8 +42,10 @@ object WhatsNewSheet {
         val view = activity.layoutInflater.inflate(R.layout.sheet_whats_new, null)
         view.findViewById<android.widget.TextView>(R.id.whatsNewTitle).text =
             activity.getString(R.string.whats_new_title, versionName)
+        // getText (not getString) so <b> markup in the string resource renders
+        // as actual bold instead of being stripped to a plain string.
         view.findViewById<android.widget.TextView>(R.id.whatsNewBody).text =
-            activity.getString(R.string.whats_new_body)
+            activity.getText(R.string.whats_new_body)
         view.findViewById<android.view.View>(R.id.whatsNewGotIt).setOnClickListener { sheet.dismiss() }
         sheet.setContentView(view)
         sheet.setCancelable(true)
