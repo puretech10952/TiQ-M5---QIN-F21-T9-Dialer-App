@@ -87,6 +87,7 @@ class RecentsFragment : Fragment() {
             contactsChangeHandler.postDelayed(contactsChangeRunnable, 600)
         }
     }
+    private var contactsObserverRegistered = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -123,17 +124,35 @@ class RecentsFragment : Fragment() {
 
         loadContacts()
         ensureLogPermission()
-
-        requireContext().contentResolver.registerContentObserver(
-            ContactsContract.Contacts.CONTENT_URI, true, contactsObserver
-        )
+        ensureContactsObserver()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        requireContext().contentResolver.unregisterContentObserver(contactsObserver)
+        if (contactsObserverRegistered) {
+            requireContext().contentResolver.unregisterContentObserver(contactsObserver)
+            contactsObserverRegistered = false
+        }
         contactsChangeHandler.removeCallbacks(contactsChangeRunnable)
         _binding = null
+    }
+
+    /** Registering on the Contacts provider requires READ_CONTACTS to already
+     *  be granted, not just requested -- calling this unconditionally crashed
+     *  the whole app on launch with a SecurityException whenever this app
+     *  isn't the default dialer yet (that permission isn't granted until
+     *  then on this ROM). Called again from onTabResumed so the live-refresh
+     *  starts working the moment permission/default-dialer status is granted,
+     *  without needing an app restart. */
+    private fun ensureContactsObserver() {
+        if (contactsObserverRegistered) return
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+        requireContext().contentResolver.registerContentObserver(
+            ContactsContract.Contacts.CONTENT_URI, true, contactsObserver
+        )
+        contactsObserverRegistered = true
     }
 
     // --- Host-facing API -------------------------------------------------------
@@ -146,6 +165,7 @@ class RecentsFragment : Fragment() {
         (activity as? HomeActivity)?.let { it.clearSearchFocus(); it.applyPendingVoiceQuery() }
         VoicemailMonitor.start(requireContext())
         clearMissedCalls()
+        ensureContactsObserver()
         if (currentQuery.isBlank() && hasLogPermission()) reload()
         if (currentQuery.isBlank()) loadContacts()
     }
