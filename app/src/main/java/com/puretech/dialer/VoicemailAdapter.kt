@@ -1,5 +1,6 @@
 package com.puretech.dialer
 
+import android.graphics.Typeface
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
@@ -158,7 +159,6 @@ class VoicemailAdapter(
         private val selectedCheck: ImageView = view.findViewById(R.id.selectedCheck)
         private val title: TextView = view.findViewById(R.id.vmTitle)
         private val subtitle: TextView = view.findViewById(R.id.vmSubtitle)
-        private val unread: View = view.findViewById(R.id.vmUnread)
         private val expanded: View = view.findViewById(R.id.vmExpanded)
         private val playPill: MaterialButton = view.findViewById(R.id.vmPlayPill)
         private val seek: SeekBar = view.findViewById(R.id.vmSeek)
@@ -193,6 +193,11 @@ class VoicemailAdapter(
             val ctx = title.context
             title.text = item.displayName
                 ?: item.number.ifBlank { ctx.getString(R.string.unknown_caller) }
+            // Unread indicator: bold the name instead of a separate dot, same
+            // convention as the real Google Dialer's voicemail list.
+            title.typeface = Typeface.create(
+                "sans-serif-medium", if (item.isRead) Typeface.NORMAL else Typeface.BOLD
+            )
 
             val isExpanded = item.id == expandedId
             itemView.setBackgroundResource(
@@ -211,7 +216,6 @@ class VoicemailAdapter(
                 ctx, item.dateMillis, android.text.format.DateUtils.FORMAT_SHOW_TIME
             )
             subtitle.text = if (dur.isNotBlank()) "$dur • $time" else time
-            unread.visibility = if (item.isRead) View.GONE else View.VISIBLE
 
             val isSelected = selectedIds.contains(item.id)
             if (selectionMode) {

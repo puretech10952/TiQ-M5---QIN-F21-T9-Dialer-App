@@ -168,7 +168,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• <b>Faster app launch</b> — Recents loads faster too\n\n• Use the Send key to dial a highlighted suggestion\n\n• <b>Favorites</b>: tap Add to add any contact, long-press to remove — won\'t affect your Contacts app\n\n• New favorites are added after your existing ones\n\n• <b>Quick dial</b> — a speed-dial grid, tap + to assign a contact\n\n• <b>Missed calls</b>: notification now has Call back and Message buttons\n\n• Name format: First Last or Last, First (Settings &gt; Display)</string>
+    <string name="whats_new_body">• <b>Visual voicemail</b> (beta) — see and play your voicemails right in the app instead of calling in. Enable it in Settings &gt; Voicemail (beta)\n\n• Fixed: the call screen could get stuck on-screen after hanging up while connected to Android Auto\n\n• <b>Bluetooth</b>: if more than one device is connected at once (e.g. your car and your earbuds), switch between them mid-call from the Route button</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>

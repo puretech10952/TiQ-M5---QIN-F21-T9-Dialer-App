@@ -6,21 +6,20 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.ContactsContract
 import android.telecom.TelecomManager
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -65,29 +64,28 @@ class RecentsFragment : Fragment() {
         }.start()
     }
 
-    // Voice result, applied in onTabResumed (host onResume clears the field first).
-    private var pendingVoiceQuery: String? = null
+    // Mirrors the shared search box's current text (that view now lives in
+    // HomeActivity, not this fragment's own binding -- see onSearchChanged).
+    private var currentQuery: String = ""
 
-    private val voiceSearchLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            val spoken = result.data
-                ?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
-                ?.firstOrNull()
-            if (!spoken.isNullOrBlank()) {
-                pendingVoiceQuery = spoken
-                if (_binding != null) binding.searchInput.post { applyPendingVoiceQuery() }
-            }
-        }
+    // Live-refreshes the call log/favorites when a contact is renamed, deleted,
+    // or a number gets newly linked to a contact -- without this, those changes
+    // only showed up the next time this tab was revisited, since CallLogRepository
+    // otherwise only re-resolves names on an explicit reload(). Contact sync can
+    // fire several onChange notifications in a burst for one real edit (e.g. a
+    // rename touches the raw contact row and its data rows separately), so this
+    // debounces with a short delay rather than reloading on every single one.
+    private val contactsChangeHandler = Handler(Looper.getMainLooper())
+    private val contactsChangeRunnable = Runnable {
+        if (_binding == null) return@Runnable
+        loadContacts()
+        if (hasLogPermission()) reload()
     }
-
-    private fun applyPendingVoiceQuery() {
-        val q = pendingVoiceQuery ?: return
-        pendingVoiceQuery = null
-        if (_binding == null) return
-        binding.searchInput.setText(q)
-        binding.searchInput.setSelection(q.length)
+    private val contactsObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            contactsChangeHandler.removeCallbacks(contactsChangeRunnable)
+            contactsChangeHandler.postDelayed(contactsChangeRunnable, 600)
+        }
     }
 
     override fun onCreateView(
@@ -120,18 +118,21 @@ class RecentsFragment : Fragment() {
         binding.favoritesStrip.adapter = favoritesAdapter
 
         binding.filterChips.setOnCheckedStateChangeListener { _, _ -> reload() }
-        binding.btnMenu.setOnClickListener { (requireActivity() as HomeActivity).openDrawer() }
-        binding.searchInput.doAfterTextChanged { onSearchChanged(it?.toString().orEmpty()) }
         binding.favoritesToggle.setOnClickListener { toggleFavorites() }
         binding.viewContacts.setOnClickListener { openContactsApp() }
-        binding.btnVoiceSearch.setOnClickListener { startVoiceSearch() }
 
         loadContacts()
         ensureLogPermission()
+
+        requireContext().contentResolver.registerContentObserver(
+            ContactsContract.Contacts.CONTENT_URI, true, contactsObserver
+        )
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        requireContext().contentResolver.unregisterContentObserver(contactsObserver)
+        contactsChangeHandler.removeCallbacks(contactsChangeRunnable)
         _binding = null
     }
 
@@ -139,24 +140,19 @@ class RecentsFragment : Fragment() {
 
     fun scrollTarget(): RecyclerView? = _binding?.recents
 
-    fun isSearchFocused(): Boolean = _binding?.searchInput?.hasFocus() == true
-
     /** Re-run the per-visit work whenever this tab becomes the visible one. */
     fun onTabResumed() {
         if (_binding == null) return
-        clearSearchFocus()
+        (activity as? HomeActivity)?.let { it.clearSearchFocus(); it.applyPendingVoiceQuery() }
         VoicemailMonitor.start(requireContext())
         clearMissedCalls()
-        if (binding.searchInput.text.isNullOrBlank() && hasLogPermission()) reload()
-        if (binding.searchInput.text.isNullOrBlank()) loadContacts()
-        // Apply a voice-search result captured while we were away (after the reset).
-        applyPendingVoiceQuery()
+        if (currentQuery.isBlank() && hasLogPermission()) reload()
+        if (currentQuery.isBlank()) loadContacts()
     }
 
     /** Home re-tap while already on Recents. */
     fun scrollToTopAndClearSearch() {
         if (_binding == null) return
-        if (!binding.searchInput.text.isNullOrBlank()) binding.searchInput.text?.clear()
         binding.appBar.setExpanded(true, true)
         binding.recents.smoothScrollToPosition(0)
     }
@@ -165,7 +161,7 @@ class RecentsFragment : Fragment() {
     fun applyFilter(filter: String?) {
         filter ?: return
         if (_binding == null) return
-        if (!binding.searchInput.text.isNullOrBlank()) binding.searchInput.text?.clear()
+        (activity as? HomeActivity)?.clearSearchFocus()
         binding.appBar.setExpanded(true, false)
         when (filter) {
             HomeActivity.FILTER_INCOMING -> binding.chipReceived.isChecked = true
@@ -173,14 +169,6 @@ class RecentsFragment : Fragment() {
             HomeActivity.FILTER_MISSED -> binding.chipMissed.isChecked = true
             else -> binding.chipAll.isChecked = true
         }
-    }
-
-    /** Back handling for the Recents tab: hide keyboard, then leave the search field. */
-    fun handleBack(): Boolean = when {
-        isKeyboardVisible() -> { hideKeyboard(); true }
-        binding.searchInput.hasFocus() || !binding.searchInput.text.isNullOrBlank() ->
-            { clearSearchFocus(); true }
-        else -> false
     }
 
     private fun clearMissedCalls() {
@@ -193,22 +181,6 @@ class RecentsFragment : Fragment() {
                 ?.cancelMissedCallsNotification()
         } catch (_: Exception) {
         }
-    }
-
-    private fun isKeyboardVisible(): Boolean =
-        ViewCompat.getRootWindowInsets(binding.root)
-            ?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
-
-    private fun hideKeyboard() {
-        val imm = requireContext().getSystemService(InputMethodManager::class.java)
-        imm?.hideSoftInputFromWindow(binding.root.windowToken, 0)
-    }
-
-    private fun clearSearchFocus() {
-        if (!binding.searchInput.text.isNullOrBlank()) binding.searchInput.text?.clear()
-        binding.searchInput.clearFocus()
-        binding.root.requestFocus()
-        hideKeyboard()
     }
 
     // --- Search & favorites ----------------------------------------------------
@@ -298,7 +270,10 @@ class RecentsFragment : Fragment() {
         )
     }
 
-    private fun onSearchChanged(query: String) {
+    /** Called by HomeActivity's shared search box (now hosted there, not in
+     *  this fragment's own binding) on every text change. */
+    fun onSearchChanged(query: String) {
+        currentQuery = query
         if (query.isBlank()) {
             binding.collapseHeader.visibility = View.VISIBLE
             binding.appBar.setExpanded(true, false)
@@ -330,7 +305,7 @@ class RecentsFragment : Fragment() {
 
     fun reload() {
         if (_binding == null) return
-        if (!hasLogPermission() || !binding.searchInput.text.isNullOrBlank()) return
+        if (!hasLogPermission() || currentQuery.isNotBlank()) return
         val missedOnly = binding.chipMissed.isChecked
         val receivedOnly = binding.chipReceived.isChecked
         val outgoingOnly = binding.chipOutgoing.isChecked
@@ -633,22 +608,6 @@ class RecentsFragment : Fragment() {
         val n = pendingNumber ?: return
         pendingNumber = null
         Dialer.place(requireContext(), n)
-    }
-
-    /** Launch the system (Google) speech recognizer; the result fills the search box. */
-    private fun startVoiceSearch() {
-        val intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_search))
-        }
-        try {
-            voiceSearchLauncher.launch(intent)
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), R.string.voice_search_unavailable, Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun openContactsApp() {

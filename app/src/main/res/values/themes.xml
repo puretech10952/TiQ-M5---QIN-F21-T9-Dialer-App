@@ -61,7 +61,7 @@
     <style name="LogShadeButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">52dp</item>
-        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_marginTop">2dp</item>
         <item name="android:background">@drawable/bg_log_shade</item>
         <item name="android:gravity">start|center_vertical</item>
         <item name="android:drawablePadding">24dp</item>
@@ -162,16 +162,16 @@
         <item name="strokeWidth">0dp</item>
     </style>
 
-    <!-- Small transparent gap that separates rows of the same group (≈1mm). -->
+    <!-- Small transparent gap that separates rows of the same group. -->
     <style name="LogRowDivider">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">4dp</item>
+        <item name="android:layout_height">2dp</item>
     </style>
 
     <!-- Small transparent gap between rows inside a settings group. -->
     <style name="SettingRowDivider">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">4dp</item>
+        <item name="android:layout_height">2dp</item>
     </style>
 
     <style name="SettingRowM3">

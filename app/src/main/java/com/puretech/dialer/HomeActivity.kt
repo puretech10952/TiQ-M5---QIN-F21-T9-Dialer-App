@@ -4,10 +4,15 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.drawerlayout.widget.DrawerLayout
 import com.puretech.dialer.databinding.ActivityHomeBinding
 import com.puretech.dialer.vvm.VvmPrefs
@@ -16,8 +21,11 @@ import com.puretech.dialer.vvm.VvmPrefs
  * Single host that keeps ONE persistent bottom bar (Home | Keypad | Voicemail)
  * and swaps the content above it between [RecentsFragment], [DialerFragment],
  * and [VoicemailFragment]. The fragments are added once and shown/hidden (never
- * recreated), so the bar never blinks and each tab keeps its state. The drawer
- * and the on-screen keypad live here too.
+ * recreated), so the bar never blinks and each tab keeps its state. The search
+ * bar (hamburger + field + voice search) is likewise shared chrome living here
+ * -- visible on Recents/Voicemail, hidden on Dialer -- so it never re-creates
+ * or blinks switching between those two tabs either. The drawer and the
+ * on-screen keypad live here too.
  */
 class HomeActivity : AppCompatActivity() {
 
@@ -31,6 +39,24 @@ class HomeActivity : AppCompatActivity() {
     private var didAutoOpenKeypad = false
     private var barHiderAttached = false
     private var suppressNav = false
+    private var selectionBarActive = false
+
+    // Voice result, applied in onResume (which also clears the field first).
+    private var pendingVoiceQuery: String? = null
+
+    private val voiceSearchLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val spoken = result.data
+                ?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+            if (!spoken.isNullOrBlank()) {
+                pendingVoiceQuery = spoken
+                binding.searchInput.post { applyPendingVoiceQuery() }
+            }
+        }
+    }
 
     private val barHider by lazy { BottomBarHider(binding.bottomNav) }
 
@@ -71,6 +97,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         setupDrawer()
+        setupSearchBar()
         setupBottomBar()
         setupKeypad()
         setupBack()
@@ -79,6 +106,7 @@ class HomeActivity : AppCompatActivity() {
             if (currentTab == Tab.DIALER) DrawerLayout.LOCK_MODE_LOCKED_CLOSED
             else DrawerLayout.LOCK_MODE_UNLOCKED
         )
+        updateSearchBarVisibility()
         routeIntent(intent)
     }
 
@@ -95,6 +123,7 @@ class HomeActivity : AppCompatActivity() {
         ensureBarHider()
         refreshBarHiderForProfile()
         updateVoicemailNavVisibility()
+        updateSearchBarVisibility()
         when (currentTab) {
             Tab.DIALER -> {
                 applyKeypadSetting()
@@ -115,6 +144,113 @@ class HomeActivity : AppCompatActivity() {
         val show = VvmPrefs.enabled(this)
         binding.bottomNav.menu.findItem(R.id.tab_voicemail)?.isVisible = show
         if (!show && currentTab == Tab.VOICEMAIL) showTab(Tab.RECENTS)
+    }
+
+    /** The search bar (hamburger + field + voice search) is shared chrome -- one
+     *  persistent view above the fragment container, visible on Recents/Voicemail
+     *  and hidden on Dialer -- instead of living inside RecentsFragment, so it
+     *  never re-creates or blinks when switching between those two tabs. Typing
+     *  routes to whichever fragment currently owns the search results
+     *  (RecentsFragment); on Voicemail it switches over to Recents first, same
+     *  as a digit key press switches to Dialer from [dispatchKeyEvent]. */
+    private fun setupSearchBar() {
+        binding.btnMenu.setOnClickListener { openDrawer() }
+        binding.btnVoiceSearch.setOnClickListener { startVoiceSearch() }
+        binding.searchInput.doAfterTextChanged { text ->
+            val query = text?.toString().orEmpty()
+            if (query.isNotBlank() && currentTab == Tab.VOICEMAIL) showTab(Tab.RECENTS)
+            recentsFragment.onSearchChanged(query)
+        }
+    }
+
+    private fun isSearchBarVisible() = currentTab != Tab.DIALER && !selectionBarActive
+
+    /** The search bar never showed on the Dialer tab before, and shouldn't now
+     *  either -- only Recents/Voicemail use it. Also hidden while the
+     *  contextual selection bar is occupying the same slot. */
+    private fun updateSearchBarVisibility() {
+        binding.searchBarCard.visibility = if (isSearchBarVisible()) View.VISIBLE else View.GONE
+    }
+
+    /** Swaps the shared top slot to the contextual selection bar (see
+     *  activity_home.xml) -- used by VoicemailFragment when it enters
+     *  multi-select. The delete/close actions are wired fresh on every call
+     *  since a new selection always starts with [count] = 1. */
+    fun showSelectionBar(count: Int, onDelete: () -> Unit, onClose: () -> Unit) {
+        selectionBarActive = true
+        binding.searchBarCard.visibility = View.GONE
+        binding.selectionBar.visibility = View.VISIBLE
+        binding.selectionCount.text = getString(R.string.selection_count_fmt, count)
+        binding.selectionDelete.setOnClickListener { onDelete() }
+        binding.selectionClose.setOnClickListener { onClose() }
+    }
+
+    fun updateSelectionCount(count: Int) {
+        if (!selectionBarActive) return
+        binding.selectionCount.text = getString(R.string.selection_count_fmt, count)
+    }
+
+    fun hideSelectionBar() {
+        if (!selectionBarActive) return
+        selectionBarActive = false
+        binding.selectionBar.visibility = View.GONE
+        updateSearchBarVisibility()
+    }
+
+    private fun isKeyboardVisible(): Boolean =
+        ViewCompat.getRootWindowInsets(binding.root)
+            ?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(InputMethodManager::class.java)
+        imm?.hideSoftInputFromWindow(binding.root.windowToken, 0)
+    }
+
+    /** Clears and defocuses the shared search box. Public: RecentsFragment calls
+     *  this from its own onTabResumed/applyFilter, since it no longer owns the
+     *  view itself. Harmless to call while on Dialer (the box is just hidden). */
+    fun clearSearchFocus() {
+        if (!binding.searchInput.text.isNullOrBlank()) binding.searchInput.text?.clear()
+        binding.searchInput.clearFocus()
+        binding.searchColumn.requestFocus()
+        hideKeyboard()
+    }
+
+    /** Back handling for the shared search bar: hide the keyboard first, then
+     *  leave the search field. Only relevant on Recents/Voicemail. */
+    private fun handleSearchBack(): Boolean {
+        if (!isSearchBarVisible()) return false
+        return when {
+            isKeyboardVisible() -> { hideKeyboard(); true }
+            binding.searchInput.hasFocus() || !binding.searchInput.text.isNullOrBlank() ->
+                { clearSearchFocus(); true }
+            else -> false
+        }
+    }
+
+    /** Launch the system (Google) speech recognizer; the result fills the search box. */
+    private fun startVoiceSearch() {
+        val intent = Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_search))
+        }
+        try {
+            voiceSearchLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, R.string.voice_search_unavailable, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Public: RecentsFragment applies a pending voice-search result from its own
+     *  onTabResumed (the query may have been captured while it was backgrounded). */
+    fun applyPendingVoiceQuery() {
+        val q = pendingVoiceQuery ?: return
+        pendingVoiceQuery = null
+        binding.searchInput.setText(q)
+        binding.searchInput.setSelection(q.length)
     }
 
     /** Reflects a screen-profile change made elsewhere (Settings) the moment
@@ -192,7 +328,7 @@ class HomeActivity : AppCompatActivity() {
         }
         binding.bottomNav.setOnItemReselectedListener { item ->
             when (item.itemId) {
-                R.id.tab_home -> recentsFragment.scrollToTopAndClearSearch()
+                R.id.tab_home -> { clearSearchFocus(); recentsFragment.scrollToTopAndClearSearch() }
                 R.id.tab_keypad -> setKeypadShown(binding.dialpadPanel.visibility != View.VISIBLE)
                 R.id.tab_voicemail -> voicemailFragment.onTabResumed()
             }
@@ -226,7 +362,7 @@ class HomeActivity : AppCompatActivity() {
                 currentTab == Tab.DIALER && dialerFragment.hasText() -> dialerFragment.backspace()
                 currentTab == Tab.DIALER -> showTab(Tab.RECENTS)
                 currentTab == Tab.VOICEMAIL && voicemailFragment.isSelecting() -> voicemailFragment.exitSelection()
-                currentTab == Tab.RECENTS && recentsFragment.handleBack() -> { /* consumed */ }
+                handleSearchBack() -> { /* consumed */ }
                 else -> {
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed()
@@ -252,7 +388,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun showTab(tab: Tab) {
         if (tab == currentTab) {
-            if (tab == Tab.RECENTS) recentsFragment.scrollToTopAndClearSearch()
+            if (tab == Tab.RECENTS) { clearSearchFocus(); recentsFragment.scrollToTopAndClearSearch() }
             return
         }
         val fragmentFor = mapOf(
@@ -270,6 +406,7 @@ class HomeActivity : AppCompatActivity() {
             if (tab == Tab.DIALER) DrawerLayout.LOCK_MODE_LOCKED_CLOSED
             else DrawerLayout.LOCK_MODE_UNLOCKED
         )
+        updateSearchBarVisibility()
         barHider.show()
         when (tab) {
             Tab.DIALER -> {
@@ -338,7 +475,7 @@ class HomeActivity : AppCompatActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (currentTab == Tab.DIALER) {
             if (dialerFragment.handleKey(event)) return true
-        } else if (!recentsFragment.isSearchFocused() &&
+        } else if (!binding.searchInput.hasFocus() &&
             event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
         ) {
             val ch = dialCharFor(event.keyCode)

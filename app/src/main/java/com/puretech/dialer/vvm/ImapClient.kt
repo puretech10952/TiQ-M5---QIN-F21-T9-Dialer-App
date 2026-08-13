@@ -39,22 +39,37 @@ class ImapClient(private val cr: VvmCredentials, private val network: Network? =
     fun connect() {
         val net = network
         val s = if (net != null) {
-            // Bind a plain socket to the requested transport (e.g. cellular)
-            // before connecting, then wrap it for TLS if needed -- Network
-            // only knows how to bind a not-yet-connected java.net.Socket.
-            val plain = Socket()
-            net.bindSocket(plain)
-            plain.connect(java.net.InetSocketAddress(cr.host, cr.port), 30_000)
-            if (cr.sslEnabled) {
-                (SSLSocketFactory.getDefault() as SSLSocketFactory)
-                    .createSocket(plain, cr.host, cr.port, true)
-            } else {
-                plain
+            try {
+                // Bind a plain socket to the requested transport (e.g. cellular)
+                // before connecting, then wrap it for TLS if needed -- Network
+                // only knows how to bind a not-yet-connected java.net.Socket.
+                val plain = Socket()
+                net.bindSocket(plain)
+                plain.connect(java.net.InetSocketAddress(cr.host, cr.port), 30_000)
+                if (cr.sslEnabled) {
+                    (SSLSocketFactory.getDefault() as SSLSocketFactory)
+                        .createSocket(plain, cr.host, cr.port, true)
+                } else {
+                    plain
+                }
+            } catch (e: java.io.IOException) {
+                // Observed live: on a carrier whose cellular APN is IPv6-only,
+                // resolving the IMAP host over the cellular-bound network
+                // returns a NAT64-synthesized address (64:ff9b::...) whose
+                // gateway can time out entirely, even though the phone's
+                // normal default route (e.g. Wi-Fi, or a different DNS server)
+                // resolves the same hostname to a real IPv4 address and
+                // reaches it fine. Falling back to the default route here
+                // beats failing the whole sync when that happens -- worth it
+                // even though cellularDataRequired exists specifically for
+                // carriers whose gateway is ONLY reachable over cellular,
+                // since this fallback only ever runs after the cellular
+                // attempt already failed.
+                Log.w(TAG, "cellular-bound connect failed (${e.message}), retrying on default route")
+                connectPlain()
             }
-        } else if (cr.sslEnabled) {
-            SSLSocketFactory.getDefault().createSocket(cr.host, cr.port)
         } else {
-            Socket(cr.host, cr.port)
+            connectPlain()
         }
         s.soTimeout = 30_000
         socket = s
@@ -63,6 +78,10 @@ class ImapClient(private val cr: VvmCredentials, private val network: Network? =
         readLine() // server greeting: "* OK ..."
         if (!cr.sslEnabled) upgradeToStartTlsIfOffered()
     }
+
+    private fun connectPlain(): Socket =
+        if (cr.sslEnabled) SSLSocketFactory.getDefault().createSocket(cr.host, cr.port)
+        else Socket(cr.host, cr.port)
 
     /**
      * Many VVM3/OMTP IMAP gateways (e.g. Verizon's cs1lv.imsvm.com, the

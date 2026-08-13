@@ -7,6 +7,10 @@
     android:background="?attr/colorSurfaceContainer"
     android:orientation="vertical">
 
+    <!-- No hamburger/search bar here - that's shared chrome hosted by
+         HomeActivity (see activity_home.xml) so it never blinks switching
+         from/to Recents. -->
+
     <!-- Not-yet-activated (or activation failed): explanation + action chips,
          centered in the middle of the screen. -->
     <LinearLayout
@@ -66,7 +70,8 @@
     </LinearLayout>
 
     <!-- Activated: list only. Syncs automatically (carrier SYNC push, and on
-         opening this tab) rather than needing a manual refresh action. -->
+         opening this tab); pull-to-refresh (below) triggers the same sync
+         on demand. -->
     <LinearLayout
         android:id="@+id/listState"
         android:layout_width="match_parent"
@@ -76,78 +81,34 @@
         android:visibility="gone"
         tools:visibility="visible">
 
-        <!-- Contextual selection bar: this tab has no shared chrome above it
-             (unlike Recents' search bar), so it owns this bar locally -
-             shown/hidden by VoicemailFragment as multi-select mode toggles. -->
-        <LinearLayout
-            android:id="@+id/selectionBar"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="6dp"
-            android:background="?attr/colorSurfaceContainerLowest"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="4dp"
-            android:visibility="gone"
-            tools:visibility="visible">
-
-            <ImageView
-                android:id="@+id/selectionClose"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="10dp"
-                android:src="@drawable/ic_close"
-                android:contentDescription="@string/cancel"
-                app:tint="?attr/colorOnSurface" />
-
-            <TextView
-                android:id="@+id/selectionCount"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:textColor="?attr/colorOnSurface"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                tools:text="1 selected" />
-
-            <ImageView
-                android:id="@+id/selectionSelectAll"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="10dp"
-                android:src="@drawable/ic_select_all"
-                android:contentDescription="@string/select_all"
-                app:tint="?attr/colorOnSurface" />
-
-            <ImageView
-                android:id="@+id/selectionDelete"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="10dp"
-                android:src="@drawable/ic_delete"
-                android:contentDescription="@string/vvm_delete"
-                app:tint="?attr/colorOnSurface" />
-        </LinearLayout>
+        <!-- Multi-select action bar lives in HomeActivity's shared top slot
+             (see activity_home.xml selectionBar), replacing the search bar
+             there instead of stacking a second bar below it. -->
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/voicemailList"
+            <!-- SwipeRefreshLayout needs the RecyclerView as its direct child
+                 to correctly detect whether the list is scrolled to the top
+                 (canChildScrollUp) - nesting another layout in between would
+                 make it always think the list is at the top, letting the
+                 refresh gesture fire from anywhere instead of just the top. -->
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipeRefresh"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingHorizontal="4dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="72dp" />
+                android:layout_height="match_parent">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/voicemailList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingHorizontal="4dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="72dp" />
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
             <TextView
                 android:id="@+id/emptyText"

@@ -15,10 +15,142 @@
         android:background="?attr/colorSurface"
         android:fitsSystemWindows="true">
 
-        <FrameLayout
-            android:id="@+id/fragmentContainer"
+        <!-- Search bar + fragment container: one persistent column so switching
+             between Recents and Voicemail never re-creates or blinks the search
+             bar - only the content below it swaps. Hidden (searchBarCard) while
+             on the Dialer tab. Background matches the fragments' own root
+             background so the search bar card floats on one seamless surface
+             all the way to the top, instead of a different-colored strip
+             showing through around it. -->
+        <LinearLayout
+            android:id="@+id/searchColumn"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="?attr/colorSurfaceContainer"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:focusableInTouchMode="true">
+
+            <!-- Search bar with hamburger menu (persistent across Recents/Voicemail) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/searchBarCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="6dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerLowest"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="6dp">
+
+                    <ImageView
+                        android:id="@+id/btnMenu"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:contentDescription="@string/nav_settings"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_menu"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <EditText
+                        android:id="@+id/searchInput"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="@string/search_hint"
+                        android:imeOptions="actionSearch"
+                        android:inputType="textPersonName"
+                        android:maxLines="1"
+                        android:textSize="16sp"
+                        android:importantForAutofill="no" />
+
+                    <ImageView
+                        android:id="@+id/btnVoiceSearch"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:contentDescription="@string/voice_search"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_mic"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Contextual selection bar: replaces the search bar card in the
+                 exact same top slot during multi-select (long-press a
+                 voicemail), matching the real Google Dialer's own voicemail
+                 multi-select action bar exactly - an edge-to-edge Material
+                 toolbar (not the rounded search pill), just Close / "N
+                 selected" / Delete. Google's own strings
+                 (voicemailMultiSelectActionBarTitle="%1$s selected") confirm
+                 there's no separate "select all" in their voicemail list, so
+                 this doesn't have one either. Shown/hidden via HomeActivity's
+                 showSelectionBar()/hideSelectionBar(); VoicemailFragment wires
+                 its own delete/close actions in through those calls. -->
+            <LinearLayout
+                android:id="@+id/selectionBar"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/colorSurface"
+                android:elevation="2dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/selectionClose"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_close"
+                    android:contentDescription="@string/cancel"
+                    app:tint="?attr/colorOnSurface" />
+
+                <TextView
+                    android:id="@+id/selectionCount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="20sp"
+                    tools:text="1 selected" />
+
+                <ImageView
+                    android:id="@+id/selectionDelete"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_delete"
+                    android:contentDescription="@string/vvm_delete"
+                    app:tint="?attr/colorOnSurface" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/fragmentContainer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
 
         <!-- Bottom stack: the on-screen keypad (when visible) sits above the nav bar. -->
         <LinearLayout

@@ -94,10 +94,6 @@ class VoicemailFragment : Fragment() {
         binding.chipActivate.setOnClickListener { onActivateClicked() }
         binding.chipCallVoicemail.setOnClickListener { callVoicemail() }
 
-        binding.selectionClose.setOnClickListener { exitSelection() }
-        binding.selectionSelectAll.setOnClickListener { selectAll() }
-        binding.selectionDelete.setOnClickListener { confirmDeleteSelected() }
-
         adapter = VoicemailAdapter(
             onExpand = { onExpand(it) },
             onSeekStart = { stopTicking() },
@@ -116,6 +112,7 @@ class VoicemailFragment : Fragment() {
         binding.voicemailList.layoutManager = LinearLayoutManager(requireContext())
         binding.voicemailList.adapter = adapter
 
+        binding.swipeRefresh.setOnRefreshListener { syncNow() }
     }
 
     override fun onDestroyView() {
@@ -183,7 +180,7 @@ class VoicemailFragment : Fragment() {
     }
 
     /** Syncs with the carrier in the background -- called whenever this tab
-     *  is opened, since there's no manual refresh action anymore. */
+     *  is opened, and on pull-to-refresh. */
     private fun syncNow() {
         val ctx = requireContext().applicationContext
         Thread {
@@ -194,7 +191,10 @@ class VoicemailFragment : Fragment() {
                 // own entry point onto that background thread -- don't let
                 // any future exception here crash the whole dialer either.
             }
-            ui { load() }
+            ui {
+                load()
+                binding.swipeRefresh.isRefreshing = false
+            }
         }.start()
     }
 
@@ -531,7 +531,11 @@ class VoicemailFragment : Fragment() {
         selectionMode = true
         selectedIds.clear()
         selectedIds.add(item.id)
-        showSelectionBar()
+        (activity as? HomeActivity)?.showSelectionBar(
+            count = selectedIds.size,
+            onDelete = { confirmDeleteSelected() },
+            onClose = { exitSelection() }
+        )
         pushSelection()
     }
 
@@ -540,29 +544,18 @@ class VoicemailFragment : Fragment() {
         if (selectedIds.isEmpty()) exitSelection() else pushSelection()
     }
 
-    private fun selectAll() {
-        selectedIds.clear()
-        selectedIds.addAll(allKnownIds)
-        pushSelection()
-    }
-
     fun exitSelection() {
         if (!selectionMode) return
         selectionMode = false
         selectedIds.clear()
+        (activity as? HomeActivity)?.hideSelectionBar()
         if (_binding == null) return
-        binding.selectionBar.visibility = View.GONE
         adapter.setSelection(false, emptySet())
-    }
-
-    private fun showSelectionBar() {
-        if (_binding == null) return
-        binding.selectionBar.visibility = View.VISIBLE
     }
 
     private fun pushSelection() {
         if (_binding == null) return
-        binding.selectionCount.text = getString(R.string.selection_count_fmt, selectedIds.size)
+        (activity as? HomeActivity)?.updateSelectionCount(selectedIds.size)
         adapter.setSelection(true, selectedIds.toSet())
     }
 

@@ -134,9 +134,14 @@ object CallLogRepository {
 
     /**
      * The system's CACHED_NAME can be empty when a call arrived as "+1 845…" but
-     * the contact is saved as a bare 10-digit number (or the cache is stale).
-     * Fill in the contact name/photo ourselves so those rows show the contact
-     * instead of a bare number.
+     * the contact is saved as a bare 10-digit number, or simply stale after the
+     * contact was renamed or a number was newly linked to a contact — Android
+     * writes CACHED_NAME once when the call happens and doesn't retroactively
+     * fix up old rows when a contact changes later. Rather than only filling in
+     * rows the system left blank, this always prefers a live Contacts match
+     * over whatever's cached, so a rename/re-link shows up the next time the
+     * list reloads (already happens on every visit to this tab) instead of
+     * whenever the system's own cache eventually catches up.
      *
      * This used to run one PhoneLookup ContentResolver query per row missing a
      * name/photo — for call logs with many unknown/uncached numbers that's
@@ -149,7 +154,7 @@ object CallLogRepository {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
             != PackageManager.PERMISSION_GRANTED
         ) return entries
-        if (entries.none { (it.name == null || it.photoUri == null) && it.number.isNotBlank() }) return entries
+        if (entries.none { it.number.isNotBlank() }) return entries
 
         val byDigits = HashMap<String, ContactInfo>()
         try {
@@ -191,15 +196,22 @@ object CallLogRepository {
         }
 
         return entries.map { e ->
-            if ((e.name != null && e.photoUri != null) || e.number.isBlank()) e
-            else {
-                val info = byDigits[e.number.filter { it.isDigit() }.takeLast(10)]
-                if (info != null) e.copy(
-                    name = e.name ?: info.name,
-                    photoUri = e.photoUri ?: info.photo,
-                    numberType = if (e.numberType > 0) e.numberType else info.type,
-                    numberLabel = e.numberLabel ?: info.label
-                ) else e
+            if (e.number.isBlank()) return@map e
+            val info = byDigits[e.number.filter { it.isDigit() }.takeLast(10)]
+            when {
+                // Live contact match: always wins over CACHED_NAME/PHOTO, even
+                // if the system already cached something — that cached value
+                // could be exactly what's now stale (an old name, or a number
+                // that's only just been linked to a contact).
+                info != null -> e.copy(
+                    name = info.name,
+                    photoUri = info.photo,
+                    numberType = info.type,
+                    numberLabel = info.label
+                )
+                // No live contact for this number (never saved, or since
+                // deleted) — fall back to whatever the system cached.
+                else -> e
             }
         }
     }
