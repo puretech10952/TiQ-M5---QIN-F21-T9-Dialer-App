@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurfaceContainer"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="6dp">
+
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="10dp"
+            android:src="@drawable/ic_back"
+            android:contentDescription="@string/settings_title"
+            app:tint="?attr/colorOnSurface" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="@string/setting_voicemail_experimental"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <!-- Visual voicemail on/off + live status against the carrier.
+                 Turning this on also automatically shows the bottom-nav
+                 Voicemail tab (see HomeActivity.updateVoicemailNavVisibility). -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsGroupCard"
+                android:layout_marginTop="10dp">
+
+                <LinearLayout android:id="@+id/rowVisualVoicemail" style="@style/SettingRowM3">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/SettingTitle"
+                            android:text="@string/setting_voicemail_visual_heading" />
+
+                        <TextView
+                            android:id="@+id/visualStatus"
+                            style="@style/SettingSummary"
+                            tools:text="Download voicemails from your carrier and play them here" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchVisualVoicemail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Read-only voicemail number; tap to call it. -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsGroupCard"
+                android:layout_marginTop="12dp">
+
+                <LinearLayout android:id="@+id/rowVoicemailNumber" style="@style/SettingRowM3">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/SettingTitle"
+                            android:text="@string/setting_voicemail_number" />
+
+                        <TextView
+                            android:id="@+id/voicemailNumber"
+                            style="@style/SettingSummary"
+                            tools:text="+1 805-555-1234" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Deep-link to the system's per-channel notification settings. -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsGroupCard"
+                android:layout_marginTop="12dp">
+
+                <LinearLayout android:id="@+id/rowNotifications" style="@style/SettingRowM3">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/SettingTitle"
+                            android:text="@string/setting_voicemail_notifications" />
+
+                        <TextView
+                            style="@style/SettingSummary"
+                            android:text="@string/setting_voicemail_notifications_summary" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Change PIN / greeting: blanked for now (2026-08-04). Both
+                 features are still failing against the live carrier account
+                 and shouldn't be user-facing until that's resolved. Code
+                 kept intact; just hidden. -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/pinGreetingCard"
+                style="@style/SettingsGroupCard"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout android:id="@+id/rowChangePin" style="@style/SettingRowM3">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/SettingTitle"
+                                android:text="@string/setting_voicemail_change_pin" />
+
+                            <TextView
+                                style="@style/SettingSummary"
+                                android:text="@string/setting_voicemail_change_pin_summary" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginHorizontal="20dp"
+                        android:background="?attr/colorOutlineVariant" />
+
+                    <LinearLayout android:id="@+id/rowChangeGreeting" style="@style/SettingRowM3">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/SettingTitle"
+                                android:text="@string/setting_voicemail_change_greeting" />
+
+                            <TextView
+                                style="@style/SettingSummary"
+                                android:text="@string/setting_voicemail_change_greeting_summary" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

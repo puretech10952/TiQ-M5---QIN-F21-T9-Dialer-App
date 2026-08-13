@@ -10,20 +10,23 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.puretech.dialer.databinding.ActivityHomeBinding
+import com.puretech.dialer.vvm.VvmPrefs
 
 /**
- * Single host that keeps ONE persistent bottom bar (Home | Keypad) and swaps the
- * content above it between [RecentsFragment] and [DialerFragment]. The fragments
- * are added once and shown/hidden (never recreated), so the bar never blinks and
- * each tab keeps its state. The drawer and the on-screen keypad live here too.
+ * Single host that keeps ONE persistent bottom bar (Home | Keypad | Voicemail)
+ * and swaps the content above it between [RecentsFragment], [DialerFragment],
+ * and [VoicemailFragment]. The fragments are added once and shown/hidden (never
+ * recreated), so the bar never blinks and each tab keeps its state. The drawer
+ * and the on-screen keypad live here too.
  */
 class HomeActivity : AppCompatActivity() {
 
-    private enum class Tab { RECENTS, DIALER }
+    private enum class Tab { RECENTS, DIALER, VOICEMAIL }
 
     private lateinit var binding: ActivityHomeBinding
     private lateinit var recentsFragment: RecentsFragment
     private lateinit var dialerFragment: DialerFragment
+    private lateinit var voicemailFragment: VoicemailFragment
     private var currentTab = Tab.RECENTS
     private var didAutoOpenKeypad = false
     private var barHiderAttached = false
@@ -44,19 +47,27 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Add both fragments once (synchronously so their views exist below).
+        // Add all three fragments once (synchronously so their views exist below).
         if (savedInstanceState == null) {
             recentsFragment = RecentsFragment()
             dialerFragment = DialerFragment()
+            voicemailFragment = VoicemailFragment()
             supportFragmentManager.beginTransaction()
                 .add(R.id.fragmentContainer, recentsFragment, TAG_RECENTS)
                 .add(R.id.fragmentContainer, dialerFragment, TAG_DIALER)
+                .add(R.id.fragmentContainer, voicemailFragment, TAG_VOICEMAIL)
                 .hide(dialerFragment)
+                .hide(voicemailFragment)
                 .commitNow()
         } else {
             recentsFragment = supportFragmentManager.findFragmentByTag(TAG_RECENTS) as RecentsFragment
             dialerFragment = supportFragmentManager.findFragmentByTag(TAG_DIALER) as DialerFragment
-            currentTab = if (dialerFragment.isHidden) Tab.RECENTS else Tab.DIALER
+            voicemailFragment = supportFragmentManager.findFragmentByTag(TAG_VOICEMAIL) as VoicemailFragment
+            currentTab = when {
+                !dialerFragment.isHidden -> Tab.DIALER
+                !voicemailFragment.isHidden -> Tab.VOICEMAIL
+                else -> Tab.RECENTS
+            }
         }
 
         setupDrawer()
@@ -83,12 +94,27 @@ class HomeActivity : AppCompatActivity() {
         WhatsNewSheet.maybeShowIfUpdated(this)
         ensureBarHider()
         refreshBarHiderForProfile()
-        if (currentTab == Tab.DIALER) {
-            applyKeypadSetting()
-            dialerFragment.onTabResumed()
-        } else {
-            recentsFragment.onTabResumed()
+        updateVoicemailNavVisibility()
+        when (currentTab) {
+            Tab.DIALER -> {
+                applyKeypadSetting()
+                dialerFragment.onTabResumed()
+            }
+            Tab.VOICEMAIL -> voicemailFragment.onTabResumed()
+            Tab.RECENTS -> recentsFragment.onTabResumed()
         }
+    }
+
+    /** The Voicemail tab on the bottom bar shows automatically once the user
+     *  has turned on visual voicemail -- no separate switch for it. Called on
+     *  every resume so enabling/disabling visual voicemail in Settings and
+     *  coming back updates the bar immediately. If the tab being hidden was
+     *  the one currently open, fall back to Home rather than leaving the bar
+     *  with no selected item pointing at a hidden tab. */
+    private fun updateVoicemailNavVisibility() {
+        val show = VvmPrefs.enabled(this)
+        binding.bottomNav.menu.findItem(R.id.tab_voicemail)?.isVisible = show
+        if (!show && currentTab == Tab.VOICEMAIL) showTab(Tab.RECENTS)
     }
 
     /** Reflects a screen-profile change made elsewhere (Settings) the moment
@@ -154,12 +180,13 @@ class HomeActivity : AppCompatActivity() {
 
     private fun setupBottomBar() {
         // Set the initial selection before wiring the listener so it doesn't fire.
-        binding.bottomNav.selectedItemId =
-            if (currentTab == Tab.DIALER) R.id.tab_keypad else R.id.tab_home
+        binding.bottomNav.selectedItemId = navItemFor(currentTab)
+        updateVoicemailNavVisibility()
         binding.bottomNav.setOnItemSelectedListener { item ->
             if (!suppressNav) when (item.itemId) {
                 R.id.tab_home -> showTab(Tab.RECENTS)
                 R.id.tab_keypad -> showTab(Tab.DIALER)
+                R.id.tab_voicemail -> showTab(Tab.VOICEMAIL)
             }
             true
         }
@@ -167,8 +194,15 @@ class HomeActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.tab_home -> recentsFragment.scrollToTopAndClearSearch()
                 R.id.tab_keypad -> setKeypadShown(binding.dialpadPanel.visibility != View.VISIBLE)
+                R.id.tab_voicemail -> voicemailFragment.onTabResumed()
             }
         }
+    }
+
+    private fun navItemFor(tab: Tab): Int = when (tab) {
+        Tab.DIALER -> R.id.tab_keypad
+        Tab.VOICEMAIL -> R.id.tab_voicemail
+        Tab.RECENTS -> R.id.tab_home
     }
 
     private fun setupKeypad() {
@@ -191,6 +225,7 @@ class HomeActivity : AppCompatActivity() {
                     binding.drawerLayout.closeDrawers()
                 currentTab == Tab.DIALER && dialerFragment.hasText() -> dialerFragment.backspace()
                 currentTab == Tab.DIALER -> showTab(Tab.RECENTS)
+                currentTab == Tab.VOICEMAIL && voicemailFragment.isSelecting() -> voicemailFragment.exitSelection()
                 currentTab == Tab.RECENTS && recentsFragment.handleBack() -> { /* consumed */ }
                 else -> {
                     isEnabled = false
@@ -200,14 +235,16 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    /** Attach the single scroll-hider to both lists once their views exist. Only the
-     *  visible tab's list scrolls, so one hider on both is safe. */
+    /** Attach the single scroll-hider to all three lists once their views exist.
+     *  Only the visible tab's list scrolls, so one hider on all is safe. */
     private fun ensureBarHider() {
         if (barHiderAttached) return
         val r = recentsFragment.scrollTarget() ?: return
         val d = dialerFragment.scrollTarget() ?: return
+        val v = voicemailFragment.scrollTarget() ?: return
         r.addOnScrollListener(barHider)
         d.addOnScrollListener(barHider)
+        v.addOnScrollListener(barHider)
         barHiderAttached = true
     }
 
@@ -218,26 +255,36 @@ class HomeActivity : AppCompatActivity() {
             if (tab == Tab.RECENTS) recentsFragment.scrollToTopAndClearSearch()
             return
         }
+        val fragmentFor = mapOf(
+            Tab.RECENTS to recentsFragment, Tab.DIALER to dialerFragment, Tab.VOICEMAIL to voicemailFragment
+        )
         supportFragmentManager.beginTransaction().apply {
-            if (tab == Tab.DIALER) { show(dialerFragment); hide(recentsFragment) }
-            else { show(recentsFragment); hide(dialerFragment) }
+            show(fragmentFor.getValue(tab))
+            for ((t, f) in fragmentFor) if (t != tab) hide(f)
         }.commit()
         currentTab = tab
         suppressNav = true
-        binding.bottomNav.selectedItemId = if (tab == Tab.DIALER) R.id.tab_keypad else R.id.tab_home
+        binding.bottomNav.selectedItemId = navItemFor(tab)
         suppressNav = false
         binding.drawerLayout.setDrawerLockMode(
             if (tab == Tab.DIALER) DrawerLayout.LOCK_MODE_LOCKED_CLOSED
             else DrawerLayout.LOCK_MODE_UNLOCKED
         )
         barHider.show()
-        if (tab == Tab.DIALER) {
-            if (Prefs.screenProfile(this) == Prefs.PROFILE_LARGE) didAutoOpenKeypad = false
-            applyKeypadSetting()
-            dialerFragment.onTabResumed()
-        } else {
-            setKeypadShown(false)
-            recentsFragment.onTabResumed()
+        when (tab) {
+            Tab.DIALER -> {
+                if (Prefs.screenProfile(this) == Prefs.PROFILE_LARGE) didAutoOpenKeypad = false
+                applyKeypadSetting()
+                dialerFragment.onTabResumed()
+            }
+            Tab.VOICEMAIL -> {
+                setKeypadShown(false)
+                voicemailFragment.onTabResumed()
+            }
+            Tab.RECENTS -> {
+                setKeypadShown(false)
+                recentsFragment.onTabResumed()
+            }
         }
     }
 
@@ -350,6 +397,7 @@ class HomeActivity : AppCompatActivity() {
     companion object {
         private const val TAG_RECENTS = "recents"
         private const val TAG_DIALER = "dialer"
+        private const val TAG_VOICEMAIL = "voicemail"
         const val EXTRA_START_TAB = "start_tab"
         const val TAB_DIALER = "dialer"
         const val EXTRA_FILTER = "filter"

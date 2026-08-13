@@ -53,6 +53,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowKeepAlive.setOnClickListener {
             startActivity(Intent(this, KeepAliveSettingsActivity::class.java))
         }
+        binding.rowVoicemail.setOnClickListener {
+            startActivity(Intent(this, VoicemailSettingsActivity::class.java))
+        }
         binding.rowRecording.setOnClickListener {
             startActivity(Intent(this, RecordingSettingsActivity::class.java))
         }

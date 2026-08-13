@@ -274,14 +274,20 @@ class RecentsFragment : Fragment() {
                 .start()
         }
         Prefs.setFavoritesExpanded(requireContext(), show)
-        updateFavoritesArrow()
+        // Pass the intended end state explicitly rather than letting
+        // updateFavoritesArrow() re-read the strip's live visibility: the
+        // collapse path above is a 200ms animation that only flips
+        // visibility to GONE inside withEndAction, so reading it here
+        // (synchronously, mid-animation) would still see VISIBLE and freeze
+        // the arrow on the wrong (expanded) icon even after the strip has
+        // actually finished closing.
+        updateFavoritesArrow(show)
     }
 
-    private fun updateFavoritesArrow() {
-        val expanded = binding.favoritesStrip.visibility == View.VISIBLE
+    private fun updateFavoritesArrow(expanded: Boolean = binding.favoritesStrip.visibility == View.VISIBLE) {
         val caret = ContextCompat.getDrawable(
             requireContext(),
-            if (expanded) R.drawable.ic_arrow_drop_up else R.drawable.ic_arrow_drop_down
+            if (expanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_down
         )
         binding.favoritesToggle.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, caret, null)
         androidx.core.widget.TextViewCompat.setCompoundDrawableTintList(

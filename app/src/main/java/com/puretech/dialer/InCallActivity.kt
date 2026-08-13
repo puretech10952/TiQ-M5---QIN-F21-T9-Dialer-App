@@ -406,6 +406,8 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     private fun showRouteMenu(anchor: View) {
         val mask = CallManager.supportedRouteMask()
         val current = CallManager.currentRoute()
+        val btDevices = CallManager.bluetoothDevices()
+        val activeBt = CallManager.activeBluetoothDevice()
         val menu = CardMenu(this, anchor)
         if (mask and CallAudioState.ROUTE_EARPIECE != 0)
             menu.add(
@@ -417,14 +419,34 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
                 CallAudioState.ROUTE_SPEAKER, R.drawable.ic_speaker,
                 getString(R.string.route_speaker), current == CallAudioState.ROUTE_SPEAKER
             )
-        if (mask and CallAudioState.ROUTE_BLUETOOTH != 0)
-            menu.add(
-                CallAudioState.ROUTE_BLUETOOTH, R.drawable.ic_bluetooth,
-                CallManager.bluetoothDeviceName() ?: getString(R.string.route_bluetooth),
-                current == CallAudioState.ROUTE_BLUETOOTH
-            )
+        if (mask and CallAudioState.ROUTE_BLUETOOTH != 0) {
+            if (btDevices.size > 1) {
+                // More than one Bluetooth audio device connected at once (e.g. a
+                // car kit and earbuds) -- list each individually instead of one
+                // generic "Bluetooth" row, so the user can move the call from
+                // one to the other without disconnecting either.
+                btDevices.forEachIndexed { index, device ->
+                    val selected = current == CallAudioState.ROUTE_BLUETOOTH && device == activeBt
+                    menu.add(
+                        BT_DEVICE_ID_BASE + index, R.drawable.ic_bluetooth,
+                        CallManager.bluetoothDeviceName(device) ?: getString(R.string.route_bluetooth),
+                        selected
+                    )
+                }
+            } else {
+                menu.add(
+                    CallAudioState.ROUTE_BLUETOOTH, R.drawable.ic_bluetooth,
+                    CallManager.bluetoothDeviceName() ?: getString(R.string.route_bluetooth),
+                    current == CallAudioState.ROUTE_BLUETOOTH
+                )
+            }
+        }
         menu.onClick { id ->
-            CallManager.setRoute(id)
+            if (id >= BT_DEVICE_ID_BASE) {
+                btDevices.getOrNull(id - BT_DEVICE_ID_BASE)?.let { CallManager.requestBluetoothDevice(it) }
+            } else {
+                CallManager.setRoute(id)
+            }
             bindControlStates()
         }
         menu.show()
@@ -871,5 +893,9 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         private const val MENU_MERGE = 104
         private const val MENU_RECORD = 105
         private const val MENU_MANAGE_CONF = 106
+        // Route-menu ids for individually-listed Bluetooth devices (see
+        // showRouteMenu): offset well above CallAudioState.ROUTE_* (max 8) and
+        // the MENU_* ids above so they can share one CardMenu click handler.
+        private const val BT_DEVICE_ID_BASE = 1000
     }
 }

@@ -14,7 +14,8 @@ import androidx.core.app.NotificationCompat
  */
 object VoicemailNotifier {
 
-    private const val CHANNEL = "voicemail_v1"
+    /** Public so Settings can deep-link to this channel's system notification page. */
+    const val CHANNEL = "voicemail_v1"
     private const val NOTIF_ID = 6000
 
     fun show(context: Context) {

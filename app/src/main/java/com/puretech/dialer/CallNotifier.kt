@@ -19,7 +19,7 @@ import androidx.core.app.Person
 object CallNotifier {
 
     // New ids so the importance levels take effect (channels are immutable once created).
-    private const val CHANNEL_INCOMING = "incoming_call_v2"  // HIGH: heads-up + full-screen
+    private const val CHANNEL_INCOMING = "incoming_call_v3"  // HIGH: heads-up + full-screen, silent
     // DEFAULT (silent) so the status-bar icon shows on minimal ROMs that hide LOW
     // notification icons (e.g. the Qin F21). New id so the importance bump applies.
     private const val CHANNEL_ONGOING = "ongoing_call_v3"
@@ -137,13 +137,21 @@ object CallNotifier {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = manager(context)
         if (nm.getNotificationChannel(CHANNEL_INCOMING) == null) {
-            nm.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_INCOMING,
-                    context.getString(R.string.notif_channel_incoming),
-                    NotificationManager.IMPORTANCE_HIGH
-                )
-            )
+            val incoming = NotificationChannel(
+                CHANNEL_INCOMING,
+                context.getString(R.string.notif_channel_incoming),
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                // Telecom's own Ringer already plays the ringtone/vibration for a
+                // ringing call, independent of this notification. Without this the
+                // channel's own default sound played too, doubling up with the
+                // real ringtone on every heads-up post. HIGH importance still pops
+                // the heads-up view.
+                setSound(null, null)
+                enableVibration(false)
+            }
+            nm.createNotificationChannel(incoming)
+            nm.deleteNotificationChannel("incoming_call_v2")  // retire the old sound-enabled channel
         }
         if (nm.getNotificationChannel(CHANNEL_ONGOING) == null) {
             val ongoing = NotificationChannel(

@@ -214,6 +214,14 @@
 
                     <View style="@style/SettingRowDivider" />
 
+                    <LinearLayout android:id="@+id/rowVoicemail" style="@style/SettingRowM3">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_voicemail" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_voicemail_experimental" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
+
                     <LinearLayout android:id="@+id/rowAccounts" style="@style/SettingRowM3"
                         android:background="@drawable/bg_rowgroup_bottom">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_sim" />

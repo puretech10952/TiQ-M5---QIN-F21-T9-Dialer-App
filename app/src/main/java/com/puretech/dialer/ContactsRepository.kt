@@ -243,6 +243,26 @@ object ContactsRepository {
         }
     }
 
+    /** Contact photo for a number, if the number matches a saved contact. */
+    fun photoUri(context: Context, number: String): Uri? {
+        if (number.isBlank()) return null
+        if (context.checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return null
+        val uri = Uri.withAppendedPath(
+            ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number)
+        )
+        return try {
+            context.contentResolver.query(
+                uri, arrayOf(ContactsContract.PhoneLookup.PHOTO_URI), null, null, null
+            )?.use { c ->
+                if (c.moveToFirst()) c.getString(0)?.let { Uri.parse(it) } else null
+            }
+        } catch (e: SecurityException) {
+            null
+        }
+    }
+
     /** Starred contacts, for the Favorites strip. One row per contact (first number
      *  wins for display) — use [numbersFor] to get the rest when there's more than one. */
     fun loadFavorites(context: Context, limit: Int = 30): List<Contact> {

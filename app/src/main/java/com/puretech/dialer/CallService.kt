@@ -109,6 +109,24 @@ class CallService : InCallService() {
     }
 
     /**
+     * Telecom can unbind this service mid-call without ever calling
+     * onCallRemoved first — most reliably seen when Android Auto's own
+     * InCallService takes over call UI duties. Without this, the calls we
+     * were tracking would sit frozen at their last known state forever: the
+     * in-call screen never closes, and the next real incoming call gets
+     * misread as a second/waiting call. See [CallManager.clearAll].
+     */
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.d(TAG, "onUnbind — clearing call state")
+        CallManager.unregisterListener(notifListener)
+        CallManager.clearAll()
+        CallManager.service = null
+        ProximityController.detach()
+        CallNotifier.cancel(this)
+        return super.onUnbind(intent)
+    }
+
+    /**
      * Mirrors the finished call into [LocalCallStore] so it survives Android's
      * automatic system call-log trimming (~500 rows). Runs synchronously, before
      * onCallRemoved returns: a call ending drops this process out of the

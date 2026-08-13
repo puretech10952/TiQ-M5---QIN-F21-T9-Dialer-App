@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Date-group label above a run of voicemail cards (e.g. "Today", "Yesterday"),
+     matching the real Google Dialer voicemail list's grouping. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="18dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="4dp"
+    android:textColor="?attr/colorSecondary"
+    android:textSize="13sp"
+    android:textStyle="bold"
+    tools:text="Today"
+    xmlns:tools="http://schemas.android.com/tools" />

@@ -125,6 +125,7 @@
             style="@style/Widget.Material3.Button.TextButton.Icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="false"
             android:text="@string/log_add_contact"
             app:icon="@drawable/ic_person_add" />
 
@@ -138,6 +139,7 @@
             style="@style/Widget.Material3.Button.TextButton.Icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="false"
             android:text="@string/log_message"
             app:icon="@drawable/ic_message" />
     </LinearLayout>

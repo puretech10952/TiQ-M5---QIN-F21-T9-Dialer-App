@@ -66,6 +66,7 @@
     <string name="nav_recents">Recents</string>
     <string name="nav_home">Home</string>
     <string name="nav_keypad">Keypad</string>
+    <string name="nav_voicemail">Voicemail</string>
     <string name="frequently_contacted">Recently contacted</string>
     <string name="no_recents">No recent calls</string>
     <string name="recents_today">Today</string>
@@ -105,6 +106,8 @@
     <string name="setting_name_format_summary">Choose how contact and caller names are shown throughout the app.</string>
     <string name="name_format_first_first">First name First</string>
     <string name="name_format_last_first">Last name First</string>
+
+    <string name="select_all">Select all</string>
 
     <!-- Long-press entry actions -->
     <string name="block_number">Block number</string>
@@ -349,6 +352,85 @@
     <string name="notif_channel_voicemail">Voicemail</string>
     <string name="voicemail_title">Voicemail</string>
     <string name="voicemail_text">You have a new voicemail. Tap to call.</string>
+
+    <!-- Visual voicemail -->
+    <string name="date_group_today">Today</string>
+    <string name="date_group_yesterday">Yesterday</string>
+    <string name="vvm_enable">Visual voicemail</string>
+    <string name="vvm_enable_sub">Download voicemails from your carrier and play them here</string>
+    <string name="vvm_enabled_sub">On — new voicemails appear here automatically</string>
+    <string name="vvm_setting_up">Setting up…</string>
+    <string name="vvm_connected">Connected — new voicemails appear here automatically</string>
+    <string name="vvm_status_connected">Connected</string>
+    <string name="vvm_status_setting_up">Setting up</string>
+    <string name="vvm_status_failed">Failed</string>
+    <string name="vvm_provisioning">Setting up with your carrier… this can take a minute</string>
+    <string name="vvm_unsupported">Your carrier doesn\'t offer visual voicemail on this SIM</string>
+    <string name="vvm_enable_failed">Couldn\'t turn on visual voicemail. Make sure this app is your default phone app.</string>
+    <string name="vvm_enable_first">Turn on visual voicemail first</string>
+    <string name="vvm_empty">No voicemails</string>
+    <string name="vvm_play">Play</string>
+    <string name="vvm_delete">Delete</string>
+    <string name="vvm_delete_confirm">Delete this voicemail?</string>
+    <string name="vvm_delete_selected_confirm">Delete the selected voicemails?</string>
+    <string name="vvm_no_audio">Audio isn\'t downloaded yet</string>
+    <string name="vvm_play_failed">Couldn\'t play this voicemail</string>
+    <string name="vvm_activate">Activate</string>
+    <string name="vvm_retry">Retry</string>
+    <string name="vvm_call_voicemail">Call voicemail</string>
+    <string name="vvm_speaker">Speaker</string>
+    <string name="vvm_earpiece">Earpiece</string>
+    <string name="vvm_share">Share</string>
+    <string name="vvm_download">Download</string>
+    <string name="vvm_downloaded">Saved to Downloads</string>
+    <string name="vvm_download_failed">Couldn\'t save the file</string>
+    <string name="vvm_action_call">Call</string>
+    <string name="vvm_block_confirm">Block this number? You won\'t receive calls or texts from it.</string>
+    <string name="selection_count_fmt">%d selected</string>
+
+    <string name="setting_voicemail_experimental">Voicemail (beta)</string>
+    <string name="setting_voicemail_visual_heading">Visual voicemail</string>
+    <string name="setting_voicemail_number">Voicemail number</string>
+    <string name="setting_voicemail_number_not_set">Not set</string>
+    <string name="setting_voicemail_notifications">Notifications</string>
+    <string name="setting_voicemail_notifications_summary">Choose the sound and vibration for new voicemail</string>
+    <string name="setting_voicemail_change_pin">Change PIN</string>
+    <string name="setting_voicemail_change_pin_summary">Change the PIN used to call in to your voicemail box</string>
+    <string name="setting_voicemail_change_greeting">Change greeting</string>
+    <string name="setting_voicemail_change_greeting_summary">Record or choose a custom voicemail greeting</string>
+
+    <string name="pin_current">Current PIN</string>
+    <string name="pin_new">New PIN</string>
+    <string name="pin_confirm">Confirm new PIN</string>
+    <string name="pin_save">Save</string>
+    <string name="pin_mismatch">New PIN and confirmation don\'t match</string>
+    <string name="pin_empty">Enter your current PIN and a new PIN</string>
+    <string name="pin_changed">PIN changed</string>
+    <string name="pin_error_too_short">New PIN is too short</string>
+    <string name="pin_error_too_long">New PIN is too long</string>
+    <string name="pin_error_too_weak">New PIN is too weak (try avoiding repeated or sequential digits)</string>
+    <string name="pin_error_old_mismatch">Current PIN is incorrect</string>
+    <string name="pin_error_old_mismatch_retry">Couldn\'t change the PIN automatically. Enter your current voicemail PIN below and try again.</string>
+    <string name="pin_error_no_default">Couldn\'t determine your current PIN. Enter it below.</string>
+    <string name="pin_error_invalid_chars">New PIN contains characters that aren\'t allowed</string>
+    <string name="pin_error_unknown">Couldn\'t change the PIN. Try again later.</string>
+    <string name="pin_error_not_connected">Visual voicemail must be connected first</string>
+
+    <string name="greeting_time_zero">0:00</string>
+    <string name="greeting_tap_to_record">Tap to record</string>
+    <string name="greeting_recording">Recording…</string>
+    <string name="greeting_stop">Tap to stop</string>
+    <string name="greeting_try_again">Try again</string>
+    <string name="greeting_save">Save</string>
+    <string name="greeting_play">Play</string>
+    <string name="greeting_pause">Pause</string>
+    <string name="greeting_choose_file">Choose an audio file instead</string>
+    <string name="greeting_uploading">Uploading greeting…</string>
+    <string name="greeting_saved">Greeting saved</string>
+    <string name="greeting_upload_failed">Couldn\'t upload the greeting. Try again later.</string>
+    <string name="greeting_error_not_connected">Visual voicemail must be connected first</string>
+    <string name="greeting_error_record">Couldn\'t start recording. Check microphone permission.</string>
+    <string name="greeting_error_file">Couldn\'t use that file</string>
 
     <!-- Keep running in background (foreground keep-alive + battery exemption) -->
     <string name="setting_keepalive">Keep running in background</string>

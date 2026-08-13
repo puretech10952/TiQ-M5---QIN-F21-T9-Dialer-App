@@ -1,5 +1,6 @@
 package com.puretech.dialer
 
+import android.bluetooth.BluetoothDevice
 import android.os.Build
 import android.telecom.Call
 import android.telecom.CallAudioState
@@ -44,6 +45,17 @@ object CallManager {
     private val callback = object : Call.Callback() {
         override fun onStateChanged(call: Call, state: Int) {
             if (state == Call.STATE_ACTIVE) isLocalHold = false
+            if (state == Call.STATE_DISCONNECTED) {
+                // Telecom is supposed to follow this with onCallRemoved on the
+                // InCallService, but that delivery isn't reliable on this ROM
+                // even without any service unbind involved (Android Auto just
+                // makes it happen most often). Don't wait for it — a call that
+                // reports itself disconnected is done as far as our state
+                // tracking goes, so clean up right here instead of risking a
+                // frozen "active" call stuck on screen forever.
+                removeCall(call)
+                return
+            }
             notifyChanged()
         }
         override fun onDetailsChanged(call: Call, details: Call.Details) = notifyChanged()
@@ -85,6 +97,33 @@ object CallManager {
             remoteHoldStartMs = 0L
             service?.let { CallRecordings.scheduleOrganize(it) }
         }
+        notifyChanged()
+    }
+
+    /**
+     * Drops every tracked call without touching its (possibly already-dead)
+     * binder proxy. Telecom can unbind our InCallService mid-call without ever
+     * calling onCallRemoved for calls still in progress — most reliably seen
+     * when Android Auto's own InCallService takes over call UI duties. Once
+     * that happens the Call objects we're holding never receive another
+     * Call.Callback event, so without this they'd sit frozen at their last
+     * known state ("active") forever: the in-call screen never closes, and
+     * the next real incoming call gets misread as a second/waiting call.
+     */
+    fun clearAll() {
+        _calls.clear()
+        recording = false
+        isLocalHold = false
+        remoteHeld = false
+        remoteHoldStartMs = 0L
+        // If Telecom yanked the service away (see onUnbind's doc) while
+        // InCallActivity was on screen, its onStop() never got to run and
+        // never reset this — leaving it stuck true. That would make the
+        // very next CallNotifier.update() (e.g. when Telecom rebinds and
+        // replays onCallAdded) silently suppress the notification too,
+        // thinking the full-screen UI is still up when nothing is showing
+        // at all. Reset it here so a fresh call always gets a UI.
+        uiVisible = false
         notifyChanged()
     }
 
@@ -210,6 +249,29 @@ object CallManager {
         (supportedRouteMask() and CallAudioState.ROUTE_BLUETOOTH) != 0
     fun isOnEarpiece(): Boolean = currentRoute() == CallAudioState.ROUTE_EARPIECE
 
+    /** Every Bluetooth audio device currently connected and available to route
+     *  to (e.g. a car kit and a pair of earbuds at the same time) -- lets the
+     *  route picker offer each one individually instead of one generic
+     *  "Bluetooth" entry, so the user can move a call from one to the other
+     *  without disconnecting either. */
+    @Suppress("DEPRECATION")
+    fun bluetoothDevices(): List<BluetoothDevice> =
+        try {
+            service?.callAudioState?.supportedBluetoothDevices?.toList() ?: emptyList()
+        } catch (e: Throwable) {
+            emptyList()
+        }
+
+    /** The specific Bluetooth device audio is actually routed to right now, if any. */
+    fun activeBluetoothDevice(): BluetoothDevice? =
+        try { service?.callAudioState?.activeBluetoothDevice } catch (e: Throwable) { null }
+
+    /** Switch to a specific Bluetooth device when more than one is connected
+     *  at once, instead of just toggling the Bluetooth route on/off. */
+    fun requestBluetoothDevice(device: BluetoothDevice) {
+        service?.requestBluetoothAudio(device)
+    }
+
     /** The connected Bluetooth headset's name (e.g. "AirPods"), or null.
      *  activeBluetoothDevice is often null even when routed to BT, so we also
      *  fall back to the supported-devices list, and to the user alias. */
@@ -220,7 +282,14 @@ object CallManager {
             state.activeBluetoothDevice ?: state.supportedBluetoothDevices.firstOrNull()
         } catch (e: Throwable) {
             null
-        } ?: return null
+        }
+        return bluetoothDeviceName(device)
+    }
+
+    /** Display name for a specific Bluetooth device (alias if the user set one,
+     *  else the factory name), for listing several connected devices by name. */
+    fun bluetoothDeviceName(device: BluetoothDevice?): String? {
+        device ?: return null
         return try {
             // alias is the user-set name; name is the factory name. getName/getAlias
             // need BLUETOOTH_CONNECT (auto-granted to the dialer role).
