@@ -95,6 +95,7 @@ object CallManager {
             isLocalHold = false
             remoteHeld = false
             remoteHoldStartMs = 0L
+            SleepTimer.cancel()
             service?.let { CallRecordings.scheduleOrganize(it) }
         }
         notifyChanged()
@@ -116,6 +117,7 @@ object CallManager {
         isLocalHold = false
         remoteHeld = false
         remoteHoldStartMs = 0L
+        SleepTimer.cancel()
         // If Telecom yanked the service away (see onUnbind's doc) while
         // InCallActivity was on screen, its onStop() never got to run and
         // never reset this — leaving it stuck true. That would make the
@@ -266,20 +268,35 @@ object CallManager {
     fun activeBluetoothDevice(): BluetoothDevice? =
         try { service?.callAudioState?.activeBluetoothDevice } catch (e: Throwable) { null }
 
+    // The device we last explicitly asked to switch to via requestBluetoothDevice()
+    // -- activeBluetoothDevice is often null or slow to update on this ROM right
+    // after a switch (the real CallAudioState update lags behind the request), so
+    // this is a much better guess than blindly grabbing the first connected device,
+    // which could show the wrong name (e.g. the car instead of the earbuds you
+    // just switched to) until the system callback catches up.
+    private var lastRequestedBluetoothDevice: BluetoothDevice? = null
+
     /** Switch to a specific Bluetooth device when more than one is connected
      *  at once, instead of just toggling the Bluetooth route on/off. */
     fun requestBluetoothDevice(device: BluetoothDevice) {
+        lastRequestedBluetoothDevice = device
         service?.requestBluetoothAudio(device)
     }
 
     /** The connected Bluetooth headset's name (e.g. "AirPods"), or null.
-     *  activeBluetoothDevice is often null even when routed to BT, so we also
-     *  fall back to the supported-devices list, and to the user alias. */
+     *  activeBluetoothDevice is often null (or briefly stale right after
+     *  switching devices) even when routed to BT, so we also fall back to
+     *  whichever device we last explicitly requested, then the
+     *  supported-devices list, then the user alias. */
     @Suppress("DEPRECATION")
     fun bluetoothDeviceName(): String? {
         val state = service?.callAudioState ?: return null
         val device = try {
-            state.activeBluetoothDevice ?: state.supportedBluetoothDevices.firstOrNull()
+            state.activeBluetoothDevice
+                ?: lastRequestedBluetoothDevice?.takeIf { requested ->
+                    state.supportedBluetoothDevices.any { it == requested }
+                }
+                ?: state.supportedBluetoothDevices.firstOrNull()
         } catch (e: Throwable) {
             null
         }

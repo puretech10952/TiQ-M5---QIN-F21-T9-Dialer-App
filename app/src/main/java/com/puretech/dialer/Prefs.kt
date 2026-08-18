@@ -187,6 +187,12 @@ object Prefs {
     fun setKeepAlive(c: Context, on: Boolean) =
         sp(c).edit().putBoolean("keep_alive", on).apply()
 
+    /** Last duration (minutes) picked for the in-call sleep timer, pre-selected
+     *  next time the picker opens. */
+    fun sleepTimerMinutes(c: Context) = sp(c).getInt("sleep_timer_minutes", 30)
+    fun setSleepTimerMinutes(c: Context, minutes: Int) =
+        sp(c).edit().putInt("sleep_timer_minutes", minutes).apply()
+
     /** Whether the one-time welcome/onboarding screen has been shown. */
     fun welcomeShown(c: Context) = sp(c).getBoolean("welcome_shown", false)
     fun setWelcomeShown(c: Context) = sp(c).edit().putBoolean("welcome_shown", true).apply()

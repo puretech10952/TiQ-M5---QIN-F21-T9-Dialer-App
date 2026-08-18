@@ -72,6 +72,14 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         }
     }
 
+    private var sleepTiming = false
+    private val sleepTimerTicker = object : Runnable {
+        override fun run() {
+            updateSleepTimerBanner()
+            handler.postDelayed(this, 1000)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityIncallBinding.inflate(layoutInflater)
@@ -103,6 +111,10 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         // The first control is the in-call keypad (DTMF for hotline menus).
         binding.btnKeypad.setOnClickListener { toggleDtmf() }
         binding.btnMore.setOnClickListener { showMoreMenu(it) }
+        binding.sleepTimerBanner.setOnClickListener {
+            SleepTimer.cancel()
+            updateSleepTimerBanner()
+        }
         binding.btnIncomingMessage.setOnClickListener { showReplyOptions(CallManager.ringingCall()) }
 
         binding.secondaryStrip.setOnClickListener { CallManager.swap() }
@@ -133,6 +145,10 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             // Full-screen call UI is up → remove any notification entirely. It is
             // re-posted from onStop only if we get backgrounded.
             CallNotifier.cancel(this)
+            // Reflect a sleep timer that was started/fired while this Activity
+            // didn't exist (recreated after being backgrounded) immediately,
+            // instead of waiting up to 1s for the ticker.
+            updateSleepTimerBanner()
         }
     }
 
@@ -150,6 +166,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         super.onDestroy()
         stopTimer()
         stopHoldTimer()
+        stopSleepTimerTicker()
         // NOTE: do not stop recording here — the framework keeps recording with the
         // call and stops on its own when the call ends.
     }
@@ -266,6 +283,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         updateRecordIndicator()
 
         updateRemoteHoldBanner()
+        updateSleepTimerBanner()
     }
 
     /** Remote hold chip: visible only when the other party has held this call.
@@ -288,6 +306,20 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             startHoldTimer()
         } else {
             stopHoldTimer()
+        }
+    }
+
+    /** Sleep-timer chip: visible while an auto-hangup countdown is running.
+     *  Tap to cancel it -- re-arming is one tap away in the overflow menu. */
+    private fun updateSleepTimerBanner() {
+        val running = SleepTimer.isRunning()
+        binding.sleepTimerBanner.visibility = if (running) View.VISIBLE else View.GONE
+        if (running) {
+            binding.sleepTimerText.text =
+                getString(R.string.sleep_timer_banner, formatSleepTimerRemaining())
+            startSleepTimerTicker()
+        } else {
+            stopSleepTimerTicker()
         }
     }
 
@@ -342,6 +374,10 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         if (CallManager.conferenceChildren().size > 1) {
             menu.add(MENU_MANAGE_CONF, R.drawable.ic_merge, getString(R.string.ctl_manage_conference))
         }
+        val sleepLabel = if (SleepTimer.isRunning())
+            getString(R.string.ctl_sleep_timer_running, formatSleepTimerRemaining())
+        else getString(R.string.ctl_sleep_timer)
+        menu.add(MENU_SLEEP_TIMER, R.drawable.ic_sleep_timer, sleepLabel)
         menu.onClick { id ->
             when (id) {
                 MENU_RECORD -> toggleRecord()
@@ -349,6 +385,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
                 MENU_HOLD -> toggleHoldOrSwap()
                 MENU_MERGE -> CallManager.merge()
                 MENU_MANAGE_CONF -> showManageConference()
+                MENU_SLEEP_TIMER -> showSleepTimerDialog()
             }
         }
         // Highlight the 3-dot button (black icon on the light pill) while open.
@@ -392,6 +429,36 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         rebuild()
         sheet.setContentView(container)
         sheet.show()
+    }
+
+    /** Pick a duration (or turn it off) for the auto-hangup sleep timer -- e.g.
+     *  listening to a hotline in bed without draining the phone overnight. */
+    private fun showSleepTimerDialog() {
+        val minutesOptions = intArrayOf(30, 60, 90, 120)
+        val labels = resources.getStringArray(R.array.sleep_timer_options)
+        var selected = minutesOptions.indexOf(Prefs.sleepTimerMinutes(this)).coerceAtLeast(0)
+        val builder = AlertDialog.Builder(this)
+            .setTitle(R.string.sleep_timer_title)
+            .setSingleChoiceItems(labels, selected) { _, which -> selected = which }
+            .setPositiveButton(R.string.ctl_sleep_timer_start) { _, _ ->
+                val minutes = minutesOptions[selected]
+                Prefs.setSleepTimerMinutes(this, minutes)
+                SleepTimer.start(applicationContext, minutes)
+                updateSleepTimerBanner()
+            }
+            .setNegativeButton(R.string.cancel, null)
+        if (SleepTimer.isRunning()) {
+            builder.setNeutralButton(R.string.ctl_sleep_timer_off) { _, _ ->
+                SleepTimer.cancel()
+                updateSleepTimerBanner()
+            }
+        }
+        builder.show()
+    }
+
+    private fun formatSleepTimerRemaining(): String {
+        val total = (SleepTimer.remainingMs() / 1000).coerceAtLeast(0)
+        return String.format("%02d:%02d", total / 60, total % 60)
     }
 
     private fun onRouteClick() {
@@ -831,6 +898,15 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         handler.removeCallbacks(holdTicker)
     }
 
+    private fun startSleepTimerTicker() {
+        if (!sleepTiming) { sleepTiming = true; handler.post(sleepTimerTicker) }
+    }
+
+    private fun stopSleepTimerTicker() {
+        sleepTiming = false
+        handler.removeCallbacks(sleepTimerTicker)
+    }
+
     private fun formatHoldDuration(): String {
         val startMs = CallManager.remoteHoldStartMs
         if (startMs == 0L) return ""
@@ -893,6 +969,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         private const val MENU_MERGE = 104
         private const val MENU_RECORD = 105
         private const val MENU_MANAGE_CONF = 106
+        private const val MENU_SLEEP_TIMER = 107
         // Route-menu ids for individually-listed Bluetooth devices (see
         // showRouteMenu): offset well above CallAudioState.ROUTE_* (max 8) and
         // the MENU_* ids above so they can share one CardMenu click handler.

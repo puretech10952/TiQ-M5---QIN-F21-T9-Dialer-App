@@ -310,6 +310,47 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Pill chip: shown while the sleep timer is counting down; tap to cancel -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/sleepTimerBanner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/incall_panel"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_sleep_timer"
+                app:tint="@color/incall_subtitle" />
+
+            <TextView
+                android:id="@+id/sleepTimerText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/incall_subtitle"
+                android:textSize="13sp"
+                tools:text="Sleeping in 14:32 · tap to cancel" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- Held / second call strip (tap to swap) -->
     <LinearLayout
         android:id="@+id/secondaryStrip"

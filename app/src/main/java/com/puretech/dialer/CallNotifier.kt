@@ -88,7 +88,13 @@ object CallNotifier {
         } else {
             // Ongoing call: CallStyle pins the notification to the top of the shade
             // and shows a live call timer; tapping it (contentIntent) returns to the
-            // in-call screen. Mute + Speaker ride along as extra actions.
+            // in-call screen. Speaker rides along as an extra action -- Mute used to
+            // as well, but this ROM's SystemUI only ever renders ONE addAction() on
+            // a CallStyle notification (confirmed live: the second one silently never
+            // shows, even fully expanded -- stock Android's own docs allow up to two,
+            // so this is an OEM rendering limit, not a code bug). Speaker wins the one
+            // slot since that's what's actually wanted from the notification; Mute is
+            // still reachable from the in-call screen itself.
             builder.setStyle(
                 NotificationCompat.CallStyle.forOngoingCall(
                     person,
@@ -103,16 +109,15 @@ object CallNotifier {
                 builder.setShowWhen(false)
             }
 
-            val muted = CallManager.isMuted()
+            // Just "Speaker" (not "Turn speaker on/off") -- short enough that
+            // it and the hang-up action's own text both fit; the longer
+            // wording was wide enough to push this action out entirely on
+            // this ROM's notification rendering. The icon still swaps to
+            // reflect state.
             val speakerOn = CallManager.isSpeakerOn()
             builder.addAction(
-                if (muted) R.drawable.ic_mic_off else R.drawable.ic_mic,
-                context.getString(if (muted) R.string.ctl_unmute else R.string.ctl_mute),
-                action(context, NotificationActionReceiver.ACTION_MUTE)
-            )
-            builder.addAction(
-                R.drawable.ic_speaker,
-                context.getString(if (speakerOn) R.string.notif_speaker_on else R.string.ctl_speaker),
+                if (speakerOn) R.drawable.ic_call_outline else R.drawable.ic_speaker,
+                context.getString(R.string.ctl_speaker),
                 action(context, NotificationActionReceiver.ACTION_SPEAKER)
             )
         }
