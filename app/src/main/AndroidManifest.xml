@@ -95,6 +95,8 @@
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".ThemeSettingsActivity" android:exported="false" />
         <activity android:name=".NameFormatSettingsActivity" android:exported="false" />
+        <activity android:name=".IncomingCallGestureActivity" android:exported="false" />
+        <activity android:name=".CallInsightsActivity" android:exported="false" />
         <activity android:name=".LanguageSettingsActivity" android:exported="false" />
         <activity android:name=".ToggleSettingActivity" android:exported="false" />
         <activity android:name=".BlockedNumbersActivity" android:exported="false" />

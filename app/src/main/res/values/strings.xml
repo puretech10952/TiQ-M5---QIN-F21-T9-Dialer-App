@@ -99,8 +99,11 @@
     <string name="settings_title">Settings</string>
     <string name="settings_placeholder">More settings coming soon.</string>
     <string name="settings_group_general">General</string>
+    <string name="settings_group_keypad">Keypad</string>
     <string name="settings_group_display">Display</string>
     <string name="settings_group_calls">Calls</string>
+    <string name="settings_group_blocking">Blocking</string>
+    <string name="settings_group_quick_actions">Quick actions</string>
     <string name="settings_group_about">About</string>
     <string name="setting_name_format">Name format</string>
     <string name="setting_name_format_summary">Choose how contact and caller names are shown throughout the app.</string>
@@ -168,7 +171,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• <b>Sleep timer</b> — set an active call to auto hang up after 30/60/90/120 minutes, so a late-night hotline call won\'t drain the phone if you fall asleep. Find it in the in-call ⋮ menu, with a countdown chip you can tap to cancel\n\n• Fixed: the ongoing-call notification\'s Speaker button could silently fail to show on some phones (this ROM only renders one notification action) — Speaker now always takes that slot</string>
+    <string name="whats_new_body">• <b>Call Insights</b> (new!) — averages, your longest call and busiest day ever, a busy-times heatmap of when you\'re usually on the phone, top contacts by talk time, and week-over-week trends. Find it in Call durations → \"See deeper insights\"\n\n• <b>Incoming call gesture</b> — answer or decline with a Single tap (default) or a Horizontal swipe, your choice in Settings\n\n• Voicemail setup moved to the sidebar menu, Settings reorganized into clearer groups, and the message/reply screens got a cleaner, more modern look\n\n• Since 1.2.2: <b>Sleep timer</b> for calls, plus Bluetooth device switching and visual voicemail (beta) from 1.2.0</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
@@ -223,6 +226,50 @@
     <string name="stats_range_month">Month</string>
     <string name="stats_range_year">Year</string>
     <string name="stats_chart_empty">No calls yet to chart.</string>
+    <string name="stats_value_calls">Calls</string>
+    <string name="stats_value_minutes">Minutes</string>
+    <string name="stats_see_insights">See deeper insights</string>
+    <string name="stats_see_insights_sub">Averages, busy times, top contacts and more</string>
+
+    <!-- Call Insights (deep analytics) -->
+    <string name="insights_title">Insights</string>
+    <string name="insights_averages">Averages &amp; records</string>
+    <string name="insights_avg_overall">Average call</string>
+    <string name="insights_avg_incoming">Average incoming</string>
+    <string name="insights_avg_outgoing">Average outgoing</string>
+    <string name="insights_answer_rate">Answer rate</string>
+    <string name="insights_calls_per_day">Calls per active day</string>
+    <string name="insights_longest_call">Longest call ever</string>
+    <string name="insights_busiest_day">Busiest day ever</string>
+    <string name="insights_no_data">Not enough calls yet</string>
+    <string name="insights_trends">Trends</string>
+    <string name="insights_this_week">This week</string>
+    <string name="insights_last_week">Last week</string>
+    <string name="insights_projected_month">On track for this month</string>
+    <string name="insights_busy_times">Busy times</string>
+    <string name="insights_busy_times_sub">When you\'re usually on the phone</string>
+    <string name="insights_busiest_sentence">You\'re usually busiest on %1$s %2$s</string>
+    <string name="insights_top_contacts">Top contacts</string>
+    <string name="insights_top_contacts_empty">Not enough call history yet</string>
+    <string name="insights_longest_call_sub">with %1$s · %2$s</string>
+    <string name="insights_busiest_day_sub">%1$s</string>
+    <string name="insights_vs_last_week">vs last week</string>
+    <string name="insights_first_week">First week of activity</string>
+    <string name="insights_about">~%1$s</string>
+    <string name="percent_format">%1$d%%</string>
+    <plurals name="insights_call_count">
+        <item quantity="one">%1$d call</item>
+        <item quantity="other">%1$d calls</item>
+    </plurals>
+
+    <string-array name="daypart_labels">
+        <item>12–4a</item>
+        <item>4–8a</item>
+        <item>8a–12p</item>
+        <item>12–4p</item>
+        <item>4–8p</item>
+        <item>8p–12a</item>
+    </string-array>
 
     <!-- Welcome / onboarding -->
     <string name="welcome_title">Welcome to PureTech Phone</string>
@@ -338,8 +385,10 @@
     <string name="setting_floating_dial_summary">Optional floating keypad on the dial screen</string>
     <string name="setting_dialpad_tone">Keypad tones</string>
     <string name="setting_dialpad_tone_summary">Play a dial tone when you press a key (always on during a call)</string>
-    <string name="setting_swipe_answer">Swipe to answer</string>
-    <string name="setting_swipe_answer_summary">Slide a button sideways to answer or decline incoming calls, instead of tapping</string>
+    <string name="setting_incoming_gesture">Incoming call gesture</string>
+    <string name="setting_incoming_gesture_summary">Choose how to answer or decline an incoming call.</string>
+    <string name="incoming_gesture_tap">Single tap</string>
+    <string name="incoming_gesture_swipe">Horizontal swipe</string>
     <string name="setting_always_full_screen_calls">Always show full-screen calls</string>
     <string name="setting_always_full_screen_calls_summary">By default, an incoming call only takes over the whole screen when your phone is locked — while it\'s unlocked, whether you\'re on the home screen or using another app, you\'ll just see a notification with Answer and Decline instead. Turn this on to always show the full-screen call, even while your phone is unlocked and in use.</string>
     <string name="setting_block_unknown">Block unknown callers</string>
@@ -377,6 +426,7 @@
     <string name="vvm_status_connected">Connected</string>
     <string name="vvm_status_setting_up">Setting up</string>
     <string name="vvm_status_failed">Failed</string>
+    <string name="vvm_status_failed_detail">If this keeps happening, you may need to contact your carrier and ask them to enable the visual voicemail feature for your line</string>
     <string name="vvm_provisioning">Setting up with your carrier… this can take a minute</string>
     <string name="vvm_unsupported">Your carrier doesn\'t offer visual voicemail on this SIM</string>
     <string name="vvm_enable_failed">Couldn\'t turn on visual voicemail. Make sure this app is your default phone app.</string>

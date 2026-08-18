@@ -282,6 +282,7 @@ class HomeActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_search -> startActivity(Intent(this, CallLogSearchActivity::class.java))
                 R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
+                R.id.nav_voicemail -> startActivity(Intent(this, VoicemailSettingsActivity::class.java))
                 R.id.nav_durations -> startActivity(Intent(this, CallStatsActivity::class.java))
                 R.id.nav_delete_all_logs -> confirmDeleteAllLogs()
                 R.id.nav_updates -> startActivity(Intent(this, UpdateActivity::class.java))

@@ -230,8 +230,10 @@
     <string name="setting_floating_dial_summary">Teclado flutuante opcional na tela de discagem</string>
     <string name="setting_dialpad_tone">Tons do teclado</string>
     <string name="setting_dialpad_tone_summary">Reproduzir um tom ao pressionar uma tecla (sempre ativo durante uma chamada)</string>
-    <string name="setting_swipe_answer">Deslizar para atender</string>
-    <string name="setting_swipe_answer_summary">Deslize um botão para atender ou recusar chamadas recebidas</string>
+    <string name="setting_incoming_gesture">Gesto de chamada recebida</string>
+    <string name="setting_incoming_gesture_summary">Escolha como atender ou recusar uma chamada recebida.</string>
+    <string name="incoming_gesture_tap">Toque único</string>
+    <string name="incoming_gesture_swipe">Deslize horizontal</string>
     <string name="setting_block_unknown">Bloquear chamadores desconhecidos</string>
     <string name="setting_block_unknown_summary">Rejeita silenciosamente chamadas de números não salvos nos contatos, incluindo números privados.</string>
     <string name="swipe_to_answer_hint">Deslize para atender ou recusar</string>

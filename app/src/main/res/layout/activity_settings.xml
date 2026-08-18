@@ -71,15 +71,27 @@
 
                     <View style="@style/SettingRowDivider" />
 
-                    <LinearLayout android:id="@+id/rowLanguage" style="@style/SettingRowM3">
+                    <LinearLayout android:id="@+id/rowLanguage" style="@style/SettingRowM3"
+                        android:background="@drawable/bg_rowgroup_bottom">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_language" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"
                             android:layout_weight="1" android:text="@string/setting_language" />
                     </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                    <View style="@style/SettingRowDivider" />
+            <!-- ===== Keypad ===== -->
+            <TextView style="@style/SettingsSectionHeader" android:text="@string/settings_group_keypad" />
 
-                    <LinearLayout android:id="@+id/rowFloating" style="@style/SettingRowM3">
+            <com.google.android.material.card.MaterialCardView style="@style/SettingsGroupCard"
+                app:cardBackgroundColor="@android:color/transparent" app:cardCornerRadius="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout android:id="@+id/rowFloating" style="@style/SettingRowM3"
+                        android:background="@drawable/bg_rowgroup_top">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_dialpad" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"
                             android:layout_weight="1" android:text="@string/setting_floating_dial" />
@@ -137,7 +149,7 @@
                         android:background="@drawable/bg_rowgroup_top">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_swap" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"
-                            android:layout_weight="1" android:text="@string/setting_swipe_answer" />
+                            android:layout_weight="1" android:text="@string/setting_incoming_gesture" />
                     </LinearLayout>
 
                     <View style="@style/SettingRowDivider" />
@@ -146,38 +158,6 @@
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_screen_size" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"
                             android:layout_weight="1" android:text="@string/setting_always_full_screen_calls" />
-                    </LinearLayout>
-
-                    <View style="@style/SettingRowDivider" />
-
-                    <LinearLayout android:id="@+id/rowBlockUnknown" style="@style/SettingRowM3">
-                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
-                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
-                            android:layout_weight="1" android:text="@string/setting_block_unknown" />
-                    </LinearLayout>
-
-                    <View style="@style/SettingRowDivider" />
-
-                    <LinearLayout android:id="@+id/rowBlocked" style="@style/SettingRowM3">
-                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
-                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
-                            android:layout_weight="1" android:text="@string/setting_blocked" />
-                    </LinearLayout>
-
-                    <View style="@style/SettingRowDivider" />
-
-                    <LinearLayout android:id="@+id/rowQuick" style="@style/SettingRowM3">
-                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_message" />
-                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
-                            android:layout_weight="1" android:text="@string/setting_quick_responses" />
-                    </LinearLayout>
-
-                    <View style="@style/SettingRowDivider" />
-
-                    <LinearLayout android:id="@+id/rowQuickDial" style="@style/SettingRowM3">
-                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_bolt" />
-                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
-                            android:layout_weight="1" android:text="@string/setting_quick_dial" />
                     </LinearLayout>
 
                     <View style="@style/SettingRowDivider" />
@@ -214,19 +194,67 @@
 
                     <View style="@style/SettingRowDivider" />
 
-                    <LinearLayout android:id="@+id/rowVoicemail" style="@style/SettingRowM3">
-                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_voicemail" />
-                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
-                            android:layout_weight="1" android:text="@string/setting_voicemail_experimental" />
-                    </LinearLayout>
-
-                    <View style="@style/SettingRowDivider" />
-
                     <LinearLayout android:id="@+id/rowAccounts" style="@style/SettingRowM3"
                         android:background="@drawable/bg_rowgroup_bottom">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_sim" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"
                             android:layout_weight="1" android:text="@string/setting_calling_accounts" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ===== Blocking ===== -->
+            <TextView style="@style/SettingsSectionHeader" android:text="@string/settings_group_blocking" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/SettingsGroupCard"
+                app:cardBackgroundColor="@android:color/transparent" app:cardCornerRadius="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout android:id="@+id/rowBlockUnknown" style="@style/SettingRowM3"
+                        android:background="@drawable/bg_rowgroup_top">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_block_unknown" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:id="@+id/rowBlocked" style="@style/SettingRowM3"
+                        android:background="@drawable/bg_rowgroup_bottom">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_blocked" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ===== Quick actions ===== -->
+            <TextView style="@style/SettingsSectionHeader" android:text="@string/settings_group_quick_actions" />
+
+            <com.google.android.material.card.MaterialCardView style="@style/SettingsGroupCard"
+                app:cardBackgroundColor="@android:color/transparent" app:cardCornerRadius="0dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout android:id="@+id/rowQuick" style="@style/SettingRowM3"
+                        android:background="@drawable/bg_rowgroup_top">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_message" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_quick_responses" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:id="@+id/rowQuickDial" style="@style/SettingRowM3"
+                        android:background="@drawable/bg_rowgroup_bottom">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_bolt" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_quick_dial" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

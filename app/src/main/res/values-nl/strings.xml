@@ -230,8 +230,10 @@
     <string name="setting_floating_dial_summary">Optioneel zwevend toetsenblok op het kiesscherm</string>
     <string name="setting_dialpad_tone">Toetsenblokgeluiden</string>
     <string name="setting_dialpad_tone_summary">Geluid afspelen bij indrukken van een toets (altijd aan tijdens een gesprek)</string>
-    <string name="setting_swipe_answer">Vegen om te beantwoorden</string>
-    <string name="setting_swipe_answer_summary">Veeg een knop opzij om inkomende gesprekken te beantwoorden of te weigeren</string>
+    <string name="setting_incoming_gesture">Gebaar voor inkomende oproep</string>
+    <string name="setting_incoming_gesture_summary">Kies hoe je een inkomend gesprek beantwoordt of weigert.</string>
+    <string name="incoming_gesture_tap">Enkele tik</string>
+    <string name="incoming_gesture_swipe">Horizontaal vegen</string>
     <string name="setting_block_unknown">Onbekende bellers blokkeren</string>
     <string name="setting_block_unknown_summary">Inkomende gesprekken van nummers die niet in uw contacten zijn opgeslagen, inclusief anonieme nummers, stil weigeren.</string>
     <string name="swipe_to_answer_hint">Veeg om te beantwoorden of weigeren</string>

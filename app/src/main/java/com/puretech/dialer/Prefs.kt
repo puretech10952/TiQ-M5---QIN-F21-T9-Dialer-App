@@ -134,11 +134,23 @@ object Prefs {
     fun setBigKeypad(c: Context, on: Boolean) =
         sp(c).edit().putBoolean("big_keypad", on).apply()
 
-    /** Answer/decline incoming calls by sliding a button sideways (Google-style),
-     *  instead of tapping the round Answer/Decline buttons. Off by default. */
-    fun swipeToAnswer(c: Context) = sp(c).getBoolean("swipe_to_answer", false)
-    fun setSwipeToAnswer(c: Context, on: Boolean) =
-        sp(c).edit().putBoolean("swipe_to_answer", on).apply()
+    const val GESTURE_TAP = 0
+    const val GESTURE_SWIPE = 1
+
+    /** How to answer/decline an incoming call: a single tap on the round
+     *  Answer/Decline buttons (default), or sliding a button sideways
+     *  (Google-style). Falls back to the pre-1.2.3 boolean "swipe to answer"
+     *  toggle's value the first time this is read, so upgrading users who'd
+     *  already turned swipe on keep their choice. */
+    fun incomingCallGesture(c: Context): Int {
+        val prefs = sp(c)
+        if (!prefs.contains("incoming_call_gesture") && prefs.getBoolean("swipe_to_answer", false)) {
+            return GESTURE_SWIPE
+        }
+        return prefs.getInt("incoming_call_gesture", GESTURE_TAP)
+    }
+    fun setIncomingCallGesture(c: Context, gesture: Int) =
+        sp(c).edit().putInt("incoming_call_gesture", gesture).apply()
 
     /** When off (default): an incoming call only takes over the full screen
      *  if the device is locked; while unlocked it shows as a notification

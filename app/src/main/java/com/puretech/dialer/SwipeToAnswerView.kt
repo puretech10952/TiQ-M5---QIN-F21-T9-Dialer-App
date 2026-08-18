@@ -18,7 +18,7 @@ import kotlin.math.abs
  * call-button sits in the middle of a rounded pill labelled "Decline" on the
  * left and "Answer" on the right: slide it RIGHT to answer or LEFT to decline.
  * Released near the centre, it springs back. Sized to fit the small M5/F21
- * screens. Optional alternative to the round buttons (see [Prefs.swipeToAnswer]).
+ * screens. Optional alternative to the round buttons (see [Prefs.incomingCallGesture]).
  */
 class SwipeToAnswerView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyle: Int = 0

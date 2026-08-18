@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurfaceContainer"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="6dp">
+
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/insights_title"
+            android:padding="10dp"
+            android:src="@drawable/ic_back"
+            app:tint="?attr/colorOnSurface" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="@string/insights_title"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingBottom="24dp">
+
+            <!-- Averages & records -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsGroupCard"
+                android:layout_marginHorizontal="0dp"
+                android:layout_marginTop="10dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="18dp"
+                    android:paddingVertical="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/insights_averages"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="10dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:text="@string/insights_avg_overall" android:textColor="?attr/colorOnSurface" android:textSize="15sp" />
+                        <TextView android:id="@+id/avgOverall" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="?attr/colorPrimary" android:textStyle="bold" android:textSize="15sp" tools:text="3m 12s" />
+                    </LinearLayout>
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="10dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:text="@string/insights_avg_incoming" android:textColor="?attr/colorOnSurface" android:textSize="15sp" />
+                        <TextView android:id="@+id/avgIncoming" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="?attr/colorPrimary" android:textStyle="bold" android:textSize="15sp" tools:text="4m 05s" />
+                    </LinearLayout>
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="10dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:text="@string/insights_avg_outgoing" android:textColor="?attr/colorOnSurface" android:textSize="15sp" />
+                        <TextView android:id="@+id/avgOutgoing" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="?attr/colorPrimary" android:textStyle="bold" android:textSize="15sp" tools:text="2m 20s" />
+                    </LinearLayout>
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="10dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:text="@string/insights_answer_rate" android:textColor="?attr/colorOnSurface" android:textSize="15sp" />
+                        <TextView android:id="@+id/answerRate" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="?attr/colorPrimary" android:textStyle="bold" android:textSize="15sp" tools:text="87%" />
+                    </LinearLayout>
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="10dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:text="@string/insights_calls_per_day" android:textColor="?attr/colorOnSurface" android:textSize="15sp" />
+                        <TextView android:id="@+id/callsPerDay" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="?attr/colorPrimary" android:textStyle="bold" android:textSize="15sp" tools:text="3.4" />
+                    </LinearLayout>
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="10dp">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="@string/insights_longest_call" android:textColor="?attr/colorOnSurface" android:textSize="15sp" />
+                            <TextView android:id="@+id/longestCallSub" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:textColor="?attr/colorOnSurfaceVariant" android:textSize="12sp"
+                                tools:text="with Mom · Aug 12" />
+                        </LinearLayout>
+                        <TextView android:id="@+id/longestCallValue" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="?attr/colorPrimary" android:textStyle="bold" android:textSize="15sp" tools:text="42m 10s" />
+                    </LinearLayout>
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="10dp">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="@string/insights_busiest_day" android:textColor="?attr/colorOnSurface" android:textSize="15sp" />
+                            <TextView android:id="@+id/busiestDaySub" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_marginTop="1dp"
+                                android:textColor="?attr/colorOnSurfaceVariant" android:textSize="12sp"
+                                tools:text="Aug 5 · 6 calls" />
+                        </LinearLayout>
+                        <TextView android:id="@+id/busiestDayValue" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="?attr/colorPrimary" android:textStyle="bold" android:textSize="15sp" tools:text="1h 40m" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Trends & run-rate -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsGroupCard"
+                android:layout_marginHorizontal="0dp"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="18dp"
+                    android:paddingVertical="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/insights_trends"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="@string/insights_this_week" android:textColor="?attr/colorOnSurfaceVariant" android:textSize="13sp" />
+                            <TextView android:id="@+id/thisWeekValue" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:textColor="?attr/colorOnSurface" android:textSize="20sp" android:textStyle="bold" tools:text="3h 12m" />
+                        </LinearLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="@string/insights_last_week" android:textColor="?attr/colorOnSurfaceVariant" android:textSize="13sp" />
+                            <TextView android:id="@+id/lastWeekValue" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:textColor="?attr/colorOnSurface" android:textSize="20sp" android:textStyle="bold" tools:text="2h 44m" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/trendDelta"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="▲ 17% vs last week" />
+
+                    <View style="@style/SettingRowDivider" android:layout_marginTop="14dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:text="@string/insights_projected_month" android:textColor="?attr/colorOnSurface" android:textSize="15sp" />
+                        <TextView android:id="@+id/projectedValue" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="?attr/colorPrimary" android:textStyle="bold" android:textSize="17sp" tools:text="~14h 20m" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Busy times heatmap -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsGroupCard"
+                android:layout_marginHorizontal="0dp"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="18dp"
+                    android:paddingVertical="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/insights_busy_times"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/insights_busy_times_sub"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp" />
+
+                    <com.puretech.dialer.BusyTimesHeatmapView
+                        android:id="@+id/heatmap"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginTop="14dp" />
+
+                    <TextView
+                        android:id="@+id/busiestSentence"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp"
+                        tools:text="You're usually busiest on Tuesday 4–8p" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Top contacts -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsGroupCard"
+                android:layout_marginHorizontal="0dp"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="18dp"
+                        android:paddingTop="16dp"
+                        android:text="@string/insights_top_contacts"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/topContactsContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/topContactsEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:paddingVertical="24dp"
+                        android:text="@string/insights_top_contacts_empty"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -53,16 +53,15 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowKeepAlive.setOnClickListener {
             startActivity(Intent(this, KeepAliveSettingsActivity::class.java))
         }
-        binding.rowVoicemail.setOnClickListener {
-            startActivity(Intent(this, VoicemailSettingsActivity::class.java))
-        }
         binding.rowRecording.setOnClickListener {
             startActivity(Intent(this, RecordingSettingsActivity::class.java))
         }
 
         // On/off settings now open their own detail page (switch lives inside).
         binding.rowDialpadTone.setOnClickListener { openToggle(ToggleSettingActivity.KEY_DIALPAD_TONE) }
-        binding.rowSwipeAnswer.setOnClickListener { openToggle(ToggleSettingActivity.KEY_SWIPE_ANSWER) }
+        binding.rowSwipeAnswer.setOnClickListener {
+            startActivity(Intent(this, IncomingCallGestureActivity::class.java))
+        }
         binding.rowAlwaysFullScreenCalls.setOnClickListener {
             openToggle(ToggleSettingActivity.KEY_ALWAYS_FULL_SCREEN_CALLS)
         }

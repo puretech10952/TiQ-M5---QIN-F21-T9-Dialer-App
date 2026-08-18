@@ -238,8 +238,10 @@
     <string name="setting_floating_dial_summary">لوحة أرقام عائمة اختيارية في شاشة الاتصال</string>
     <string name="setting_dialpad_tone">أصوات لوحة الأرقام</string>
     <string name="setting_dialpad_tone_summary">تشغيل صوت عند الضغط على مفتاح (دائمًا مفعّل أثناء المكالمة)</string>
-    <string name="setting_swipe_answer">التمرير للرد</string>
-    <string name="setting_swipe_answer_summary">مرّر زرًا للرد على المكالمات الواردة أو رفضها</string>
+    <string name="setting_incoming_gesture">إيماءة المكالمة الواردة</string>
+    <string name="setting_incoming_gesture_summary">اختر كيفية الرد على مكالمة واردة أو رفضها.</string>
+    <string name="incoming_gesture_tap">نقرة واحدة</string>
+    <string name="incoming_gesture_swipe">التمرير الأفقي</string>
     <string name="setting_block_unknown">حجب المتصلين المجهولين</string>
     <string name="setting_block_unknown_summary">رفض المكالمات الواردة بصمت من أرقام غير محفوظة في جهات الاتصال، بما فيها الأرقام المجهولة.</string>
     <string name="swipe_to_answer_hint">مرّر للرد أو الرفض</string>

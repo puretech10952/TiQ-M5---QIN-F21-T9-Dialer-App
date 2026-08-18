@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/StatRow">
+
+    <FrameLayout
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginEnd="18dp">
+
+        <TextView
+            android:id="@+id/contactInitial"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_circle_solid"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="M"
+            tools:visibility="visible" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/contactPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            app:shapeAppearanceOverlay="@style/CircleImageView" />
+    </FrameLayout>
+
+    <LinearLayout style="@style/StatText">
+        <TextView android:id="@+id/contactName" style="@style/StatLabel" tools:text="Mom" />
+        <TextView android:id="@+id/contactSub" style="@style/StatSub" tools:text="18 calls" />
+    </LinearLayout>
+
+    <TextView android:id="@+id/contactDuration" style="@style/StatValue" tools:text="3h 12m" />
+</LinearLayout>

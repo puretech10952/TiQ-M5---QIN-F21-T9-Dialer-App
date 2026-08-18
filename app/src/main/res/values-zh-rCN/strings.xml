@@ -228,8 +228,10 @@
     <string name="setting_floating_dial_summary">拨号界面上的可选浮动键盘</string>
     <string name="setting_dialpad_tone">键盘音效</string>
     <string name="setting_dialpad_tone_summary">按键时播放音效（通话中始终开启）</string>
-    <string name="setting_swipe_answer">滑动接听</string>
-    <string name="setting_swipe_answer_summary">滑动按钮接听或拒接来电</string>
+    <string name="setting_incoming_gesture">来电手势</string>
+    <string name="setting_incoming_gesture_summary">选择接听或拒接来电的方式。</string>
+    <string name="incoming_gesture_tap">单击</string>
+    <string name="incoming_gesture_swipe">水平滑动</string>
     <string name="setting_block_unknown">屏蔽未知来电</string>
     <string name="setting_block_unknown_summary">静默拒绝未存入联系人的号码来电，包括匿名号码。</string>
     <string name="swipe_to_answer_hint">滑动接听或拒接</string>

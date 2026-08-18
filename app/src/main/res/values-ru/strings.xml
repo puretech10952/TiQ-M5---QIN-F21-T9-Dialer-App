@@ -234,8 +234,10 @@
     <string name="setting_floating_dial_summary">Необязательная плавающая клавиатура на экране набора</string>
     <string name="setting_dialpad_tone">Тоны клавиатуры</string>
     <string name="setting_dialpad_tone_summary">Воспроизводить тон при нажатии клавиши (всегда включено во время звонка)</string>
-    <string name="setting_swipe_answer">Смахивание для ответа</string>
-    <string name="setting_swipe_answer_summary">Сдвиньте кнопку для ответа или отклонения входящего звонка</string>
+    <string name="setting_incoming_gesture">Жест для входящего звонка</string>
+    <string name="setting_incoming_gesture_summary">Выберите, как отвечать на входящий звонок или отклонять его.</string>
+    <string name="incoming_gesture_tap">Одно касание</string>
+    <string name="incoming_gesture_swipe">Горизонтальный свайп</string>
     <string name="setting_block_unknown">Блокировать неизвестных</string>
     <string name="setting_block_unknown_summary">Тихо отклонять звонки с номеров, не сохранённых в контактах, включая скрытые номера.</string>
     <string name="swipe_to_answer_hint">Смахните для ответа или отклонения</string>

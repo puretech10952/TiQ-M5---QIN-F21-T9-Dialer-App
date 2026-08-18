@@ -230,8 +230,10 @@
     <string name="setting_floating_dial_summary">Clavier flottant optionnel sur l\'écran de numérotation</string>
     <string name="setting_dialpad_tone">Tonalités du clavier</string>
     <string name="setting_dialpad_tone_summary">Jouer une tonalité lors d\'une pression (toujours actif pendant un appel)</string>
-    <string name="setting_swipe_answer">Glisser pour répondre</string>
-    <string name="setting_swipe_answer_summary">Faites glisser un bouton pour répondre ou refuser les appels entrants</string>
+    <string name="setting_incoming_gesture">Geste d\'appel entrant</string>
+    <string name="setting_incoming_gesture_summary">Choisissez comment répondre ou refuser un appel entrant.</string>
+    <string name="incoming_gesture_tap">Appui simple</string>
+    <string name="incoming_gesture_swipe">Glissement horizontal</string>
     <string name="setting_block_unknown">Bloquer les appelants inconnus</string>
     <string name="setting_block_unknown_summary">Rejette silencieusement les appels de numéros non enregistrés dans vos contacts, y compris les numéros masqués.</string>
     <string name="swipe_to_answer_hint">Glissez pour répondre ou refuser</string>

@@ -232,8 +232,10 @@
     <string name="setting_floating_dial_summary">לוח מקשים צף אופציונלי במסך החיוג</string>
     <string name="setting_dialpad_tone">צלילי מקלדת</string>
     <string name="setting_dialpad_tone_summary">השמע צליל בלחיצה על מקש (פעיל תמיד בזמן שיחה)</string>
-    <string name="setting_swipe_answer">החלק לענייה</string>
-    <string name="setting_swipe_answer_summary">החלק כפתור לקבלה או דחיית שיחות נכנסות</string>
+    <string name="setting_incoming_gesture">מחווה לשיחה נכנסת</string>
+    <string name="setting_incoming_gesture_summary">בחר כיצד לענות או לדחות שיחה נכנסת.</string>
+    <string name="incoming_gesture_tap">הקשה בודדת</string>
+    <string name="incoming_gesture_swipe">החלקה אופקית</string>
     <string name="setting_block_unknown">חסום מתקשרים לא ידועים</string>
     <string name="setting_block_unknown_summary">דחה בשקט שיחות ממספרים שאינם שמורים באנשי הקשר, כולל מספרים חסויים.</string>
     <string name="swipe_to_answer_hint">החלק לענות או לדחות</string>

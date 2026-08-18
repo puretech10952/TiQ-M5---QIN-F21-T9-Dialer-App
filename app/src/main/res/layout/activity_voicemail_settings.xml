@@ -73,6 +73,14 @@
                             android:id="@+id/visualStatus"
                             style="@style/SettingSummary"
                             tools:text="Download voicemails from your carrier and play them here" />
+
+                        <TextView
+                            android:id="@+id/visualStatusDetail"
+                            style="@style/SettingSummary"
+                            android:layout_marginTop="2dp"
+                            android:visibility="gone"
+                            tools:text="Contact your carrier and ask them to enable visual voicemail for your line"
+                            tools:visibility="visible" />
                     </LinearLayout>
 
                     <com.google.android.material.materialswitch.MaterialSwitch

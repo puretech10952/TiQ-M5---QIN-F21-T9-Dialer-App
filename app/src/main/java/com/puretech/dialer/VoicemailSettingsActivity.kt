@@ -9,6 +9,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.puretech.dialer.databinding.ActivityVoicemailSettingsBinding
@@ -89,6 +90,7 @@ class VoicemailSettingsActivity : AppCompatActivity() {
         // Connected/Setting up/Failed are single-word, color-coded status --
         // everything else keeps the longer explanatory text since there's no
         // color convention for it.
+        binding.visualStatusDetail.visibility = View.GONE
         when (state) {
             VvmState.CONNECTED -> {
                 binding.visualStatus.text = getString(R.string.vvm_status_connected)
@@ -101,6 +103,8 @@ class VoicemailSettingsActivity : AppCompatActivity() {
             VvmState.FAILED -> {
                 binding.visualStatus.text = getString(R.string.vvm_status_failed)
                 binding.visualStatus.setTextColor(ContextCompat.getColor(this, R.color.missed_red))
+                binding.visualStatusDetail.text = getString(R.string.vvm_status_failed_detail)
+                binding.visualStatusDetail.visibility = View.VISIBLE
             }
             else -> {
                 binding.visualStatus.text = when {

@@ -230,8 +230,10 @@
     <string name="setting_floating_dial_summary">Tastiera flottante opzionale sulla schermata di composizione</string>
     <string name="setting_dialpad_tone">Toni tastiera</string>
     <string name="setting_dialpad_tone_summary">Riproduci un tono quando premi un tasto (sempre attivo durante una chiamata)</string>
-    <string name="setting_swipe_answer">Scorri per rispondere</string>
-    <string name="setting_swipe_answer_summary">Scorri un pulsante per rispondere o rifiutare le chiamate in entrata</string>
+    <string name="setting_incoming_gesture">Gesto per le chiamate in arrivo</string>
+    <string name="setting_incoming_gesture_summary">Scegli come rispondere o rifiutare una chiamata in arrivo.</string>
+    <string name="incoming_gesture_tap">Tocco singolo</string>
+    <string name="incoming_gesture_swipe">Scorrimento orizzontale</string>
     <string name="setting_block_unknown">Blocca chiamanti sconosciuti</string>
     <string name="setting_block_unknown_summary">Rifiuta silenziosamente le chiamate da numeri non salvati nei contatti, inclusi i numeri privati.</string>
     <string name="swipe_to_answer_hint">Scorri per rispondere o rifiutare</string>

@@ -436,28 +436,31 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnWaitMessage"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:text="@string/reply_message"
-            android:textColor="#8AB4F8"
+            android:textColor="#1A73E8"
+            app:backgroundTint="#E8F0FE"
             app:icon="@drawable/ic_message"
-            app:iconTint="#8AB4F8" />
+            app:iconTint="#1A73E8" />
     </LinearLayout>
 
     <!-- Single incoming-call: reply button + Answer/Decline -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnIncomingMessage"
-        style="@style/Widget.Material3.Button.TextButton"
+        style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="14dp"
         android:text="@string/reply_message"
-        android:textColor="#8AB4F8"
+        android:textColor="#1A73E8"
         android:visibility="gone"
+        app:backgroundTint="#E8F0FE"
         app:icon="@drawable/ic_message"
-        app:iconTint="#8AB4F8" />
+        app:iconTint="#1A73E8" />
 
     <LinearLayout
         android:id="@+id/incomingControls"

@@ -278,29 +278,39 @@
         </LinearLayout><!-- end bottom stack -->
     </FrameLayout>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navView"
+    <!-- Drawer content: the NavigationView's menu scrolls in its own space above a
+         real reserved-height footer row, instead of the version text floating as
+         an overlay on top of the menu (which could cover the last item once the
+         menu has enough entries to overflow the screen). -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/drawer_header"
-        app:menu="@menu/drawer_menu"
-        app:itemVerticalPadding="4dp"
-        app:itemShapeInsetTop="0dp"
-        app:itemShapeInsetBottom="0dp">
+        android:orientation="vertical"
+        android:background="?attr/colorSurface"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/navView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:headerLayout="@layout/drawer_header"
+            app:menu="@menu/drawer_menu"
+            app:itemVerticalPadding="4dp"
+            app:itemShapeInsetTop="0dp"
+            app:itemShapeInsetBottom="0dp" />
 
         <TextView
             android:id="@+id/drawerVersion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
             android:paddingHorizontal="24dp"
             android:paddingVertical="20dp"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="13sp"
             tools:text="PureTech Dialer Version 1.3.3 Beta" />
 
-    </com.google.android.material.navigation.NavigationView>
+    </LinearLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

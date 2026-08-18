@@ -230,8 +230,10 @@
     <string name="setting_floating_dial_summary">Optionale schwebende Tastatur auf dem Wählerbildschirm</string>
     <string name="setting_dialpad_tone">Tastaturtöne</string>
     <string name="setting_dialpad_tone_summary">Ton beim Drücken einer Taste abspielen (immer aktiv während eines Anrufs)</string>
-    <string name="setting_swipe_answer">Zum Annehmen wischen</string>
-    <string name="setting_swipe_answer_summary">Schieben Sie eine Taste seitwärts, um eingehende Anrufe anzunehmen oder abzulehnen</string>
+    <string name="setting_incoming_gesture">Geste für eingehende Anrufe</string>
+    <string name="setting_incoming_gesture_summary">Wählen Sie, wie Sie einen eingehenden Anruf annehmen oder ablehnen möchten.</string>
+    <string name="incoming_gesture_tap">Einfaches Tippen</string>
+    <string name="incoming_gesture_swipe">Horizontales Wischen</string>
     <string name="setting_block_unknown">Unbekannte Anrufer sperren</string>
     <string name="setting_block_unknown_summary">Eingehende Anrufe von Nummern, die nicht in Ihren Kontakten gespeichert sind, lautlos ablehnen.</string>
     <string name="swipe_to_answer_hint">Wischen zum Annehmen oder Ablehnen</string>

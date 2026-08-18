@@ -22,8 +22,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.content.ContextCompat
 import com.puretech.dialer.databinding.ActivityIncallBinding
 
@@ -326,7 +326,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     /** Show either the slide-to-answer control or the round Answer/Decline
      *  buttons for an incoming call, depending on the user's setting. */
     private fun showIncomingControls() {
-        if (Prefs.swipeToAnswer(this)) {
+        if (Prefs.incomingCallGesture(this) == Prefs.GESTURE_SWIPE) {
             binding.swipeIncoming.reset()
             show(binding.swipeIncomingPanel)
             hide(binding.incomingControls)
@@ -437,7 +437,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         val minutesOptions = intArrayOf(30, 60, 90, 120)
         val labels = resources.getStringArray(R.array.sleep_timer_options)
         var selected = minutesOptions.indexOf(Prefs.sleepTimerMinutes(this)).coerceAtLeast(0)
-        val builder = AlertDialog.Builder(this)
+        val builder = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.sleep_timer_title)
             .setSingleChoiceItems(labels, selected) { _, which -> selected = which }
             .setPositiveButton(R.string.ctl_sleep_timer_start) { _, _ ->
@@ -537,8 +537,9 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         val call = target ?: return
         val responses = Prefs.quickResponses(this).toTypedArray()
         val items = (responses.toList() + getString(R.string.reply_custom)).toTypedArray()
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.reply_title)
+            .setIcon(R.drawable.ic_message)
             .setItems(items) { _, which ->
                 if (which < responses.size) CallManager.rejectWithMessage(responses[which], call)
                 else showCustomReply(call)
@@ -551,7 +552,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             setHint(R.string.reply_title)
         }
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.reply_custom)
             .setView(input)
             .setPositiveButton(R.string.reply_send) { _, _ ->

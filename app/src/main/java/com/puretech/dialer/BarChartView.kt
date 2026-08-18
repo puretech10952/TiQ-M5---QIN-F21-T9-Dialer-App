@@ -18,7 +18,7 @@ class BarChartView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyle: Int = 0
 ) : View(context, attrs, defStyle) {
 
-    data class Bar(val label: String, val value: Int)
+    data class Bar(val label: String, val value: Int, val displayValue: String = value.toString())
 
     private var bars: List<Bar> = emptyList()
 
@@ -79,7 +79,7 @@ class BarChartView @JvmOverloads constructor(
                 val barTop = chartBottom - chartH * (value.toFloat() / maxVal)
                 rect.set(left, barTop, right, chartBottom)
                 canvas.drawRoundRect(rect, radius, radius, barPaint)
-                canvas.drawText(value.toString(), cx, barTop - 5f * density, valuePaint)
+                canvas.drawText(bars[i].displayValue, cx, barTop - 5f * density, valuePaint)
             }
 
             // X-axis label.

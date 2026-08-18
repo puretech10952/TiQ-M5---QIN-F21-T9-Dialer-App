@@ -13,10 +13,12 @@ class CallStatsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCallStatsBinding
 
-    /** All call timestamps, loaded once and re-bucketed when the range changes. */
-    private var callDates: LongArray = LongArray(0)
+    /** All calls' (timestamp, duration) pairs, loaded once and re-bucketed
+     *  when the range or the Calls/Minutes toggle changes. */
+    private var callLog: List<Pair<Long, Long>> = emptyList()
 
     private enum class Range { DAY, MONTH, YEAR }
+    private enum class ValueMode { CALLS, MINUTES }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +33,15 @@ class CallStatsActivity : AppCompatActivity() {
         binding.cardOutgoing.setOnClickListener { openLog(HomeActivity.FILTER_OUTGOING) }
         binding.cardMissed.setOnClickListener { openLog(HomeActivity.FILTER_MISSED) }
 
+        binding.cardInsights.setOnClickListener {
+            startActivity(Intent(this, CallInsightsActivity::class.java))
+        }
+
+        binding.valueToggle.check(R.id.btnValueCalls)
+        binding.valueToggle.addOnButtonCheckedListener { _, _, isChecked ->
+            if (isChecked) renderChart(rangeFor(binding.rangeToggle.checkedButtonId))
+        }
+
         binding.rangeToggle.check(R.id.btnRangeMonth)
         binding.rangeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) renderChart(rangeFor(checkedId))
@@ -38,10 +49,10 @@ class CallStatsActivity : AppCompatActivity() {
 
         Thread {
             val s = CallLogRepository.stats(applicationContext)
-            val dates = CallLogRepository.callDates(applicationContext)
+            val log = CallLogRepository.callLog(applicationContext)
             runOnUiThread {
                 bind(s)
-                callDates = dates
+                callLog = log
                 renderChart(rangeFor(binding.rangeToggle.checkedButtonId))
             }
         }.start()
@@ -72,8 +83,12 @@ class CallStatsActivity : AppCompatActivity() {
         else -> Range.MONTH
     }
 
+    private fun valueModeFor(checkedId: Int): ValueMode =
+        if (checkedId == R.id.btnValueMinutes) ValueMode.MINUTES else ValueMode.CALLS
+
     private fun renderChart(range: Range) {
-        val bars = buckets(callDates, range)
+        val mode = valueModeFor(binding.valueToggle.checkedButtonId)
+        val bars = buckets(callLog, range, mode)
         val hasData = bars.any { it.value > 0 }
         binding.chart.visibility = if (hasData) View.VISIBLE else View.GONE
         binding.chartEmpty.visibility = if (hasData) View.GONE else View.VISIBLE
@@ -82,14 +97,17 @@ class CallStatsActivity : AppCompatActivity() {
 
     // --- Bucketing -------------------------------------------------------------
 
-    /** Tally call dates into the trailing window for [range], oldest → newest. */
-    private fun buckets(dates: LongArray, range: Range): List<BarChartView.Bar> {
+    /** Tally calls into the trailing window for [range], oldest → newest --
+     *  either a count per bucket, or total talk time when [mode] is MINUTES. */
+    private fun buckets(log: List<Pair<Long, Long>>, range: Range, mode: ValueMode): List<BarChartView.Bar> {
         val counts = HashMap<Long, Int>()
+        val durations = HashMap<Long, Long>()
         val cal = Calendar.getInstance()
-        for (d in dates) {
-            cal.timeInMillis = d
+        for ((date, duration) in log) {
+            cal.timeInMillis = date
             val key = keyOf(cal, range)
             counts[key] = (counts[key] ?: 0) + 1
+            durations[key] = (durations[key] ?: 0L) + duration
         }
         val span = when (range) { Range.DAY -> 7; Range.MONTH -> 12; Range.YEAR -> 6 }
         val out = ArrayList<BarChartView.Bar>(span)
@@ -100,7 +118,15 @@ class CallStatsActivity : AppCompatActivity() {
                 Range.MONTH -> c.add(Calendar.MONTH, -i)
                 Range.YEAR -> c.add(Calendar.YEAR, -i)
             }
-            out.add(BarChartView.Bar(labelOf(c, range), counts[keyOf(c, range)] ?: 0))
+            val key = keyOf(c, range)
+            out.add(
+                if (mode == ValueMode.MINUTES) {
+                    val secs = durations[key] ?: 0L
+                    BarChartView.Bar(labelOf(c, range), (secs / 60).toInt(), secs.asTalkTime())
+                } else {
+                    BarChartView.Bar(labelOf(c, range), counts[key] ?: 0)
+                }
+            )
         }
         return out
     }

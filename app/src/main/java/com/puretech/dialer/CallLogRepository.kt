@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.CallLog
 import android.provider.ContactsContract
+import java.util.Calendar
 
 /** One recents row (consecutive calls with the same number are grouped). */
 data class CallLogEntry(
@@ -41,6 +42,37 @@ data class CallStats(
     val totalDuration: Long get() = incomingDuration + outgoingDuration
     val answeredCount: Int get() = incomingCount + outgoingCount
 }
+
+/** A single "record" call: who, how long, when. Used for the longest-call stat. */
+data class CallRecord(val name: String?, val number: String, val duration: Long, val date: Long)
+
+/** One calendar day's totals, for the busiest-day-ever stat. */
+data class DayRecord(val date: Long, val count: Int, val duration: Long)
+
+/** Talk time in one weekday (0 = Sunday .. 6 = Saturday) x daypart (0 = 12a-4a
+ *  .. 5 = 8p-12a) cell of the busy-times heatmap grid. */
+data class HeatmapCell(val weekday: Int, val daypart: Int, val count: Int, val duration: Long)
+
+/** One contact's total talk time across the whole call history. */
+data class ContactTalkTime(val name: String, val duration: Long, val count: Int)
+
+/** Deep aggregate analytics across the whole call log: averages, records,
+ *  weekday/daypart distribution, top contacts, and week-over-week / run-rate
+ *  trends. Powers the Insights screen -- see [CallLogRepository.deepStats]. */
+data class DeepCallStats(
+    val avgDurationOverall: Long,
+    val avgDurationIncoming: Long,
+    val avgDurationOutgoing: Long,
+    val avgCallsPerActiveDay: Double,
+    val answerRatePercent: Int,
+    val longestCall: CallRecord?,
+    val busiestDayEver: DayRecord?,
+    val heatmapCells: List<HeatmapCell>,
+    val topContacts: List<ContactTalkTime>,
+    val thisWeekDuration: Long,
+    val lastWeekDuration: Long,
+    val projectedThisMonth: Long
+)
 
 object CallLogRepository {
 
@@ -400,6 +432,177 @@ object CallLogRepository {
         LocalCallStore.loadBefore(context, sysOldest).mapTo(out) { it.date }
         out.sortDescending()
         return out.toLongArray()
+    }
+
+    /** Every call's (timestamp, duration) pair -- for the call-activity graph's
+     *  Calls/Minutes toggle on the "Call durations" screen. */
+    fun callLog(context: Context): List<Pair<Long, Long>> {
+        if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
+            != PackageManager.PERMISSION_GRANTED
+        ) return emptyList()
+        val out = ArrayList<Pair<Long, Long>>()
+        var sysOldest = Long.MAX_VALUE
+        try {
+            context.contentResolver.query(
+                CallLog.Calls.CONTENT_URI,
+                arrayOf(CallLog.Calls.DATE, CallLog.Calls.DURATION),
+                null, null, "${CallLog.Calls.DATE} DESC"
+            )?.use { c ->
+                val dateIdx = c.getColumnIndex(CallLog.Calls.DATE)
+                val durIdx = c.getColumnIndex(CallLog.Calls.DURATION)
+                while (c.moveToNext()) {
+                    val d = if (dateIdx >= 0) c.getLong(dateIdx) else 0L
+                    val dur = if (durIdx >= 0) c.getLong(durIdx) else 0L
+                    out.add(d to dur)
+                    if (d < sysOldest) sysOldest = d
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("M5CallLog", "callLog failed: ${e.message}")
+        }
+        LocalCallStore.loadBefore(context, sysOldest).mapTo(out) { it.date to it.duration }
+        out.sortByDescending { it.first }
+        return out
+    }
+
+    /** Deep aggregate analytics (system + local store) -- see [DeepCallStats]. */
+    fun deepStats(context: Context): DeepCallStats {
+        val empty = DeepCallStats(0, 0, 0, 0.0, 0, null, null, emptyList(), emptyList(), 0, 0, 0)
+        if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
+            != PackageManager.PERMISSION_GRANTED
+        ) return empty
+
+        data class Row(val number: String, val name: String?, val type: Int, val date: Long, val duration: Long)
+        val rows = ArrayList<Row>()
+        var sysOldest = Long.MAX_VALUE
+        try {
+            context.contentResolver.query(
+                CallLog.Calls.CONTENT_URI,
+                arrayOf(
+                    CallLog.Calls.NUMBER, CallLog.Calls.CACHED_NAME,
+                    CallLog.Calls.TYPE, CallLog.Calls.DURATION, CallLog.Calls.DATE
+                ),
+                null, null, null
+            )?.use { c ->
+                val numIdx = c.getColumnIndex(CallLog.Calls.NUMBER)
+                val nameIdx = c.getColumnIndex(CallLog.Calls.CACHED_NAME)
+                val typeIdx = c.getColumnIndex(CallLog.Calls.TYPE)
+                val durIdx = c.getColumnIndex(CallLog.Calls.DURATION)
+                val dateIdx = c.getColumnIndex(CallLog.Calls.DATE)
+                while (c.moveToNext()) {
+                    val number = if (numIdx >= 0) c.getString(numIdx).orEmpty() else ""
+                    val name = if (nameIdx >= 0) c.getString(nameIdx)?.ifBlank { null } else null
+                    val type = if (typeIdx >= 0) c.getInt(typeIdx) else 0
+                    val dur = if (durIdx >= 0) c.getLong(durIdx) else 0L
+                    val date = if (dateIdx >= 0) c.getLong(dateIdx) else Long.MAX_VALUE
+                    if (date < sysOldest) sysOldest = date
+                    rows.add(Row(number, name, type, date, dur))
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("M5CallLog", "deepStats failed: ${e.message}")
+        }
+        LocalCallStore.loadBefore(context, sysOldest).forEach {
+            rows.add(Row(it.number, it.name, it.type, it.date, it.duration))
+        }
+        if (rows.isEmpty()) return empty
+
+        var inCount = 0; var inDur = 0L
+        var outCount = 0; var outDur = 0L
+        var missed = 0
+        var longest: Row? = null
+        val activeDays = HashSet<Long>()
+        val gridCount = Array(7) { IntArray(6) }
+        val gridDur = Array(7) { LongArray(6) }
+        val dayCount = HashMap<Long, Int>(); val dayDur = HashMap<Long, Long>()
+        val contactDur = HashMap<String, Long>()
+        val contactCount = HashMap<String, Int>()
+        val contactName = HashMap<String, String>()
+
+        val now = System.currentTimeMillis()
+        val weekMs = 7L * 24 * 3600 * 1000
+        val thisWeekStart = now - weekMs
+        val lastWeekStart = now - 2 * weekMs
+        var thisWeekDur = 0L; var lastWeekDur = 0L
+
+        val monthCal = Calendar.getInstance()
+        val dayOfMonth = monthCal.get(Calendar.DAY_OF_MONTH)
+        val daysInMonth = monthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        monthCal.set(Calendar.DAY_OF_MONTH, 1)
+        monthCal.set(Calendar.HOUR_OF_DAY, 0); monthCal.set(Calendar.MINUTE, 0)
+        monthCal.set(Calendar.SECOND, 0); monthCal.set(Calendar.MILLISECOND, 0)
+        val monthStart = monthCal.timeInMillis
+        var monthSoFarDur = 0L
+
+        val cal = Calendar.getInstance()
+        for (r in rows) {
+            when (r.type) {
+                CallLog.Calls.OUTGOING_TYPE -> { outCount++; outDur += r.duration }
+                CallLog.Calls.INCOMING_TYPE,
+                CallLog.Calls.ANSWERED_EXTERNALLY_TYPE -> { inCount++; inDur += r.duration }
+                CallLog.Calls.MISSED_TYPE, CallLog.Calls.REJECTED_TYPE -> missed++
+            }
+            if (r.duration <= 0) continue
+
+            val cur = longest
+            if (cur == null || r.duration > cur.duration) longest = r
+
+            cal.timeInMillis = r.date
+            val weekday = cal.get(Calendar.DAY_OF_WEEK) - 1
+            val daypart = (cal.get(Calendar.HOUR_OF_DAY) / 4).coerceIn(0, 5)
+            gridCount[weekday][daypart]++; gridDur[weekday][daypart] += r.duration
+
+            val df = dayFloor(r.date)
+            activeDays.add(df)
+            dayCount[df] = (dayCount[df] ?: 0) + 1
+            dayDur[df] = (dayDur[df] ?: 0L) + r.duration
+
+            if (r.date >= thisWeekStart) thisWeekDur += r.duration
+            else if (r.date >= lastWeekStart) lastWeekDur += r.duration
+            if (r.date >= monthStart) monthSoFarDur += r.duration
+
+            val digits = r.number.filter { it.isDigit() }
+            val key = if (digits.length >= 7) digits.takeLast(7) else digits
+            if (key.isNotEmpty()) {
+                contactDur[key] = (contactDur[key] ?: 0L) + r.duration
+                contactCount[key] = (contactCount[key] ?: 0) + 1
+                if (r.name != null && contactName[key] == null) contactName[key] = r.name
+            }
+        }
+
+        val answered = inCount + outCount
+        val totalDur = inDur + outDur
+        val busiestDay = dayDur.maxByOrNull { it.value }
+        val topContacts = contactDur.entries.sortedByDescending { it.value }.take(5).map { (key, dur) ->
+            ContactTalkTime(contactName[key] ?: key, dur, contactCount[key] ?: 0)
+        }
+        val projected = if (dayOfMonth > 0) monthSoFarDur * daysInMonth / dayOfMonth else 0L
+        val heatmapCells = (0..6).flatMap { wd ->
+            (0..5).map { dp -> HeatmapCell(wd, dp, gridCount[wd][dp], gridDur[wd][dp]) }
+        }
+
+        return DeepCallStats(
+            avgDurationOverall = if (answered > 0) totalDur / answered else 0L,
+            avgDurationIncoming = if (inCount > 0) inDur / inCount else 0L,
+            avgDurationOutgoing = if (outCount > 0) outDur / outCount else 0L,
+            avgCallsPerActiveDay = if (activeDays.isNotEmpty()) answered.toDouble() / activeDays.size else 0.0,
+            answerRatePercent = if (inCount + missed > 0) (inCount * 100) / (inCount + missed) else 0,
+            longestCall = longest?.let { CallRecord(it.name, it.number, it.duration, it.date) },
+            busiestDayEver = busiestDay?.let { DayRecord(it.key, dayCount[it.key] ?: 0, it.value) },
+            heatmapCells = heatmapCells,
+            topContacts = topContacts,
+            thisWeekDuration = thisWeekDur,
+            lastWeekDuration = lastWeekDur,
+            projectedThisMonth = projected
+        )
+    }
+
+    private fun dayFloor(date: Long): Long {
+        val c = Calendar.getInstance()
+        c.timeInMillis = date
+        c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0)
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0)
+        return c.timeInMillis
     }
 
     /**

@@ -228,8 +228,10 @@
     <string name="setting_floating_dial_summary">ダイヤル画面のオプションのフローティングキーパッド</string>
     <string name="setting_dialpad_tone">キーパッドトーン</string>
     <string name="setting_dialpad_tone_summary">キー押下時にトーンを再生（通話中は常にオン）</string>
-    <string name="setting_swipe_answer">スワイプで応答</string>
-    <string name="setting_swipe_answer_summary">ボタンをスワイプして着信に応答または拒否</string>
+    <string name="setting_incoming_gesture">着信操作</string>
+    <string name="setting_incoming_gesture_summary">着信に応答または拒否する方法を選択してください。</string>
+    <string name="incoming_gesture_tap">シングルタップ</string>
+    <string name="incoming_gesture_swipe">左右にスワイプ</string>
     <string name="setting_block_unknown">不明な発信者をブロック</string>
     <string name="setting_block_unknown_summary">連絡先に保存されていない番号（匿名番号を含む）からの着信をサイレントで拒否します。</string>
     <string name="swipe_to_answer_hint">スワイプして応答または拒否</string>
