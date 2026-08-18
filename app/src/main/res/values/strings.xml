@@ -12,6 +12,7 @@
     <string name="about_version">Version %1$s (%2$d)</string>
     <string name="about_copyright">© 2026 PureTech</string>
     <string name="about_rights">All rights reserved.</string>
+    <string name="about_made_possible">Made possible by puretechkosher.com</string>
     <string name="about_feedback">Send feedback</string>
     <string name="about_feedback_email" translatable="false">puretech10952@gmail.com</string>
     <string name="about_feedback_subject">PureTech Dialer feedback (v%1$s)</string>
