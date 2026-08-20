@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Card style matches the call log / voicemail lists: one rounded card per
+     row (always a standalone single card, since Starred entries aren't
+     grouped), tap to expand the same kind of action shade. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginTop="2dp"
+    android:orientation="vertical"
+    android:background="@drawable/bg_log_group_single">
+
+    <LinearLayout
+        android:id="@+id/row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
+
+        <FrameLayout
+            android:id="@+id/avatar"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/avatarInitial"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_circle_solid"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Y"
+                tools:visibility="visible" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/avatarPhoto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_person"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/CircleImageView" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp"
+                tools:text="Kol Mevaser" />
+
+            <TextView
+                android:id="@+id/subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp"
+                tools:text="Starred Today" />
+
+            <TextView
+                android:id="@+id/notePreview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="Note: call back about invoice"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/callBtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/log_call"
+            android:padding="12dp"
+            android:src="@drawable/ic_call_outline"
+            app:tint="?attr/colorPrimary" />
+    </LinearLayout>
+
+    <!-- Expanded shade (opens under the row on tap): Notes / Message / History / Copy. -->
+    <LinearLayout
+        android:id="@+id/actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/actionNotes"
+            style="@style/LogShadeButton"
+            android:background="@drawable/bg_shade_top"
+            android:drawableStart="@drawable/ic_note"
+            android:text="@string/notes" />
+
+        <TextView
+            android:id="@+id/actionMessage"
+            style="@style/LogShadeButton"
+            android:background="@drawable/bg_shade_middle"
+            android:drawableStart="@drawable/ic_message"
+            android:text="@string/log_message" />
+
+        <TextView
+            android:id="@+id/actionHistory"
+            style="@style/LogShadeButton"
+            android:background="@drawable/bg_shade_middle"
+            android:drawableStart="@drawable/ic_history"
+            android:text="@string/log_history" />
+
+        <TextView
+            android:id="@+id/actionCopy"
+            style="@style/LogShadeButton"
+            android:background="@drawable/bg_shade_bottom"
+            android:drawableStart="@drawable/ic_content_copy"
+            android:text="@string/log_copy" />
+    </LinearLayout>
+
+</LinearLayout>

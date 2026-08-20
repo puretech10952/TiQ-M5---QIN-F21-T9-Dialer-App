@@ -125,6 +125,28 @@
     <string name="delete_all_logs_confirm">Delete all call log history? This can\'t be undone.</string>
     <string name="all_logs_deleted">Call log cleared</string>
 
+    <!-- Starred -->
+    <string name="nav_starred">Starred</string>
+    <string name="starred_title">Starred</string>
+    <string name="star_entry">Star entry</string>
+    <string name="unstar_entry">Unstar entry</string>
+    <string name="starred_sort">Sort</string>
+    <string name="starred_sort_date_new">Date starred (newest first)</string>
+    <string name="starred_sort_date_old">Date starred (oldest first)</string>
+    <string name="starred_sort_name">Name</string>
+    <string name="starred_clear_all">Clear all starred</string>
+    <string name="starred_clear_all_confirm">Remove all starred contacts? This can\'t be undone.</string>
+    <string name="starred_add">Add starred contact</string>
+    <string name="starred_add_from_contacts">From Contacts</string>
+    <string name="starred_add_from_recents">From Recents</string>
+    <string name="starred_add_manually">Enter manually</string>
+    <string name="starred_empty">No starred contacts yet</string>
+    <string name="starred_subtitle">Starred %1$s</string>
+    <string name="starred_note_preview">Note: %1$s</string>
+    <string name="notes">Notes</string>
+    <string name="notes_hint">Write a note…</string>
+    <string name="notes_save">Save</string>
+
     <!-- Settings entries -->
     <string name="setting_theme">Theme</string>
     <string name="setting_theme_light">Light</string>
@@ -172,7 +194,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• <b>Call Insights</b> (new!) — averages, your longest call and busiest day ever, a busy-times heatmap of when you\'re usually on the phone, top contacts by talk time, and week-over-week trends. Find it in Call durations → \"See deeper insights\"\n\n• <b>Incoming call gesture</b> — answer or decline with a Single tap (default) or a Horizontal swipe, your choice in Settings\n\n• Voicemail setup moved to the sidebar menu, Settings reorganized into clearer groups, and the message/reply screens got a cleaner, more modern look\n\n• Since 1.2.2: <b>Sleep timer</b> for calls, plus Bluetooth device switching and visual voicemail (beta) from 1.2.0</string>
+    <string name="whats_new_body">• <b>Starred</b> (new!) — pin important calls and contacts so they\'re never lost. Long-press any call log entry to star it, or tap the star in a call\'s History screen. Find your starred list in the sidebar menu, sorted by when you starred them or by name.\n\n• Add a <b>Note</b> to any starred entry to remember what you need to do — plus quick Message, History, and Copy number actions right from the list.\n\n• Add starred entries from Contacts, Recents, or a number you type in — and clear them all at once from the Starred page.</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>

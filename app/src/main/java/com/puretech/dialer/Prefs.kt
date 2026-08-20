@@ -116,6 +116,11 @@ object Prefs {
     fun setFavoritesExpanded(c: Context, expanded: Boolean) =
         sp(c).edit().putBoolean("favorites_expanded", expanded).apply()
 
+    /** Starred page sort mode: 0 = date newest first, 1 = date oldest first, 2 = name. */
+    fun starredSortMode(c: Context) = sp(c).getInt("starred_sort_mode", 0)
+    fun setStarredSortMode(c: Context, mode: Int) =
+        sp(c).edit().putInt("starred_sort_mode", mode).apply()
+
     /** Whether to show the optional floating on-screen-keypad button on the dial screen. */
     fun floatingDialButton(c: Context) = sp(c).getBoolean("floating_dial", false)
     fun setFloatingDialButton(c: Context, on: Boolean) =

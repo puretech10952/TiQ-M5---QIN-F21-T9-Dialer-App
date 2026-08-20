@@ -281,6 +281,7 @@ class HomeActivity : AppCompatActivity() {
         binding.navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_search -> startActivity(Intent(this, CallLogSearchActivity::class.java))
+                R.id.nav_starred -> startActivity(Intent(this, StarredActivity::class.java))
                 R.id.nav_settings -> startActivity(Intent(this, SettingsActivity::class.java))
                 R.id.nav_voicemail -> startActivity(Intent(this, VoicemailSettingsActivity::class.java))
                 R.id.nav_durations -> startActivity(Intent(this, CallStatsActivity::class.java))

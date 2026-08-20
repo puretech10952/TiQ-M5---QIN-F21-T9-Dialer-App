@@ -25,7 +25,9 @@ data class CallLogEntry(
     /** SIM label (e.g. "SIM 1") — only set on dual-SIM devices. */
     val simLabel: String? = null,
     /** True when this row is a contact search result rather than a real call. */
-    val asContact: Boolean = false
+    val asContact: Boolean = false,
+    /** True when this number is in the Starred list ([StarredStore]). */
+    val isStarred: Boolean = false
 )
 
 /** A single call (for the per-number History screen). */
@@ -156,10 +158,21 @@ object CallLogRepository {
         // Merge in local-store entries that the system log has already trimmed away.
         val combined = mergeLocal(context, raw, missedOnly)
         val resolved = resolveNames(context, group(combined))
+        val starredKeys = StarredStore.loadKeys(context)
         // Display-only reformat ("Name format" setting) — applied last, after
         // grouping/dedup/sort all keyed off the original names, so it never
         // affects matching, only what's shown.
-        return resolved.map { it.copy(name = NameFormat.apply(context, it.name)) }
+        return resolved.map {
+            it.copy(
+                name = NameFormat.apply(context, it.name),
+                isStarred = starredMatchKey(it.number) in starredKeys
+            )
+        }
+    }
+
+    private fun starredMatchKey(number: String): String {
+        val digits = number.filter { it.isDigit() }.takeLast(7)
+        return digits.ifEmpty { number }
     }
 
     private data class ContactInfo(val name: String, val photo: Uri?, val type: Int, val label: String?)

@@ -51,6 +51,7 @@ class CallHistoryActivity : AppCompatActivity() {
 
         binding.back.setOnClickListener { finish() }
         binding.headerInfo.setOnClickListener { openContact() }
+        binding.star.setOnClickListener { toggleStar() }
         binding.menu.setOnClickListener { showMenu(it) }
         binding.callFab.setOnClickListener { callNumber() }
         binding.msgBtn.setOnClickListener {
@@ -72,9 +73,41 @@ class CallHistoryActivity : AppCompatActivity() {
 
         Thread {
             val details = CallLogRepository.loadForNumber(applicationContext, number)
+            val starred = StarredStore.isStarred(applicationContext, number)
             runOnUiThread {
                 allDetails = details
                 applyFilter()
+                isStarred = starred
+                updateStarIcon()
+            }
+        }.start()
+    }
+
+    private var isStarred = false
+
+    private fun updateStarIcon() {
+        binding.star.setImageResource(if (isStarred) R.drawable.ic_star_filled else R.drawable.ic_star)
+        binding.star.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (isStarred) themeColor(com.google.android.material.R.attr.colorPrimary)
+            else themeColor(com.google.android.material.R.attr.colorOnSurface)
+        )
+    }
+
+    private fun toggleStar() {
+        if (number.isBlank()) return
+        val ctx = applicationContext
+        val num = number
+        val name = binding.title.text?.toString()
+        Thread {
+            if (StarredStore.isStarred(ctx, num)) {
+                StarredStore.unstar(ctx, num)
+            } else {
+                StarredStore.star(ctx, num, name, null)
+            }
+            val nowStarred = StarredStore.isStarred(ctx, num)
+            runOnUiThread {
+                isStarred = nowStarred
+                updateStarIcon()
             }
         }.start()
     }
@@ -173,12 +206,14 @@ class CallHistoryActivity : AppCompatActivity() {
     private fun showMenu(anchor: View) {
         if (number.isBlank()) return
         androidx.appcompat.widget.PopupMenu(this, anchor).apply {
-            menu.add(0, 1, 0, R.string.log_copy)
-            menu.add(0, 2, 1, R.string.opt_edit)
-            menu.add(0, 3, 2, R.string.block_number)
-            menu.add(0, 4, 3, R.string.history_delete)
+            if (isStarred) menu.add(0, 0, 0, R.string.notes)
+            menu.add(0, 1, 1, R.string.log_copy)
+            menu.add(0, 2, 2, R.string.opt_edit)
+            menu.add(0, 3, 3, R.string.block_number)
+            menu.add(0, 4, 4, R.string.history_delete)
             setOnMenuItemClickListener {
                 when (it.itemId) {
+                    0 -> { editNotes(); true }
                     1 -> { copyNumber(); true }
                     2 -> { editBeforeCall(); true }
                     3 -> { blockNumber(); true }
@@ -188,6 +223,38 @@ class CallHistoryActivity : AppCompatActivity() {
             }
             show()
         }
+    }
+
+    private fun editNotes() {
+        val ctx = applicationContext
+        val num = number
+        Thread {
+            val current = StarredStore.notesFor(ctx, num)
+            runOnUiThread { showNotesDialog(current) }
+        }.start()
+    }
+
+    private fun showNotesDialog(current: String) {
+        val field = android.widget.EditText(this).apply {
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            setText(current)
+            hint = getString(R.string.notes_hint)
+            minLines = 3
+        }
+        val pad = (20 * resources.displayMetrics.density).toInt()
+        field.setPadding(pad, pad / 2, pad, pad / 2)
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.notes)
+            .setView(field)
+            .setPositiveButton(R.string.notes_save) { _, _ ->
+                val text = field.text?.toString().orEmpty()
+                val ctx = applicationContext
+                val num = number
+                Thread { StarredStore.updateNotes(ctx, num, text) }.start()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun copyNumber() {

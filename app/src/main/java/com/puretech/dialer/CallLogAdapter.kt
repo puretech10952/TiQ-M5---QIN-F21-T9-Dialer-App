@@ -94,6 +94,7 @@ class CallLogAdapter(
         private val count: TextView = view.findViewById(R.id.count)
         private val hd: ImageView = view.findViewById(R.id.hd)
         private val wifi: ImageView = view.findViewById(R.id.wifi)
+        private val star: ImageView = view.findViewById(R.id.star)
         private val typeIcon: ImageView = view.findViewById(R.id.typeIcon)
         private val time: TextView = view.findViewById(R.id.time)
         private val callBtn: ImageView = view.findViewById(R.id.callBtn)
@@ -126,6 +127,7 @@ class CallLogAdapter(
 
             Avatars.bind(avatarInitial, avatarPhoto, e.name, e.photoUri)
             name.text = e.name ?: number.ifBlank { ctx.getString(R.string.unknown_caller) }
+            star.visibility = if (e.isStarred) View.VISIBLE else View.GONE
 
             if (e.asContact) {
                 name.setTextColor(onSurface)
