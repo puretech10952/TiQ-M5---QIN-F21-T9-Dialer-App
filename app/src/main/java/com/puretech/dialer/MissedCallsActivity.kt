@@ -1,15 +1,12 @@
 package com.puretech.dialer
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.view.View
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -40,7 +37,6 @@ class MissedCallsActivity : AppCompatActivity() {
             onMessage     = { n -> messageNumber(n) },
             onHistory     = { e -> openHistory(e) },
             onAddContact  = { n -> addContact(n) },
-            onCopy        = { n -> copyNumber(n) },
             onOpenContact = { e -> openContact(e) },
             onLongPress   = { _, _ -> }
         )
@@ -164,12 +160,6 @@ class MissedCallsActivity : AppCompatActivity() {
                 }
             )
         } catch (_: Exception) {}
-    }
-
-    private fun copyNumber(number: String) {
-        val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        cm.setPrimaryClip(ClipData.newPlainText("number", number))
-        Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
     companion object {

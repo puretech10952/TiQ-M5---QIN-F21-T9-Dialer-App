@@ -102,7 +102,6 @@ class RecentsFragment : Fragment() {
             onMessage = { messageNumber(it) },
             onHistory = { openHistory(it) },
             onAddContact = { addContact(it) },
-            onCopy = { copyNumber(it) },
             onOpenContact = { openContact(it) },
             onLongPress = { entry, anchor -> showEntryMenu(entry, anchor) }
         )
@@ -466,7 +465,7 @@ class RecentsFragment : Fragment() {
         }
     }
 
-    /** Long-press popup: star/unstar, add to Quick dial, block number, delete entry. */
+    /** Long-press popup: star/unstar, copy number, add to Quick dial, block number, delete entry. */
     private fun showEntryMenu(entry: CallLogEntry, anchor: View) {
         val title = entry.name ?: android.telephony.PhoneNumberUtils
             .formatNumber(entry.number, java.util.Locale.US.country) ?: entry.number
@@ -476,12 +475,14 @@ class RecentsFragment : Fragment() {
                 MENU_STAR, if (entry.isStarred) R.drawable.ic_star_filled else R.drawable.ic_star,
                 getString(if (entry.isStarred) R.string.unstar_entry else R.string.star_entry)
             )
+            .add(MENU_COPY, R.drawable.ic_content_copy, getString(R.string.log_copy))
             .add(MENU_QUICK_DIAL, R.drawable.ic_bolt, getString(R.string.quick_dial_add_to))
             .add(MENU_BLOCK, R.drawable.ic_block, getString(R.string.block_number))
             .add(MENU_DELETE, R.drawable.ic_delete, getString(R.string.delete_entry))
             .onClick { id ->
                 when (id) {
                     MENU_STAR -> toggleStar(entry)
+                    MENU_COPY -> copyNumber(entry.number)
                     MENU_QUICK_DIAL -> addToQuickDial(entry)
                     MENU_BLOCK -> blockNumber(entry.number)
                     MENU_DELETE -> deleteEntry(entry.number)
@@ -668,6 +669,7 @@ class RecentsFragment : Fragment() {
         const val MENU_BLOCK = 2
         const val MENU_DELETE = 3
         const val MENU_STAR = 4
+        const val MENU_COPY = 5
         const val MENU_FAV_NUMBER = 4
         const val MENU_FAV_REMOVE = 5
     }

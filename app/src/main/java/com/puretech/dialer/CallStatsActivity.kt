@@ -2,23 +2,28 @@ package com.puretech.dialer
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.CallLog
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.puretech.dialer.databinding.ActivityCallStatsBinding
 import java.text.DateFormatSymbols
 import java.util.Calendar
 
-/** Lifetime call totals (since ever) + a call-activity graph by day/month/year. */
+/** Call totals (lifetime, or filtered to today/week/month/year) + a
+ *  call-activity graph by day/month/year. */
 class CallStatsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCallStatsBinding
 
-    /** All calls' (timestamp, duration) pairs, loaded once and re-bucketed
-     *  when the range or the Calls/Minutes toggle changes. */
-    private var callLog: List<Pair<Long, Long>> = emptyList()
+    /** Every call ever (system + local store), loaded once. The summary cards
+     *  re-aggregate a filtered slice of this when the Lifetime/Today/Week/
+     *  Month/Year chip changes; the chart re-buckets it (always the full,
+     *  unfiltered history) when its own range/value toggle changes. */
+    private var callDetails: List<CallDetail> = emptyList()
 
     private enum class Range { DAY, MONTH, YEAR }
     private enum class ValueMode { CALLS, MINUTES }
+    private enum class StatsRange { LIFETIME, TODAY, WEEK, MONTH, YEAR }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,12 +52,15 @@ class CallStatsActivity : AppCompatActivity() {
             if (isChecked) renderChart(rangeFor(checkedId))
         }
 
+        binding.summaryFilterChips.setOnCheckedStateChangeListener { _, _ ->
+            renderSummary(statsRangeFor(binding.summaryFilterChips.checkedChipId))
+        }
+
         Thread {
-            val s = CallLogRepository.stats(applicationContext)
-            val log = CallLogRepository.callLog(applicationContext)
+            val details = CallLogRepository.callDetails(applicationContext)
             runOnUiThread {
-                bind(s)
-                callLog = log
+                callDetails = details
+                renderSummary(statsRangeFor(binding.summaryFilterChips.checkedChipId))
                 renderChart(rangeFor(binding.rangeToggle.checkedButtonId))
             }
         }.start()
@@ -66,6 +74,10 @@ class CallStatsActivity : AppCompatActivity() {
         )
     }
 
+    private fun renderSummary(range: StatsRange) {
+        bind(statsFor(callDetails, sinceFor(range)))
+    }
+
     private fun bind(s: CallStats) {
         binding.totalTalk.text = s.totalDuration.asTalkTime()
         binding.incomingDuration.text = s.incomingDuration.asTalkTime()
@@ -75,6 +87,46 @@ class CallStatsActivity : AppCompatActivity() {
         binding.outgoingCount.text =
             resources.getQuantityString(R.plurals.stats_calls, s.outgoingCount, s.outgoingCount)
         binding.missedCount.text = s.missedCount.toString()
+    }
+
+    private fun statsRangeFor(checkedChipId: Int): StatsRange = when (checkedChipId) {
+        R.id.chipToday -> StatsRange.TODAY
+        R.id.chipWeek -> StatsRange.WEEK
+        R.id.chipMonth -> StatsRange.MONTH
+        R.id.chipYear -> StatsRange.YEAR
+        else -> StatsRange.LIFETIME
+    }
+
+    /** Epoch-millis cutoff for [range] — calls on/after this count. Today is
+     *  since midnight, Week is a rolling 7 days, Month/Year are since the
+     *  start of the current calendar month/year (Lifetime = no cutoff). */
+    private fun sinceFor(range: StatsRange): Long {
+        if (range == StatsRange.LIFETIME) return 0L
+        if (range == StatsRange.WEEK) return System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
+        when (range) {
+            StatsRange.MONTH -> cal.set(Calendar.DAY_OF_MONTH, 1)
+            StatsRange.YEAR -> cal.set(Calendar.DAY_OF_YEAR, 1)
+            else -> {} // TODAY: midnight already set above
+        }
+        return cal.timeInMillis
+    }
+
+    private fun statsFor(details: List<CallDetail>, since: Long): CallStats {
+        var inC = 0; var inD = 0L; var outC = 0; var outD = 0L; var missed = 0
+        for (d in details) {
+            if (d.date < since) continue
+            when (d.type) {
+                CallLog.Calls.OUTGOING_TYPE -> { outC++; outD += d.duration }
+                CallLog.Calls.INCOMING_TYPE,
+                CallLog.Calls.ANSWERED_EXTERNALLY_TYPE -> { inC++; inD += d.duration }
+                CallLog.Calls.MISSED_TYPE,
+                CallLog.Calls.REJECTED_TYPE -> missed++
+            }
+        }
+        return CallStats(inC, inD, outC, outD, missed)
     }
 
     private fun rangeFor(checkedId: Int): Range = when (checkedId) {
@@ -88,7 +140,7 @@ class CallStatsActivity : AppCompatActivity() {
 
     private fun renderChart(range: Range) {
         val mode = valueModeFor(binding.valueToggle.checkedButtonId)
-        val bars = buckets(callLog, range, mode)
+        val bars = buckets(callDetails, range, mode)
         val hasData = bars.any { it.value > 0 }
         binding.chart.visibility = if (hasData) View.VISIBLE else View.GONE
         binding.chartEmpty.visibility = if (hasData) View.GONE else View.VISIBLE
@@ -99,15 +151,15 @@ class CallStatsActivity : AppCompatActivity() {
 
     /** Tally calls into the trailing window for [range], oldest → newest --
      *  either a count per bucket, or total talk time when [mode] is MINUTES. */
-    private fun buckets(log: List<Pair<Long, Long>>, range: Range, mode: ValueMode): List<BarChartView.Bar> {
+    private fun buckets(log: List<CallDetail>, range: Range, mode: ValueMode): List<BarChartView.Bar> {
         val counts = HashMap<Long, Int>()
         val durations = HashMap<Long, Long>()
         val cal = Calendar.getInstance()
-        for ((date, duration) in log) {
-            cal.timeInMillis = date
+        for (d in log) {
+            cal.timeInMillis = d.date
             val key = keyOf(cal, range)
             counts[key] = (counts[key] ?: 0) + 1
-            durations[key] = (durations[key] ?: 0L) + duration
+            durations[key] = (durations[key] ?: 0L) + d.duration
         }
         val span = when (range) { Range.DAY -> 7; Range.MONTH -> 12; Range.YEAR -> 6 }
         val out = ArrayList<BarChartView.Bar>(span)

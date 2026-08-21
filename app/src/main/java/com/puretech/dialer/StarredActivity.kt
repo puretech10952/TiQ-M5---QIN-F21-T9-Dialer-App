@@ -61,7 +61,6 @@ class StarredActivity : AppCompatActivity() {
             onNotes = { editNotes(it) },
             onMessage = { messageEntry(it) },
             onHistory = { openHistory(it) },
-            onCopy = { copyNumber(it) },
             onCall = { callEntry(it) },
             onOpenContact = { openContact(it) },
             onLongPress = { entry, anchor -> showEntryMenu(entry, anchor) }
@@ -209,7 +208,13 @@ class StarredActivity : AppCompatActivity() {
         CardMenu(this, anchor)
             .title(title)
             .add(MENU_UNSTAR, R.drawable.ic_star_filled, getString(R.string.unstar_entry))
-            .onClick { id -> if (id == MENU_UNSTAR) unstarAndReload(entry.number) }
+            .add(MENU_COPY, R.drawable.ic_content_copy, getString(R.string.log_copy))
+            .onClick { id ->
+                when (id) {
+                    MENU_UNSTAR -> unstarAndReload(entry.number)
+                    MENU_COPY -> copyNumber(entry)
+                }
+            }
             .show()
     }
 
@@ -346,5 +351,6 @@ class StarredActivity : AppCompatActivity() {
 
     private companion object {
         const val MENU_UNSTAR = 1
+        const val MENU_COPY = 2
     }
 }

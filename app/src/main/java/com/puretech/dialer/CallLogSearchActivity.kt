@@ -1,9 +1,6 @@
 package com.puretech.dialer
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -13,7 +10,6 @@ import android.os.Looper
 import android.provider.ContactsContract
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -76,7 +72,6 @@ class CallLogSearchActivity : AppCompatActivity() {
             onMessage     = { n -> messageNumber(n) },
             onHistory     = { e -> openHistory(e) },
             onAddContact  = { n -> addContact(n) },
-            onCopy        = { n -> copyNumber(n) },
             onOpenContact = { e -> openContact(e) },
             onLongPress   = { _, _ -> /* no block/delete in search results */ }
         )
@@ -236,12 +231,6 @@ class CallLogSearchActivity : AppCompatActivity() {
         try {
             startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${Uri.encode(number)}")))
         } catch (_: Exception) {}
-    }
-
-    private fun copyNumber(number: String) {
-        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        cm.setPrimaryClip(ClipData.newPlainText("number", number))
-        Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
     // --- Calling ---------------------------------------------------------------

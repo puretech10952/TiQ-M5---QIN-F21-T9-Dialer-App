@@ -194,7 +194,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• <b>Starred</b> (new!) — pin important calls and contacts so they\'re never lost. Long-press any call log entry to star it, or tap the star in a call\'s History screen. Find your starred list in the sidebar menu, sorted by when you starred them or by name.\n\n• Add a <b>Note</b> to any starred entry to remember what you need to do — plus quick Message, History, and Copy number actions right from the list.\n\n• Add starred entries from Contacts, Recents, or a number you type in — and clear them all at once from the Starred page.</string>
+    <string name="whats_new_body">• <b>Call durations, more detailed</b> — filter your totals by Lifetime, Today, Week, Month, or Year right from the Call durations screen.\n\n• <b>Copy number</b> moved to long-press — long-press a call log or Starred entry to copy its number.</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
@@ -233,7 +233,12 @@
     <string name="gate_button">Set as default phone app</string>
     <string name="gate_hint">You can change this anytime in Android Settings.</string>
 
-    <!-- Call durations (lifetime stats) -->
+    <!-- Call durations -->
+    <string name="stats_filter_lifetime">Lifetime</string>
+    <string name="stats_filter_today">Today</string>
+    <string name="stats_filter_week">Week</string>
+    <string name="stats_filter_month">Month</string>
+    <string name="stats_filter_year">Year</string>
     <string name="stats_total_talk">Total talk time</string>
     <string name="stats_incoming">Incoming</string>
     <string name="stats_outgoing">Outgoing</string>

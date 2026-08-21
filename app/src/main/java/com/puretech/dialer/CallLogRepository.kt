@@ -376,47 +376,38 @@ object CallLogRepository {
         return out
     }
 
-    /** Aggregate totals over the entire call log (system + local store). */
-    fun stats(context: Context): CallStats {
+    /** Every call's (type, date, duration) — system + local store merged — for
+     *  the "Call durations" screen's lifetime/range-filtered summary and its
+     *  call-activity graph. Newest first. */
+    fun callDetails(context: Context): List<CallDetail> {
         if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
             != PackageManager.PERMISSION_GRANTED
-        ) return CallStats(0, 0L, 0, 0L, 0)
-        var inC = 0; var inD = 0L; var outC = 0; var outD = 0L; var missed = 0
+        ) return emptyList()
+        val out = ArrayList<CallDetail>()
         var sysOldest = Long.MAX_VALUE
         try {
             context.contentResolver.query(
                 CallLog.Calls.CONTENT_URI,
-                arrayOf(CallLog.Calls.TYPE, CallLog.Calls.DURATION, CallLog.Calls.DATE),
-                null, null, null
+                arrayOf(CallLog.Calls.TYPE, CallLog.Calls.DATE, CallLog.Calls.DURATION),
+                null, null, "${CallLog.Calls.DATE} DESC"
             )?.use { c ->
                 val typeIdx = c.getColumnIndex(CallLog.Calls.TYPE)
-                val durIdx  = c.getColumnIndex(CallLog.Calls.DURATION)
                 val dateIdx = c.getColumnIndex(CallLog.Calls.DATE)
+                val durIdx = c.getColumnIndex(CallLog.Calls.DURATION)
                 while (c.moveToNext()) {
                     val type = if (typeIdx >= 0) c.getInt(typeIdx) else 0
-                    val dur  = if (durIdx  >= 0) c.getLong(durIdx)  else 0L
-                    val date = if (dateIdx >= 0) c.getLong(dateIdx) else Long.MAX_VALUE
+                    val date = if (dateIdx >= 0) c.getLong(dateIdx) else 0L
+                    val dur = if (durIdx >= 0) c.getLong(durIdx) else 0L
+                    out.add(CallDetail(type, date, dur))
                     if (date < sysOldest) sysOldest = date
-                    when (type) {
-                        CallLog.Calls.OUTGOING_TYPE -> { outC++; outD += dur }
-                        CallLog.Calls.INCOMING_TYPE,
-                        CallLog.Calls.ANSWERED_EXTERNALLY_TYPE -> { inC++; inD += dur }
-                        CallLog.Calls.MISSED_TYPE, CallLog.Calls.REJECTED_TYPE -> missed++
-                    }
                 }
             }
         } catch (e: Exception) {
-            android.util.Log.w("M5CallLog", "stats failed: ${e.message}")
+            android.util.Log.w("M5CallLog", "callDetails failed: ${e.message}")
         }
-        // Add local-store entries that predate everything in the system log.
-        LocalCallStore.loadBefore(context, sysOldest).forEach {
-            when (it.type) {
-                CallLog.Calls.OUTGOING_TYPE -> { outC++; outD += it.duration }
-                CallLog.Calls.INCOMING_TYPE -> { inC++; inD += it.duration }
-                CallLog.Calls.MISSED_TYPE, CallLog.Calls.REJECTED_TYPE -> missed++
-            }
-        }
-        return CallStats(inC, inD, outC, outD, missed)
+        LocalCallStore.loadBefore(context, sysOldest).mapTo(out) { CallDetail(it.type, it.date, it.duration) }
+        out.sortByDescending { it.date }
+        return out
     }
 
     /** Every call's timestamp (millis) — for the call-activity graph. */
@@ -445,37 +436,6 @@ object CallLogRepository {
         LocalCallStore.loadBefore(context, sysOldest).mapTo(out) { it.date }
         out.sortDescending()
         return out.toLongArray()
-    }
-
-    /** Every call's (timestamp, duration) pair -- for the call-activity graph's
-     *  Calls/Minutes toggle on the "Call durations" screen. */
-    fun callLog(context: Context): List<Pair<Long, Long>> {
-        if (context.checkSelfPermission(android.Manifest.permission.READ_CALL_LOG)
-            != PackageManager.PERMISSION_GRANTED
-        ) return emptyList()
-        val out = ArrayList<Pair<Long, Long>>()
-        var sysOldest = Long.MAX_VALUE
-        try {
-            context.contentResolver.query(
-                CallLog.Calls.CONTENT_URI,
-                arrayOf(CallLog.Calls.DATE, CallLog.Calls.DURATION),
-                null, null, "${CallLog.Calls.DATE} DESC"
-            )?.use { c ->
-                val dateIdx = c.getColumnIndex(CallLog.Calls.DATE)
-                val durIdx = c.getColumnIndex(CallLog.Calls.DURATION)
-                while (c.moveToNext()) {
-                    val d = if (dateIdx >= 0) c.getLong(dateIdx) else 0L
-                    val dur = if (durIdx >= 0) c.getLong(durIdx) else 0L
-                    out.add(d to dur)
-                    if (d < sysOldest) sysOldest = d
-                }
-            }
-        } catch (e: Exception) {
-            android.util.Log.w("M5CallLog", "callLog failed: ${e.message}")
-        }
-        LocalCallStore.loadBefore(context, sysOldest).mapTo(out) { it.date to it.duration }
-        out.sortByDescending { it.first }
-        return out
     }
 
     /** Deep aggregate analytics (system + local store) -- see [DeepCallStats]. */

@@ -31,7 +31,6 @@ class CallLogAdapter(
     private val onMessage: (String) -> Unit,
     private val onHistory: (CallLogEntry) -> Unit,
     private val onAddContact: (String) -> Unit,
-    private val onCopy: (String) -> Unit,
     private val onOpenContact: (CallLogEntry) -> Unit,
     private val onLongPress: (CallLogEntry, View) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -102,7 +101,6 @@ class CallLogAdapter(
         private val actionAddContact: TextView = view.findViewById(R.id.actionAddContact)
         private val actionMessage: TextView = view.findViewById(R.id.actionMessage)
         private val actionHistory: TextView = view.findViewById(R.id.actionHistory)
-        private val actionCopy: TextView = view.findViewById(R.id.actionCopy)
 
         fun bind(e: CallLogEntry, expanded: Boolean, firstInGroup: Boolean, lastInGroup: Boolean) {
             val ctx = name.context
@@ -183,8 +181,7 @@ class CallLogAdapter(
             actionMessage.setBackgroundResource(
                 if (addShown) R.drawable.bg_shade_middle else R.drawable.bg_shade_top
             )
-            actionHistory.setBackgroundResource(R.drawable.bg_shade_middle)
-            actionCopy.setBackgroundResource(R.drawable.bg_shade_bottom)
+            actionHistory.setBackgroundResource(R.drawable.bg_shade_bottom)
 
             callBtn.setOnClickListener { onCall(e) }
             row.setOnClickListener { toggle(bindingAdapterPosition) }
@@ -202,7 +199,6 @@ class CallLogAdapter(
             actionAddContact.setOnClickListener { onAddContact(e.number) }
             actionMessage.setOnClickListener { onMessage(e.number) }
             actionHistory.setOnClickListener { onHistory(e) }
-            actionCopy.setOnClickListener { onCopy(e.number) }
         }
     }
 

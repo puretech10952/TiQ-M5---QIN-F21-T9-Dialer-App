@@ -10,14 +10,13 @@ import com.google.android.material.imageview.ShapeableImageView
 
 /**
  * Row list for the Starred page. Card style matches the call log / voicemail
- * lists: tap a row to expand its action shade (Notes / Message / History /
- * Copy number), same pattern as [CallLogAdapter]. Long-press unstars.
+ * lists: tap a row to expand its action shade (Notes / Message / History),
+ * same pattern as [CallLogAdapter]. Long-press for Unstar / Copy number.
  */
 class StarredAdapter(
     private val onNotes: (StarredStore.StarredEntry) -> Unit,
     private val onMessage: (StarredStore.StarredEntry) -> Unit,
     private val onHistory: (StarredStore.StarredEntry) -> Unit,
-    private val onCopy: (StarredStore.StarredEntry) -> Unit,
     private val onCall: (StarredStore.StarredEntry) -> Unit,
     private val onOpenContact: (StarredStore.StarredEntry) -> Unit,
     private val onLongPress: (StarredStore.StarredEntry, View) -> Unit
@@ -64,7 +63,6 @@ class StarredAdapter(
         private val actionNotes: TextView = view.findViewById(R.id.actionNotes)
         private val actionMessage: TextView = view.findViewById(R.id.actionMessage)
         private val actionHistory: TextView = view.findViewById(R.id.actionHistory)
-        private val actionCopy: TextView = view.findViewById(R.id.actionCopy)
 
         fun bind(e: StarredStore.StarredEntry, expanded: Boolean) {
             val ctx = itemView.context
@@ -94,7 +92,6 @@ class StarredAdapter(
             actionNotes.setOnClickListener { onNotes(e) }
             actionMessage.setOnClickListener { onMessage(e) }
             actionHistory.setOnClickListener { onHistory(e) }
-            actionCopy.setOnClickListener { onCopy(e) }
         }
     }
 }

@@ -112,7 +112,7 @@
             app:tint="?attr/colorPrimary" />
     </LinearLayout>
 
-    <!-- Expanded shade (opens under the row on tap): Notes / Message / History / Copy. -->
+    <!-- Expanded shade (opens under the row on tap): Notes / Message / History. -->
     <LinearLayout
         android:id="@+id/actions"
         android:layout_width="match_parent"
@@ -141,16 +141,9 @@
         <TextView
             android:id="@+id/actionHistory"
             style="@style/LogShadeButton"
-            android:background="@drawable/bg_shade_middle"
+            android:background="@drawable/bg_shade_bottom"
             android:drawableStart="@drawable/ic_history"
             android:text="@string/log_history" />
-
-        <TextView
-            android:id="@+id/actionCopy"
-            style="@style/LogShadeButton"
-            android:background="@drawable/bg_shade_bottom"
-            android:drawableStart="@drawable/ic_content_copy"
-            android:text="@string/log_copy" />
     </LinearLayout>
 
 </LinearLayout>
