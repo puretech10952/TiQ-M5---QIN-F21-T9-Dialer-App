@@ -15,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -86,7 +87,6 @@ class CallHistoryActivity : AppCompatActivity() {
     private var isStarred = false
 
     private fun updateStarIcon() {
-        binding.star.setImageResource(if (isStarred) R.drawable.ic_star_filled else R.drawable.ic_star)
         binding.star.imageTintList = android.content.res.ColorStateList.valueOf(
             if (isStarred) themeColor(com.google.android.material.R.attr.colorPrimary)
             else themeColor(com.google.android.material.R.attr.colorOnSurface)
@@ -98,8 +98,9 @@ class CallHistoryActivity : AppCompatActivity() {
         val ctx = applicationContext
         val num = number
         val name = binding.title.text?.toString()
+        val wasStarred = isStarred
         Thread {
-            if (StarredStore.isStarred(ctx, num)) {
+            if (wasStarred) {
                 StarredStore.unstar(ctx, num)
             } else {
                 StarredStore.star(ctx, num, name, null)
@@ -108,6 +109,10 @@ class CallHistoryActivity : AppCompatActivity() {
             runOnUiThread {
                 isStarred = nowStarred
                 updateStarIcon()
+                val label = name?.ifBlank { null } ?: num
+                val msg = if (nowStarred) R.string.added_to_callback_list else R.string.removed_from_callback_list
+                Toast.makeText(this, getString(msg, label), Toast.LENGTH_SHORT).show()
+                if (!wasStarred && nowStarred) CallBackReminderPrompt.show(this, num, name)
             }
         }.start()
     }

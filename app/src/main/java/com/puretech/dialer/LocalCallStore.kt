@@ -144,6 +144,25 @@ object LocalCallStore {
         } catch (_: Exception) {}
     }
 
+    /** Like [delete], but scoped to calls within [fromDate]..[toDate] (inclusive)
+     *  — used to remove just one grouped call-log row instead of a number's
+     *  whole history. */
+    fun deleteRange(ctx: Context, last7: String, exactFallback: String, fromDate: Long, toDate: Long) {
+        try {
+            if (last7.isNotEmpty()) {
+                db(ctx).delete(
+                    TABLE, "$C_NUMBER LIKE ? AND $C_DATE BETWEEN ? AND ?",
+                    arrayOf("%$last7", fromDate.toString(), toDate.toString())
+                )
+            } else {
+                db(ctx).delete(
+                    TABLE, "$C_NUMBER = ? AND $C_DATE BETWEEN ? AND ?",
+                    arrayOf(exactFallback, fromDate.toString(), toDate.toString())
+                )
+            }
+        } catch (_: Exception) {}
+    }
+
     /** Wipes the entire local call history. */
     fun deleteAll(ctx: Context) {
         try { db(ctx).delete(TABLE, null, null) } catch (_: Exception) {}

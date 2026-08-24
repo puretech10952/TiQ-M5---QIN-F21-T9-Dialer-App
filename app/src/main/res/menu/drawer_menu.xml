@@ -6,7 +6,7 @@
         android:title="@string/nav_search_calls" />
     <item
         android:id="@+id/nav_starred"
-        android:icon="@drawable/ic_star"
+        android:icon="@drawable/ic_callback"
         android:title="@string/nav_starred" />
     <item
         android:id="@+id/nav_settings"
@@ -28,10 +28,6 @@
         android:id="@+id/nav_updates"
         android:icon="@drawable/ic_update"
         android:title="@string/update_title" />
-    <item
-        android:id="@+id/nav_feedback"
-        android:icon="@drawable/ic_mail"
-        android:title="@string/about_feedback" />
     <item
         android:id="@+id/nav_about"
         android:icon="@drawable/ic_info"

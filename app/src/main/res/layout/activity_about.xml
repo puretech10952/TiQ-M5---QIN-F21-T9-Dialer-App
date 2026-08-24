@@ -112,20 +112,46 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/about_made_possible"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Legal -->
+            <!-- "Made possible by" credit: pulled out as its own bigger, visible,
+                 tappable link (opens puretechkosher.com), not buried in the small
+                 muted-text card above. -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/about_made_possible"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/aboutPuretechkosherLink"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingHorizontal="4dp"
+                    android:paddingVertical="2dp"
+                    android:text="@string/about_puretechkosher_link"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Legal & support -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/SettingsGroupCard"
-                android:layout_marginTop="14dp">
+                android:layout_marginTop="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -142,6 +168,12 @@
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_block" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"
                             android:layout_weight="1" android:text="@string/legal_privacy" />
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/rowFeedback" style="@style/SettingRowM3">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_mail" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/about_feedback" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

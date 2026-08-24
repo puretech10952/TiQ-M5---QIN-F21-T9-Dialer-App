@@ -97,6 +97,22 @@
                 android:visibility="gone"
                 tools:text="Note: call back about invoice"
                 tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/reminderPreview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:drawablePadding="4dp"
+                android:gravity="center_vertical"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp"
+                android:visibility="gone"
+                android:drawableStart="@drawable/ic_history"
+                tools:text="Reminder: Aug 24, 3:00 PM"
+                tools:visibility="visible" />
         </LinearLayout>
 
         <ImageView

@@ -19,6 +19,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <!-- Lets us prompt the user to exempt the app from battery optimization (Doze) -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- Move system call-recording files into a Music sub-folder (files owned by
@@ -231,6 +232,12 @@
         <!-- Periodic background update check (scheduled via AlarmManager). -->
         <receiver
             android:name=".UpdateCheckReceiver"
+            android:exported="false" />
+
+        <!-- Fires a "call back" reminder set from the Call back list (scheduled
+             via AlarmManager). -->
+        <receiver
+            android:name=".CallBackReminderReceiver"
             android:exported="false" />
 
         <!-- Official hook: when we're the default dialer, Telecom delegates the

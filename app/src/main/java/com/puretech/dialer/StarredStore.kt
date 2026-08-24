@@ -17,7 +17,7 @@ import android.net.Uri
 object StarredStore {
 
     private const val DB_NAME = "starred.db"
-    private const val DB_VERSION = 1
+    private const val DB_VERSION = 2
     private const val TABLE = "starred"
 
     private const val C_ID       = "_id"
@@ -27,6 +27,7 @@ object StarredStore {
     private const val C_PHOTO    = "photo_uri"
     private const val C_STARRED  = "starred_at"
     private const val C_NOTES    = "notes"
+    private const val C_REMINDER = "reminder_at"
 
     data class StarredEntry(
         val id: Long,
@@ -35,26 +36,31 @@ object StarredStore {
         val name: String?,
         val photoUri: Uri?,
         val starredAt: Long,
-        val notes: String?
+        val notes: String?,
+        /** Epoch millis of a pending "call back" reminder, or null if none is set. */
+        val reminderAt: Long?
     )
 
     private class Helper(ctx: Context) : SQLiteOpenHelper(ctx, DB_NAME, null, DB_VERSION) {
         override fun onCreate(db: SQLiteDatabase) {
             db.execSQL("""
                 CREATE TABLE $TABLE (
-                    $C_ID      INTEGER PRIMARY KEY AUTOINCREMENT,
-                    $C_NUMBER  TEXT    NOT NULL,
-                    $C_MATCH   TEXT    NOT NULL UNIQUE,
-                    $C_NAME    TEXT,
-                    $C_PHOTO   TEXT,
-                    $C_STARRED INTEGER NOT NULL,
-                    $C_NOTES   TEXT
+                    $C_ID       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    $C_NUMBER   TEXT    NOT NULL,
+                    $C_MATCH    TEXT    NOT NULL UNIQUE,
+                    $C_NAME     TEXT,
+                    $C_PHOTO    TEXT,
+                    $C_STARRED  INTEGER NOT NULL,
+                    $C_NOTES    TEXT,
+                    $C_REMINDER INTEGER
                 )
             """.trimIndent())
             db.execSQL("CREATE INDEX idx_starred_match ON $TABLE($C_MATCH)")
         }
 
-        override fun onUpgrade(db: SQLiteDatabase, old: Int, new: Int) {}
+        override fun onUpgrade(db: SQLiteDatabase, old: Int, new: Int) {
+            if (old < 2) db.execSQL("ALTER TABLE $TABLE ADD COLUMN $C_REMINDER INTEGER")
+        }
     }
 
     @Volatile private var helper: Helper? = null
@@ -84,6 +90,7 @@ object StarredStore {
     }
 
     fun unstar(ctx: Context, number: String) {
+        CallBackReminderScheduler.cancel(ctx, number)
         try {
             db(ctx).delete(TABLE, "$C_MATCH=?", arrayOf(matchKey(number)))
         } catch (_: Exception) {}
@@ -138,17 +145,42 @@ object StarredStore {
     }
 
     fun clearAll(ctx: Context) {
+        loadAll(ctx).forEach { if (it.reminderAt != null) CallBackReminderScheduler.cancel(ctx, it.number) }
         try { db(ctx).delete(TABLE, null, null) } catch (_: Exception) {}
     }
 
+    /** Sets (or clears, when [atMillis] is null) the "call back" reminder time. */
+    fun setReminderAt(ctx: Context, number: String, atMillis: Long?) {
+        try {
+            val cv = ContentValues().apply {
+                if (atMillis == null) putNull(C_REMINDER) else put(C_REMINDER, atMillis)
+            }
+            db(ctx).update(TABLE, cv, "$C_MATCH=?", arrayOf(matchKey(number)))
+        } catch (_: Exception) {}
+    }
+
+    fun find(ctx: Context, number: String): StarredEntry? {
+        return try {
+            db(ctx).rawQuery(
+                "SELECT * FROM $TABLE WHERE $C_MATCH=? LIMIT 1",
+                arrayOf(matchKey(number))
+            ).use { c -> if (c.moveToFirst()) row(c) else null }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     private fun row(c: Cursor) = StarredEntry(
-        id        = c.getLong(c.getColumnIndexOrThrow(C_ID)),
-        number    = c.getString(c.getColumnIndexOrThrow(C_NUMBER)) ?: "",
-        matchKey  = c.getString(c.getColumnIndexOrThrow(C_MATCH)) ?: "",
-        name      = c.getString(c.getColumnIndexOrThrow(C_NAME)),
-        photoUri  = c.getString(c.getColumnIndexOrThrow(C_PHOTO))
+        id         = c.getLong(c.getColumnIndexOrThrow(C_ID)),
+        number     = c.getString(c.getColumnIndexOrThrow(C_NUMBER)) ?: "",
+        matchKey   = c.getString(c.getColumnIndexOrThrow(C_MATCH)) ?: "",
+        name       = c.getString(c.getColumnIndexOrThrow(C_NAME)),
+        photoUri   = c.getString(c.getColumnIndexOrThrow(C_PHOTO))
                         ?.ifBlank { null }?.let { Uri.parse(it) },
-        starredAt = c.getLong(c.getColumnIndexOrThrow(C_STARRED)),
-        notes     = c.getString(c.getColumnIndexOrThrow(C_NOTES))
+        starredAt  = c.getLong(c.getColumnIndexOrThrow(C_STARRED)),
+        notes      = c.getString(c.getColumnIndexOrThrow(C_NOTES)),
+        reminderAt = c.getColumnIndex(C_REMINDER).let { idx ->
+            if (idx < 0 || c.isNull(idx)) null else c.getLong(idx)
+        }
     )
 }

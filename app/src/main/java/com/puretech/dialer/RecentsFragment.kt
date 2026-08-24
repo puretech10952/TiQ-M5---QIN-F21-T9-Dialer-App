@@ -1,6 +1,7 @@
 package com.puretech.dialer
 
 import android.Manifest
+import android.app.KeyguardManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -11,6 +12,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.ContactsContract
 import android.telecom.TelecomManager
 import android.text.format.DateUtils
@@ -28,7 +30,7 @@ import java.util.Calendar
 
 /** Recents screen (Google-Dialer card style) with search + favorites. Hosted by
  *  [HomeActivity]; the drawer, bottom bar, and gating live in the host. */
-class RecentsFragment : Fragment() {
+class RecentsFragment : Fragment(), CallManager.Listener {
 
     private var _binding: FragmentRecentsBinding? = null
     private val binding get() = _binding!!
@@ -98,7 +100,7 @@ class RecentsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         logAdapter = CallLogAdapter(
-            onCall = { callNumber(it.number) },
+            onCall = { if (it.isOngoing) returnToCall() else callNumber(it.number) },
             onMessage = { messageNumber(it) },
             onHistory = { openHistory(it) },
             onAddContact = { addContact(it) },
@@ -124,10 +126,48 @@ class RecentsFragment : Fragment() {
         loadContacts()
         ensureLogPermission()
         ensureContactsObserver()
+        CallManager.registerListener(this)
+    }
+
+    /** Live-refreshes the list the moment a call starts/ends/changes state, so
+     *  the synthetic "ongoing call" row (see [liveCallEntry]) appears and
+     *  disappears in step with the real call instead of only showing up the
+     *  next time this tab happens to reload. */
+    override fun onCallChanged() {
+        ui { reload() }
+    }
+
+    private fun returnToCall() {
+        startActivity(
+            Intent(requireContext(), InCallActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        )
+    }
+
+    /** A synthetic row for a call still in progress: Telecom doesn't write a
+     *  real call-log row until the call ends, but the user may well want to
+     *  see it in the list to message the other person or check past history
+     *  while still on the phone with them. */
+    private fun liveCallEntry(ctx: Context): CallLogEntry? {
+        val call = CallManager.activeCall() ?: CallManager.heldCall() ?: return null
+        val number = CallManager.number(call)
+        if (number.isBlank()) return null
+        val name = NameFormat.apply(ctx, ContactsRepository.displayName(ctx, number))
+        return CallLogEntry(
+            number = number,
+            name = name,
+            photoUri = null,
+            type = 0,
+            date = System.currentTimeMillis(),
+            count = 1,
+            isHd = false,
+            isOngoing = true
+        )
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        CallManager.unregisterListener(this)
         if (contactsObserverRegistered) {
             requireContext().contentResolver.unregisterContentObserver(contactsObserver)
             contactsObserverRegistered = false
@@ -190,7 +230,19 @@ class RecentsFragment : Fragment() {
         }
     }
 
+    /** Only true while the user can actually see this screen. [onTabResumed] also
+     *  fires for a silent background resume of HomeActivity — e.g. InCallActivity
+     *  finishing into the same task right after a call ends, screen still off —
+     *  which must NOT clear a missed-call notification that hasn't been seen yet. */
+    private fun screenVisibleToUser(): Boolean {
+        val ctx = requireContext()
+        val pm = ctx.getSystemService(PowerManager::class.java)
+        val km = ctx.getSystemService(KeyguardManager::class.java)
+        return pm?.isInteractive == true && km?.isKeyguardLocked != true
+    }
+
     private fun clearMissedCalls() {
+        if (!screenVisibleToUser()) return
         MissedCallNotifier.cancelAll(requireContext())
         // Clear the NEW flag ourselves: on the M5/F21, cancelMissedCallsNotification()
         // alone leaves rows NEW=1 and Telecom re-posts them all after a reboot.
@@ -302,7 +354,10 @@ class RecentsFragment : Fragment() {
             binding.favoritesStrip.visibility = View.GONE
             val rows = ContactsRepository.searchByText(query, allContacts).map { c ->
                 CallLogRow.Item(
-                    CallLogEntry(c.number, c.name, c.photoUri, 0, 0L, 1, false, asContact = true)
+                    CallLogEntry(
+                        c.number, c.name, c.photoUri, type = 0, date = 0L,
+                        count = 1, isHd = false, asContact = true
+                    )
                 )
             }
             logAdapter.submit(rows)
@@ -330,6 +385,11 @@ class RecentsFragment : Fragment() {
         val outgoingOnly = binding.chipOutgoing.isChecked
         val contactsOnly = binding.chipContacts.isChecked
         val ctx = requireContext().applicationContext
+        // Only show the ongoing-call row in the unfiltered "All" view — it isn't
+        // meaningfully missed/received/outgoing/a-contact yet.
+        val live = if (!missedOnly && !receivedOnly && !outgoingOnly && !contactsOnly) {
+            liveCallEntry(ctx)
+        } else null
 
         // Paint instantly from [CallLogCache] if a prefetch already finished (fired
         // right when the last call ended) so a just-finished call shows up the moment
@@ -351,7 +411,7 @@ class RecentsFragment : Fragment() {
                 outgoingOnly -> cached.filter { it.type == android.provider.CallLog.Calls.OUTGOING_TYPE }
                 else -> cached
             }
-            val rows = buildRows(ctx, filtered)
+            val rows = buildRows(ctx, filtered, live)
             logAdapter.submit(rows)
             binding.emptyText.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
             if (rows.isEmpty()) binding.emptyText.text = getString(R.string.no_recents)
@@ -374,7 +434,7 @@ class RecentsFragment : Fragment() {
                     }
                     else -> all
                 }
-                val rows = buildRows(ctx, entries)
+                val rows = buildRows(ctx, entries, live)
                 ui {
                     logAdapter.submit(rows)
                     binding.emptyText.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
@@ -391,9 +451,16 @@ class RecentsFragment : Fragment() {
         binding.emptyText.visibility = View.VISIBLE
     }
 
-    private fun buildRows(ctx: Context, entries: List<CallLogEntry>): List<CallLogRow> {
+    private fun buildRows(
+        ctx: Context, entries: List<CallLogEntry>, live: CallLogEntry? = null
+    ): List<CallLogRow> {
         val rows = ArrayList<CallLogRow>()
         var lastLabel: String? = null
+        if (live != null) {
+            rows.add(CallLogRow.Header(dayLabel(ctx, live.date)))
+            rows.add(CallLogRow.Item(live))
+            lastLabel = dayLabel(ctx, live.date)
+        }
         for (e in entries) {
             val label = dayLabel(ctx, e.date)
             if (label != lastLabel) {
@@ -472,7 +539,7 @@ class RecentsFragment : Fragment() {
         CardMenu(requireContext(), anchor)
             .title(title)
             .add(
-                MENU_STAR, if (entry.isStarred) R.drawable.ic_star_filled else R.drawable.ic_star,
+                MENU_STAR, R.drawable.ic_callback,
                 getString(if (entry.isStarred) R.string.unstar_entry else R.string.star_entry)
             )
             .add(MENU_COPY, R.drawable.ic_content_copy, getString(R.string.log_copy))
@@ -485,7 +552,7 @@ class RecentsFragment : Fragment() {
                     MENU_COPY -> copyNumber(entry.number)
                     MENU_QUICK_DIAL -> addToQuickDial(entry)
                     MENU_BLOCK -> blockNumber(entry.number)
-                    MENU_DELETE -> deleteEntry(entry.number)
+                    MENU_DELETE -> deleteEntry(entry)
                 }
             }
             .show()
@@ -493,11 +560,17 @@ class RecentsFragment : Fragment() {
 
     private fun toggleStar(entry: CallLogEntry) {
         val ctx = requireContext().applicationContext
-        val starred = entry.isStarred
+        val wasStarred = entry.isStarred
+        val label = entry.name?.ifBlank { null } ?: entry.number
         Thread {
-            if (starred) StarredStore.unstar(ctx, entry.number)
+            if (wasStarred) StarredStore.unstar(ctx, entry.number)
             else StarredStore.star(ctx, entry.number, entry.name, entry.photoUri?.toString())
-            ui { reload() }
+            ui {
+                reload()
+                val msg = if (wasStarred) R.string.removed_from_callback_list else R.string.added_to_callback_list
+                Toast.makeText(requireContext(), getString(msg, label), Toast.LENGTH_SHORT).show()
+                if (!wasStarred) CallBackReminderPrompt.show(requireContext(), entry.number, entry.name)
+            }
         }.start()
     }
 
@@ -525,18 +598,18 @@ class RecentsFragment : Fragment() {
         }.start()
     }
 
-    private fun deleteEntry(number: String) {
+    private fun deleteEntry(entry: CallLogEntry) {
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setMessage(R.string.entry_delete_confirm)
-            .setPositiveButton(R.string.log_delete) { _, _ -> doDeleteEntry(number) }
+            .setPositiveButton(R.string.log_delete) { _, _ -> doDeleteEntry(entry) }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
-    private fun doDeleteEntry(number: String) {
+    private fun doDeleteEntry(entry: CallLogEntry) {
         val ctx = requireContext().applicationContext
         Thread {
-            CallLogRepository.delete(ctx, number)
+            CallLogRepository.deleteEntry(ctx, entry.number, entry.date, entry.oldestDate)
             ui {
                 Toast.makeText(requireContext(), R.string.entry_deleted, Toast.LENGTH_SHORT).show()
                 reload()

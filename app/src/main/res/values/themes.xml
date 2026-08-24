@@ -281,6 +281,29 @@
         <item name="android:background">@drawable/bg_dtmf_key</item>
     </style>
 
+    <!-- M3-styled popup: rounded dialog corners + pill-shaped action buttons,
+         matching current Google app conventions. Used by the call-back
+         reminder flow (CallBackReminderPrompt). -->
+    <style name="ThemeOverlay.M5Dialer.RoundedDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.M5Dialer.DialogCorner</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.M5Dialer.Button.Pill</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.M5Dialer.Button.Pill.Outlined</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.M5Dialer.Button.Pill.Outlined</item>
+    </style>
+
+    <style name="ShapeAppearance.M5Dialer.DialogCorner" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="Widget.M5Dialer.Button.Pill" parent="Widget.Material3.Button">
+        <item name="cornerRadius">20dp</item>
+    </style>
+
+    <style name="Widget.M5Dialer.Button.Pill.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">20dp</item>
+    </style>
+
     <style name="DialPadDigit">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>

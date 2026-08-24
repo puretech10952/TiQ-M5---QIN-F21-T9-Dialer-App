@@ -1,6 +1,7 @@
 package com.puretech.dialer
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.puretech.dialer.databinding.ActivityAboutBinding
@@ -28,6 +29,17 @@ class AboutActivity : AppCompatActivity() {
 
         binding.rowTerms.setOnClickListener { openLegal(LegalActivity.DOC_TERMS) }
         binding.rowPrivacy.setOnClickListener { openLegal(LegalActivity.DOC_PRIVACY) }
+        binding.rowFeedback.setOnClickListener { Feedback.send(this) }
+        binding.aboutPuretechkosherLink.paintFlags =
+            binding.aboutPuretechkosherLink.paintFlags or android.graphics.Paint.UNDERLINE_TEXT_FLAG
+        binding.aboutPuretechkosherLink.setOnClickListener {
+            try {
+                startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.about_puretechkosher_url)))
+                )
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun openLegal(doc: String) {

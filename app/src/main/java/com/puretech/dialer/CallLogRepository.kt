@@ -14,6 +14,11 @@ data class CallLogEntry(
     val photoUri: Uri?,
     val type: Int,
     val date: Long,
+    /** The oldest call's date within this grouped run — equal to [date] for a
+     *  single ungrouped call. Together with [date] this bounds exactly the
+     *  calls [group] merged into this row, so a delete can target just this
+     *  row instead of every call ever logged with [number]. */
+    val oldestDate: Long = date,
     val count: Int,
     val isHd: Boolean,
     val isWifi: Boolean = false,
@@ -27,7 +32,11 @@ data class CallLogEntry(
     /** True when this row is a contact search result rather than a real call. */
     val asContact: Boolean = false,
     /** True when this number is in the Starred list ([StarredStore]). */
-    val isStarred: Boolean = false
+    val isStarred: Boolean = false,
+    /** True for the synthetic row representing a call still in progress —
+     *  not a real call-log row (Telecom only writes one once the call ends).
+     *  See [RecentsFragment.liveCallEntry]. */
+    val isOngoing: Boolean = false
 )
 
 /** A single call (for the per-number History screen). */
@@ -143,7 +152,8 @@ object CallLogRepository {
                 val feat = if (featIdx >= 0) c.getInt(featIdx) else 0
                 raw.add(
                     CallLogEntry(
-                        number, name, photo, type, date, 1, (feat and FEATURE_HD_VOICE) != 0,
+                        number, name, photo, type, date, oldestDate = date, count = 1,
+                        isHd = (feat and FEATURE_HD_VOICE) != 0,
                         isWifi = (feat and FEATURE_WIFI) != 0,
                         numberType = nType, numberLabel = nLabel, geocoded = geo,
                         simLabel = simLabels[acctId]
@@ -270,7 +280,10 @@ object CallLogRepository {
                 out[out.size - 1] = last.copy(
                     count = last.count + 1,
                     isHd = last.isHd || e.isHd,
-                    isWifi = last.isWifi || e.isWifi
+                    isWifi = last.isWifi || e.isWifi,
+                    // Entries arrive newest-first, so the most recently merged
+                    // one is the oldest call in this run so far.
+                    oldestDate = e.date
                 )
             } else {
                 out.add(e)
@@ -319,6 +332,36 @@ object CallLogRepository {
             android.util.Log.w("M5CallLog", "delete failed: ${e.message}")
         }
         LocalCallStore.delete(context, last7, number)
+    }
+
+    /**
+     * Deletes only the calls that were merged into one displayed grouped row
+     * (see [group]) — i.e. those within [newestDate]..[oldestDate] inclusive —
+     * instead of every call ever logged with [number]. This is what "Delete
+     * entry" on a single call-log row should use; [delete] (all history for a
+     * number) stays reserved for the explicit "Delete history" action.
+     */
+    fun deleteEntry(context: Context, number: String, newestDate: Long, oldestDate: Long) {
+        val digits = number.filter { it.isDigit() }
+        val last7 = if (digits.length >= 7) digits.takeLast(7) else digits
+        try {
+            if (last7.isNotEmpty()) {
+                context.contentResolver.delete(
+                    CallLog.Calls.CONTENT_URI,
+                    "${CallLog.Calls.NUMBER} LIKE ? AND ${CallLog.Calls.DATE} BETWEEN ? AND ?",
+                    arrayOf("%$last7", oldestDate.toString(), newestDate.toString())
+                )
+            } else {
+                context.contentResolver.delete(
+                    CallLog.Calls.CONTENT_URI,
+                    "${CallLog.Calls.NUMBER} = ? AND ${CallLog.Calls.DATE} BETWEEN ? AND ?",
+                    arrayOf(number, oldestDate.toString(), newestDate.toString())
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("M5CallLog", "deleteEntry failed: ${e.message}")
+        }
+        LocalCallStore.deleteRange(context, last7, number, oldestDate, newestDate)
     }
 
     /** Wipes every call log entry — system log + local store. */

@@ -14,6 +14,9 @@ class BootReceiver : BroadcastReceiver() {
                 // Inexact repeating alarms are cleared on reboot — re-arm the
                 // background update check if the user enabled it.
                 UpdateScheduler.reschedule(context)
+                // Exact alarms are also cleared on reboot — re-arm any pending
+                // "call back" reminders from the Call back list.
+                CallBackReminderScheduler.rescheduleAll(context)
             }
         }
     }

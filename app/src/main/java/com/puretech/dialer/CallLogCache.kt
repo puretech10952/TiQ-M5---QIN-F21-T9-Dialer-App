@@ -84,6 +84,7 @@ object CallLogCache {
                         photoUri = o.optStringOrNull("photoUri")?.let { Uri.parse(it) },
                         type = o.getInt("type"),
                         date = o.getLong("date"),
+                        oldestDate = o.optLong("oldestDate", o.getLong("date")),
                         count = o.getInt("count"),
                         isHd = o.getBoolean("isHd"),
                         isWifi = o.optBoolean("isWifi", false),
@@ -115,6 +116,7 @@ object CallLogCache {
                 o.put("photoUri", e.photoUri?.toString())
                 o.put("type", e.type)
                 o.put("date", e.date)
+                o.put("oldestDate", e.oldestDate)
                 o.put("count", e.count)
                 o.put("isHd", e.isHd)
                 o.put("isWifi", e.isWifi)

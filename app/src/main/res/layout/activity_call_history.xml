@@ -105,7 +105,7 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="10dp"
-            android:src="@drawable/ic_star"
+            android:src="@drawable/ic_callback"
             android:contentDescription="@string/star_entry"
             app:tint="?attr/colorOnSurface" />
 

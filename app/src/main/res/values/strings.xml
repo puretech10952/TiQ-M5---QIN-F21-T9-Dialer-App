@@ -12,7 +12,9 @@
     <string name="about_version">Version %1$s (%2$d)</string>
     <string name="about_copyright">© 2026 PureTech</string>
     <string name="about_rights">All rights reserved.</string>
-    <string name="about_made_possible">Made possible by puretechkosher.com</string>
+    <string name="about_made_possible">Made possible by</string>
+    <string name="about_puretechkosher_link">PureTechKosher</string>
+    <string name="about_puretechkosher_url" translatable="false">https://puretechkosher.com</string>
     <string name="about_feedback">Send feedback</string>
     <string name="about_feedback_email" translatable="false">puretech10952@gmail.com</string>
     <string name="about_feedback_subject">PureTech Dialer feedback (v%1$s)</string>
@@ -125,27 +127,40 @@
     <string name="delete_all_logs_confirm">Delete all call log history? This can\'t be undone.</string>
     <string name="all_logs_deleted">Call log cleared</string>
 
-    <!-- Starred -->
-    <string name="nav_starred">Starred</string>
-    <string name="starred_title">Starred</string>
-    <string name="star_entry">Star entry</string>
-    <string name="unstar_entry">Unstar entry</string>
+    <!-- Call back list (formerly "Starred") -->
+    <string name="nav_starred">Call back list</string>
+    <string name="starred_title">Call back list</string>
+    <string name="star_entry">Call back later</string>
+    <string name="unstar_entry">Remove from list</string>
+    <string name="added_to_callback_list">Added %1$s to Call back list</string>
+    <string name="removed_from_callback_list">Removed %1$s from Call back list</string>
     <string name="starred_sort">Sort</string>
-    <string name="starred_sort_date_new">Date starred (newest first)</string>
-    <string name="starred_sort_date_old">Date starred (oldest first)</string>
+    <string name="starred_sort_date_new">Date added (newest first)</string>
+    <string name="starred_sort_date_old">Date added (oldest first)</string>
     <string name="starred_sort_name">Name</string>
-    <string name="starred_clear_all">Clear all starred</string>
-    <string name="starred_clear_all_confirm">Remove all starred contacts? This can\'t be undone.</string>
-    <string name="starred_add">Add starred contact</string>
+    <string name="starred_clear_all">Clear all</string>
+    <string name="starred_clear_all_confirm">Remove everyone from your call back list? This can\'t be undone.</string>
+    <string name="starred_add">Add to call back list</string>
     <string name="starred_add_from_contacts">From Contacts</string>
     <string name="starred_add_from_recents">From Recents</string>
     <string name="starred_add_manually">Enter manually</string>
-    <string name="starred_empty">No starred contacts yet</string>
-    <string name="starred_subtitle">Starred %1$s</string>
+    <string name="starred_empty">No calls to call back yet</string>
+    <string name="starred_subtitle">Added %1$s</string>
     <string name="starred_note_preview">Note: %1$s</string>
     <string name="notes">Notes</string>
     <string name="notes_hint">Write a note…</string>
     <string name="notes_save">Save</string>
+
+    <!-- Call back reminders -->
+    <string name="reminder_prompt_title">Set a reminder?</string>
+    <string name="reminder_prompt_message">Get notified to call %1$s back</string>
+    <string name="reminder_prompt_yes">Set reminder</string>
+    <string name="reminder_prompt_no">Not now</string>
+    <string name="reminder_setup_title">Call back reminder</string>
+    <string name="reminder_pick_datetime">Choose date &amp; time</string>
+    <string name="reminder_notif_title">Time to call back</string>
+    <string name="reminder_notif_channel">Call back reminders</string>
+    <string name="starred_reminder_subtitle">Reminder: %1$s</string>
 
     <!-- Settings entries -->
     <string name="setting_theme">Theme</string>

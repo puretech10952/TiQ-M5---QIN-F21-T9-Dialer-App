@@ -9,6 +9,7 @@ import android.provider.ContactsContract
 import android.text.InputType
 import android.view.View
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -207,30 +208,37 @@ class StarredActivity : AppCompatActivity() {
         val title = NameFormat.apply(this, entry.name) ?: entry.name ?: entry.number
         CardMenu(this, anchor)
             .title(title)
-            .add(MENU_UNSTAR, R.drawable.ic_star_filled, getString(R.string.unstar_entry))
+            .add(MENU_UNSTAR, R.drawable.ic_callback, getString(R.string.unstar_entry))
             .add(MENU_COPY, R.drawable.ic_content_copy, getString(R.string.log_copy))
             .onClick { id ->
                 when (id) {
-                    MENU_UNSTAR -> unstarAndReload(entry.number)
+                    MENU_UNSTAR -> unstarAndReload(entry.number, title)
                     MENU_COPY -> copyNumber(entry)
                 }
             }
             .show()
     }
 
-    private fun unstarAndReload(number: String) {
+    private fun unstarAndReload(number: String, label: String) {
         val ctx = applicationContext
         Thread {
             StarredStore.unstar(ctx, number)
-            runOnUiThread { reload() }
+            runOnUiThread {
+                reload()
+                Toast.makeText(this, getString(R.string.removed_from_callback_list, label), Toast.LENGTH_SHORT).show()
+            }
         }.start()
     }
 
     private fun starAndReload(number: String, name: String?, photoUri: String?) {
         val ctx = applicationContext
+        val label = name?.ifBlank { null } ?: number
         Thread {
             StarredStore.star(ctx, number, name, photoUri)
-            runOnUiThread { reload() }
+            runOnUiThread {
+                reload()
+                Toast.makeText(this, getString(R.string.added_to_callback_list, label), Toast.LENGTH_SHORT).show()
+            }
         }.start()
     }
 

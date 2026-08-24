@@ -80,7 +80,7 @@
                         android:layout_width="14dp"
                         android:layout_height="14dp"
                         android:layout_marginEnd="4dp"
-                        android:src="@drawable/ic_star_filled"
+                        android:src="@drawable/ic_callback"
                         android:contentDescription="@string/star_entry"
                         android:visibility="gone"
                         app:tint="?attr/colorPrimary" />
