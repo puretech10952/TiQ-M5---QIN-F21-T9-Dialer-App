@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<!-- Root is a FrameLayout, match_parent-sized and therefore fixed regardless of
+     its children's own sizes, so moreOptionsPanel (added as its 2nd child,
+     below) can grow/shrink freely as a true overlay without ever affecting the
+     content LinearLayout's own layout: that's what lets it cover the avatar/
+     middle area while open instead of pushing it up. A wrap_content-sized
+     wrapper here would NOT work: it would still be resized by an overlay
+     child's full content height even while that child is positioned off-screen
+     via a transform, corrupting the whole layout the moment it appears. -->
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/incall_bg"
@@ -520,7 +532,7 @@
             android:layout_marginHorizontal="20dp" />
     </LinearLayout>
 
-    <!-- Active-call bottom panel: Record, Mute, Speaker, More + End -->
+    <!-- Active-call bottom panel: Record, Mute, Speaker, More + End. -->
     <LinearLayout
         android:id="@+id/bottomPanel"
         android:layout_width="match_parent"
@@ -575,3 +587,27 @@
     </LinearLayout>
 
 </LinearLayout>
+
+    <!-- "More" options overlay: covers the avatar/middle area while open,
+         instead of pushing it up: a true overlay sibling of the content
+         LinearLayout above (see the root FrameLayout comment), positioned
+         with layout_gravity="bottom" and a bottomMargin set in code to sit
+         flush above bottomPanel (InCallActivity.syncMoreOptionsMargin).
+         Built/emptied in code (see populateMoreOptionsRow) since the item set
+         is dynamic (recording state, hold vs. swap, a conference in
+         progress...), same as the popup it replaces. -->
+    <LinearLayout
+        android:id="@+id/moreOptionsPanel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_call_panel"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingVertical="22dp"
+        android:paddingHorizontal="4dp"
+        android:visibility="gone"
+        tools:layout_height="wrap_content"
+        tools:visibility="visible" />
+
+</FrameLayout>

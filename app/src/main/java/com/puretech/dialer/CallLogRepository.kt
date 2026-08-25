@@ -32,11 +32,7 @@ data class CallLogEntry(
     /** True when this row is a contact search result rather than a real call. */
     val asContact: Boolean = false,
     /** True when this number is in the Starred list ([StarredStore]). */
-    val isStarred: Boolean = false,
-    /** True for the synthetic row representing a call still in progress —
-     *  not a real call-log row (Telecom only writes one once the call ends).
-     *  See [RecentsFragment.liveCallEntry]. */
-    val isOngoing: Boolean = false
+    val isStarred: Boolean = false
 )
 
 /** A single call (for the per-number History screen). */

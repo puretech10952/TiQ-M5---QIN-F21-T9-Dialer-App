@@ -39,7 +39,6 @@
     <string name="update_notif_text">PureTech Phone %1$s इंस्टॉल के लिए तैयार।</string>
     <string name="dial_add_pause">2 सेकंड का विराम जोड़ें</string>
     <string name="dial_add_wait">प्रतीक्षा जोड़ें</string>
-    <string name="ongoing_call">चल रही कॉल</string>
     <string name="notif_hangup">काटें</string>
     <string name="notif_speaker_on">स्पीकर चालू</string>
     <string name="notif_channel">चल रही कॉल</string>

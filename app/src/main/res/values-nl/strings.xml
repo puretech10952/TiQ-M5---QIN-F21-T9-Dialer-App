@@ -39,7 +39,6 @@
     <string name="update_notif_text">PureTech Phone %1$s klaar om te installeren.</string>
     <string name="dial_add_pause">2 seconden pauze toevoegen</string>
     <string name="dial_add_wait">Wachttijd toevoegen</string>
-    <string name="ongoing_call">Lopend gesprek</string>
     <string name="notif_hangup">Ophangen</string>
     <string name="notif_speaker_on">Luidspreker aan</string>
     <string name="notif_channel">Lopend gesprek</string>

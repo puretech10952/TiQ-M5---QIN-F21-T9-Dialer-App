@@ -30,7 +30,7 @@ import java.util.Calendar
 
 /** Recents screen (Google-Dialer card style) with search + favorites. Hosted by
  *  [HomeActivity]; the drawer, bottom bar, and gating live in the host. */
-class RecentsFragment : Fragment(), CallManager.Listener {
+class RecentsFragment : Fragment() {
 
     private var _binding: FragmentRecentsBinding? = null
     private val binding get() = _binding!!
@@ -100,7 +100,7 @@ class RecentsFragment : Fragment(), CallManager.Listener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         logAdapter = CallLogAdapter(
-            onCall = { if (it.isOngoing) returnToCall() else callNumber(it.number) },
+            onCall = { callNumber(it.number) },
             onMessage = { messageNumber(it) },
             onHistory = { openHistory(it) },
             onAddContact = { addContact(it) },
@@ -126,48 +126,10 @@ class RecentsFragment : Fragment(), CallManager.Listener {
         loadContacts()
         ensureLogPermission()
         ensureContactsObserver()
-        CallManager.registerListener(this)
-    }
-
-    /** Live-refreshes the list the moment a call starts/ends/changes state, so
-     *  the synthetic "ongoing call" row (see [liveCallEntry]) appears and
-     *  disappears in step with the real call instead of only showing up the
-     *  next time this tab happens to reload. */
-    override fun onCallChanged() {
-        ui { reload() }
-    }
-
-    private fun returnToCall() {
-        startActivity(
-            Intent(requireContext(), InCallActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        )
-    }
-
-    /** A synthetic row for a call still in progress: Telecom doesn't write a
-     *  real call-log row until the call ends, but the user may well want to
-     *  see it in the list to message the other person or check past history
-     *  while still on the phone with them. */
-    private fun liveCallEntry(ctx: Context): CallLogEntry? {
-        val call = CallManager.activeCall() ?: CallManager.heldCall() ?: return null
-        val number = CallManager.number(call)
-        if (number.isBlank()) return null
-        val name = NameFormat.apply(ctx, ContactsRepository.displayName(ctx, number))
-        return CallLogEntry(
-            number = number,
-            name = name,
-            photoUri = null,
-            type = 0,
-            date = System.currentTimeMillis(),
-            count = 1,
-            isHd = false,
-            isOngoing = true
-        )
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        CallManager.unregisterListener(this)
         if (contactsObserverRegistered) {
             requireContext().contentResolver.unregisterContentObserver(contactsObserver)
             contactsObserverRegistered = false
@@ -385,11 +347,6 @@ class RecentsFragment : Fragment(), CallManager.Listener {
         val outgoingOnly = binding.chipOutgoing.isChecked
         val contactsOnly = binding.chipContacts.isChecked
         val ctx = requireContext().applicationContext
-        // Only show the ongoing-call row in the unfiltered "All" view — it isn't
-        // meaningfully missed/received/outgoing/a-contact yet.
-        val live = if (!missedOnly && !receivedOnly && !outgoingOnly && !contactsOnly) {
-            liveCallEntry(ctx)
-        } else null
 
         // Paint instantly from [CallLogCache] if a prefetch already finished (fired
         // right when the last call ended) so a just-finished call shows up the moment
@@ -411,7 +368,7 @@ class RecentsFragment : Fragment(), CallManager.Listener {
                 outgoingOnly -> cached.filter { it.type == android.provider.CallLog.Calls.OUTGOING_TYPE }
                 else -> cached
             }
-            val rows = buildRows(ctx, filtered, live)
+            val rows = buildRows(ctx, filtered)
             logAdapter.submit(rows)
             binding.emptyText.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
             if (rows.isEmpty()) binding.emptyText.text = getString(R.string.no_recents)
@@ -434,7 +391,7 @@ class RecentsFragment : Fragment(), CallManager.Listener {
                     }
                     else -> all
                 }
-                val rows = buildRows(ctx, entries, live)
+                val rows = buildRows(ctx, entries)
                 ui {
                     logAdapter.submit(rows)
                     binding.emptyText.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
@@ -451,16 +408,9 @@ class RecentsFragment : Fragment(), CallManager.Listener {
         binding.emptyText.visibility = View.VISIBLE
     }
 
-    private fun buildRows(
-        ctx: Context, entries: List<CallLogEntry>, live: CallLogEntry? = null
-    ): List<CallLogRow> {
+    private fun buildRows(ctx: Context, entries: List<CallLogEntry>): List<CallLogRow> {
         val rows = ArrayList<CallLogRow>()
         var lastLabel: String? = null
-        if (live != null) {
-            rows.add(CallLogRow.Header(dayLabel(ctx, live.date)))
-            rows.add(CallLogRow.Item(live))
-            lastLabel = dayLabel(ctx, live.date)
-        }
         for (e in entries) {
             val label = dayLabel(ctx, e.date)
             if (label != lastLabel) {

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One cell in the in-call "More" options panel: same shape/style as the
+     bottom row's controls (icon + label), just smaller so the whole set fits
+     in one row. See InCallActivity.populateMoreOptionsRow. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/ControlGroup">
+
+    <ImageView
+        android:id="@+id/moreOptionIcon"
+        style="@style/ControlIconSmall"
+        tools:src="@drawable/ic_record" />
+
+    <TextView
+        android:id="@+id/moreOptionLabel"
+        style="@style/ControlLabelSmall"
+        tools:text="Record" />
+
+</LinearLayout>

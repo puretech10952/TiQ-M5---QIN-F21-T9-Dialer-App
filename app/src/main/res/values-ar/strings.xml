@@ -39,7 +39,6 @@
     <string name="update_notif_text">PureTech Phone %1$s جاهز للتثبيت.</string>
     <string name="dial_add_pause">إضافة إيقاف مؤقت لمدة ثانيتين</string>
     <string name="dial_add_wait">إضافة انتظار</string>
-    <string name="ongoing_call">مكالمة جارية</string>
     <string name="notif_hangup">إنهاء المكالمة</string>
     <string name="notif_speaker_on">السماعة مفعّلة</string>
     <string name="notif_channel">مكالمة جارية</string>

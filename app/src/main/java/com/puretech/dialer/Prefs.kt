@@ -210,6 +210,13 @@ object Prefs {
     fun setSleepTimerMinutes(c: Context, minutes: Int) =
         sp(c).edit().putInt("sleep_timer_minutes", minutes).apply()
 
+    /** [SystemClock.elapsedRealtime] the running sleep timer will fire at, 0 if
+     *  none is running. Persisted (not just in-memory) so it survives this
+     *  process being killed and restarted mid-call. */
+    fun sleepTimerDeadlineElapsed(c: Context) = sp(c).getLong("sleep_timer_deadline_elapsed", 0L)
+    fun setSleepTimerDeadlineElapsed(c: Context, atElapsedRealtime: Long) =
+        sp(c).edit().putLong("sleep_timer_deadline_elapsed", atElapsedRealtime).apply()
+
     /** Whether the one-time welcome/onboarding screen has been shown. */
     fun welcomeShown(c: Context) = sp(c).getBoolean("welcome_shown", false)
     fun setWelcomeShown(c: Context) = sp(c).edit().putBoolean("welcome_shown", true).apply()

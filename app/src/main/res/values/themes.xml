@@ -48,6 +48,22 @@
         <item name="android:textSize">12sp</item>
     </style>
 
+    <!-- Same shape/style as ControlIcon, just smaller so the in-call "More"
+         panel's whole row (up to ~6-7 items) fits without scrolling, while the
+         bottom row's own icons stay full-size. -->
+    <style name="ControlIconSmall" parent="ControlIcon">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:padding">11dp</item>
+    </style>
+
+    <style name="ControlLabelSmall" parent="ControlLabel">
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
     <style name="CallLogAction" parent="Widget.Material3.Button.TextButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

@@ -97,7 +97,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         // into it instead.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                moveTaskToBack(true)
+                if (moreOptionsOpen) collapseMoreOptions() else moveTaskToBack(true)
             }
         })
 
@@ -110,9 +110,9 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         binding.btnRoute.setOnClickListener { onRouteClick() }
         // The first control is the in-call keypad (DTMF for hotline menus).
         binding.btnKeypad.setOnClickListener { toggleDtmf() }
-        binding.btnMore.setOnClickListener { showMoreMenu(it) }
+        binding.btnMore.setOnClickListener { toggleMoreOptions() }
         binding.sleepTimerBanner.setOnClickListener {
-            SleepTimer.cancel()
+            SleepTimer.cancel(this)
             updateSleepTimerBanner()
         }
         binding.btnIncomingMessage.setOnClickListener { showReplyOptions(CallManager.ringingCall()) }
@@ -129,6 +129,12 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         binding.pulseRing.setRingColor(0xFF00C853.toInt())
 
         applyScreenProfile()
+        // Keeps the More overlay's position correct across any future resize
+        // of bottomPanel (e.g. a screen-profile change), not just at the
+        // moment it's opened.
+        binding.bottomPanel.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (bottom - top != oldBottom - oldTop) syncMoreOptionsMargin()
+        }
         if (isPreview) renderPreview()
     }
 
@@ -176,6 +182,10 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_CALL) {
             CallManager.ringingCall()?.let { CallManager.answer(it) }
+            return true
+        }
+        if (keyCode == KeyEvent.KEYCODE_BACK && moreOptionsOpen) {
+            collapseMoreOptions()
             return true
         }
         if (keyCode == KeyEvent.KEYCODE_BACK && binding.dtmfOverlay.visibility == View.VISIBLE) {
@@ -312,7 +322,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     /** Sleep-timer chip: visible while an auto-hangup countdown is running.
      *  Tap to cancel it -- re-arming is one tap away in the overflow menu. */
     private fun updateSleepTimerBanner() {
-        val running = SleepTimer.isRunning()
+        val running = SleepTimer.isRunning(this)
         binding.sleepTimerBanner.visibility = if (running) View.VISIBLE else View.GONE
         if (running) {
             binding.sleepTimerText.text =
@@ -348,14 +358,102 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
     // --- More / route popups ---------------------------------------------------
 
-    private fun showMoreMenu(anchor: View) {
-        val menu = CardMenu(this, anchor)
-        menu.add(
-            MENU_RECORD,
-            if (CallManager.recording) R.drawable.ic_mic_off else R.drawable.ic_record,
-            getString(if (CallManager.recording) R.string.ctl_stop_record else R.string.ctl_record)
+    // --- More options panel -----------------------------------------------------
+    //
+    // Replaces the old small CardMenu popup: tapping More instead expands a
+    // second row, styled to match the bottom row's own icons (just smaller, to
+    // fit them all in one row without scrolling). moreOptionsPanel is a true
+    // overlay: a direct child of the root FrameLayout (see activity_incall.xml),
+    // positioned flush above bottomPanel via a bottomMargin kept in sync with
+    // bottomPanel's actual height (syncMoreOptionsMargin). Expanding it is a
+    // real height animation, 0 -> its natural content height, so it visibly
+    // grows -- but because it lives in the FrameLayout overlay branch, not
+    // inside bottomPanel or the content LinearLayout, that growth never
+    // resizes anything else: it just covers the avatar/middle area behind it
+    // while open instead of pushing it up.
+
+    private var moreOptionsOpen = false
+    private var moreOptionsAnimator: android.animation.ValueAnimator? = null
+
+    private data class MoreItem(val id: Int, val iconRes: Int, val label: String)
+
+    /** Keeps moreOptionsPanel's bottom margin equal to bottomPanel's actual
+     *  height, so it always rests exactly flush above it -- covering the
+     *  avatar/middle area, never overlapping bottomPanel itself. Re-synced on
+     *  every layout pass (screen-profile changes resize bottomPanel's icons). */
+    private fun syncMoreOptionsMargin() {
+        val margin = binding.bottomPanel.height
+        val lp = binding.moreOptionsPanel.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        if (lp.bottomMargin != margin) {
+            lp.bottomMargin = margin
+            binding.moreOptionsPanel.layoutParams = lp
+        }
+    }
+
+    private fun toggleMoreOptions() {
+        if (moreOptionsOpen) collapseMoreOptions() else expandMoreOptions()
+    }
+
+    private fun expandMoreOptions() {
+        if (moreOptionsOpen) return
+        moreOptionsOpen = true
+        setActive(binding.btnMore, true)
+        populateMoreOptionsRow()
+        syncMoreOptionsMargin()
+
+        val panel = binding.moreOptionsPanel
+        moreOptionsAnimator?.cancel()
+        panel.visibility = View.VISIBLE
+        // Measure the row's natural (wrap_content) height with its
+        // freshly-built children before animating to it, since it's currently
+        // pinned at 0dp.
+        panel.measure(
+            View.MeasureSpec.makeMeasureSpec(binding.root.width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         )
-        menu.add(MENU_ADD, R.drawable.ic_add_call, getString(R.string.ctl_add))
+        animateHeight(panel, panel.height, panel.measuredHeight, android.view.animation.DecelerateInterpolator()) {}
+    }
+
+    private fun collapseMoreOptions() {
+        if (!moreOptionsOpen) return
+        moreOptionsOpen = false
+        setActive(binding.btnMore, false)
+
+        val panel = binding.moreOptionsPanel
+        moreOptionsAnimator?.cancel()
+        animateHeight(panel, panel.height, 0, android.view.animation.AccelerateInterpolator()) {
+            panel.visibility = View.GONE
+        }
+    }
+
+    private fun animateHeight(view: View, from: Int, to: Int, interpolator: android.view.animation.Interpolator, onEnd: () -> Unit) {
+        val animator = android.animation.ValueAnimator.ofInt(from, to)
+        animator.addUpdateListener {
+            view.layoutParams.height = it.animatedValue as Int
+            view.requestLayout()
+        }
+        animator.duration = 220
+        animator.interpolator = interpolator
+        animator.addListener(object : android.animation.AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: android.animation.Animator) = onEnd()
+        })
+        moreOptionsAnimator = animator
+        animator.start()
+    }
+
+    private fun buildMoreItems(): List<MoreItem> {
+        val items = ArrayList<MoreItem>()
+        if (CallManager.number().isNotBlank()) {
+            items.add(MoreItem(MENU_MESSAGE, R.drawable.ic_message, getString(R.string.log_message)))
+        }
+        items.add(
+            MoreItem(
+                MENU_RECORD,
+                if (CallManager.recording) R.drawable.ic_mic_off else R.drawable.ic_record,
+                getString(if (CallManager.recording) R.string.ctl_stop_record else R.string.ctl_record)
+            )
+        )
+        items.add(MoreItem(MENU_ADD, R.drawable.ic_add_call, getString(R.string.ctl_add)))
         // Two calls → Swap; a single locally-held call → Resume; active → Hold.
         // When the remote party is holding us, we can't act on hold state — omit the item.
         if (!CallManager.isRemoteHold()) {
@@ -365,33 +463,54 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
                 CallManager.heldCall() != null -> R.drawable.ic_play to R.string.ctl_resume
                 else -> R.drawable.ic_hold to R.string.ctl_hold
             }
-            menu.add(MENU_HOLD, holdIcon, getString(holdLabel))
+            items.add(MoreItem(MENU_HOLD, holdIcon, getString(holdLabel)))
         }
         if (CallManager.activeCall() != null && CallManager.heldCall() != null) {
-            menu.add(MENU_MERGE, R.drawable.ic_merge, getString(R.string.ctl_merge))
+            items.add(MoreItem(MENU_MERGE, R.drawable.ic_merge, getString(R.string.ctl_merge)))
         }
         // In a conference, let the user manage / drop individual participants.
         if (CallManager.conferenceChildren().size > 1) {
-            menu.add(MENU_MANAGE_CONF, R.drawable.ic_merge, getString(R.string.ctl_manage_conference))
+            items.add(MoreItem(MENU_MANAGE_CONF, R.drawable.ic_merge, getString(R.string.ctl_manage_conference)))
         }
-        val sleepLabel = if (SleepTimer.isRunning())
+        val sleepLabel = if (SleepTimer.isRunning(this))
             getString(R.string.ctl_sleep_timer_running, formatSleepTimerRemaining())
         else getString(R.string.ctl_sleep_timer)
-        menu.add(MENU_SLEEP_TIMER, R.drawable.ic_sleep_timer, sleepLabel)
-        menu.onClick { id ->
-            when (id) {
-                MENU_RECORD -> toggleRecord()
-                MENU_ADD -> addCall()
-                MENU_HOLD -> toggleHoldOrSwap()
-                MENU_MERGE -> CallManager.merge()
-                MENU_MANAGE_CONF -> showManageConference()
-                MENU_SLEEP_TIMER -> showSleepTimerDialog()
-            }
+        items.add(MoreItem(MENU_SLEEP_TIMER, R.drawable.ic_sleep_timer, sleepLabel))
+        return items
+    }
+
+    private fun performMoreAction(id: Int) {
+        when (id) {
+            MENU_MESSAGE -> messageNumber(CallManager.number())
+            MENU_RECORD -> toggleRecord()
+            MENU_ADD -> addCall()
+            MENU_HOLD -> toggleHoldOrSwap()
+            MENU_MERGE -> CallManager.merge()
+            MENU_MANAGE_CONF -> showManageConference()
+            MENU_SLEEP_TIMER -> showSleepTimerDialog()
         }
-        // Highlight the 3-dot button (black icon on the light pill) while open.
-        setActive(binding.btnMore, true)
-        menu.onDismiss = { setActive(binding.btnMore, false) }
-        menu.show()
+    }
+
+    private fun populateMoreOptionsRow() {
+        val row = binding.moreOptionsPanel
+        row.removeAllViews()
+        for (item in buildMoreItems()) {
+            val cell = layoutInflater.inflate(R.layout.item_incall_more_option, row, false)
+            val icon = cell.findViewById<android.widget.ImageView>(R.id.moreOptionIcon)
+            icon.setImageResource(item.iconRes)
+            cell.findViewById<android.widget.TextView>(R.id.moreOptionLabel).text = item.label
+            // Listener goes on the icon itself, not the wrapping cell: the icon
+            // is the clickable one (ControlIconSmall inherits ControlIcon's
+            // clickable=true + ripple background), same as every bottom-row
+            // button (btnKeypad, btnMute...) -- attaching it to the cell instead
+            // left the icon silently swallowing every tap with nothing wired to
+            // it, which is why nothing in this row did anything.
+            icon.setOnClickListener {
+                performMoreAction(item.id)
+                collapseMoreOptions()
+            }
+            row.addView(cell)
+        }
     }
 
     /** List the conference participants; tap the end button to drop one. */
@@ -434,30 +553,95 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     /** Pick a duration (or turn it off) for the auto-hangup sleep timer -- e.g.
      *  listening to a hotline in bed without draining the phone overnight. */
     private fun showSleepTimerDialog() {
-        val minutesOptions = intArrayOf(30, 60, 90, 120)
+        // -1 is the sentinel "Custom…" entry, always last in sleep_timer_options.
+        val minutesOptions = intArrayOf(30, 60, 90, 120, -1)
         val labels = resources.getStringArray(R.array.sleep_timer_options)
-        var selected = minutesOptions.indexOf(Prefs.sleepTimerMinutes(this)).coerceAtLeast(0)
-        val builder = MaterialAlertDialogBuilder(this)
+        val savedMinutes = Prefs.sleepTimerMinutes(this)
+        var selected = minutesOptions.indexOf(savedMinutes).let { if (it < 0) minutesOptions.size - 1 else it }
+        val builder = sleepDialogBuilder()
             .setTitle(R.string.sleep_timer_title)
             .setSingleChoiceItems(labels, selected) { _, which -> selected = which }
             .setPositiveButton(R.string.ctl_sleep_timer_start) { _, _ ->
                 val minutes = minutesOptions[selected]
-                Prefs.setSleepTimerMinutes(this, minutes)
-                SleepTimer.start(applicationContext, minutes)
-                updateSleepTimerBanner()
+                if (minutes == -1) {
+                    showCustomSleepTimerDialog(if (savedMinutes in minutesOptions) 30 else savedMinutes)
+                } else {
+                    Prefs.setSleepTimerMinutes(this, minutes)
+                    SleepTimer.start(applicationContext, minutes)
+                    updateSleepTimerBanner()
+                }
             }
             .setNegativeButton(R.string.cancel, null)
-        if (SleepTimer.isRunning()) {
+        if (SleepTimer.isRunning(this)) {
             builder.setNeutralButton(R.string.ctl_sleep_timer_off) { _, _ ->
-                SleepTimer.cancel()
+                SleepTimer.cancel(this)
                 updateSleepTimerBanner()
             }
         }
         builder.show()
     }
 
+    /** Custom minute count, entered in a card-styled numeric field. */
+    private fun showCustomSleepTimerDialog(prefill: Int) {
+        val density = resources.displayMetrics.density
+        val pad = (20 * density).toInt()
+
+        val input = android.widget.EditText(this).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText(prefill.toString())
+            setSelection(text.length)
+            hint = getString(R.string.sleep_timer_custom_hint)
+        }
+        val card = com.google.android.material.card.MaterialCardView(this).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            radius = 24 * density
+            cardElevation = 0f
+            setCardBackgroundColor(themeColor(com.google.android.material.R.attr.colorSurfaceContainerLowest))
+            strokeWidth = 0
+            addView(android.widget.LinearLayout(this@InCallActivity).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                setPadding(pad, pad, pad, pad)
+                addView(android.widget.TextView(this@InCallActivity).apply {
+                    text = getString(R.string.sleep_timer_custom_hint)
+                    setTextColor(themeColor(com.google.android.material.R.attr.colorOnSurfaceVariant))
+                    textSize = 13f
+                })
+                addView(input)
+            })
+        }
+        val container = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(pad, pad / 2, pad, pad / 2)
+            addView(card)
+        }
+
+        sleepDialogBuilder()
+            .setTitle(R.string.sleep_timer_custom_title)
+            .setView(container)
+            .setPositiveButton(R.string.ctl_sleep_timer_start) { _, _ ->
+                val minutes = input.text?.toString()?.trim()?.toIntOrNull()
+                if (minutes == null || minutes !in 1..600) {
+                    Toast.makeText(this, R.string.sleep_timer_custom_invalid, Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                Prefs.setSleepTimerMinutes(this, minutes)
+                SleepTimer.start(applicationContext, minutes)
+                updateSleepTimerBanner()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    /** M3 rounded corners + pill-shaped action buttons, matching the call-back
+     *  reminder flow's dialog styling. */
+    private fun sleepDialogBuilder() =
+        MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_M5Dialer_RoundedDialog)
+
     private fun formatSleepTimerRemaining(): String {
-        val total = (SleepTimer.remainingMs() / 1000).coerceAtLeast(0)
+        val total = (SleepTimer.remainingMs(this) / 1000).coerceAtLeast(0)
         return String.format("%02d:%02d", total / 60, total % 60)
     }
 
@@ -532,6 +716,16 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
     }
 
     // --- Reply with message ----------------------------------------------------
+
+    /** Opens SMS compose to [number] directly -- for messaging the person
+     *  you're already on a call with, from the More menu. */
+    private fun messageNumber(number: String) {
+        if (number.isBlank()) return
+        try {
+            startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${Uri.encode(number)}")))
+        } catch (_: Exception) {
+        }
+    }
 
     private fun showReplyOptions(target: Call?) {
         val call = target ?: return
@@ -650,6 +844,10 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
     private fun toggleDtmf() {
         val show = binding.dtmfOverlay.visibility != View.VISIBLE
+        // The keypad hides bottomPanel entirely (below), which is what the More
+        // panel positions itself against -- close it first so it's never left
+        // open against a since-hidden reference.
+        if (show && moreOptionsOpen) collapseMoreOptions()
         binding.dtmfOverlay.visibility = if (show) View.VISIBLE else View.GONE
         binding.avatar.visibility = if (show) View.GONE else View.VISIBLE
         // Hide the whole bottom panel (controls + End) so the keypad can run to the
@@ -744,6 +942,14 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         // Keys are now LinearLayout cells (digit + letters) like the dialer pad, so
         // walk the rows and wire each cell by the digit in its first TextView.
         wireDtmfKeys(binding.dtmfPad)
+        // android:ellipsize="start" alone only truncates-with-"…" for END
+        // ellipsis; START/MIDDLE need the view in real single-line/horizontally-
+        // scrolling mode to take effect, otherwise a long digit string just gets
+        // clipped by the view's bounds once it overflows -- digits keep being
+        // appended but silently run off the right edge, invisible. isSingleLine
+        // turns that clipping into the intended left-scrolling "…5678" behavior,
+        // so on a long hotline menu the newest digits pressed stay visible.
+        binding.dtmfDigits.isSingleLine = true
     }
 
     /** Scales up the in-call controls when the user's screen profile is
@@ -971,6 +1177,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         private const val MENU_RECORD = 105
         private const val MENU_MANAGE_CONF = 106
         private const val MENU_SLEEP_TIMER = 107
+        private const val MENU_MESSAGE = 108
         // Route-menu ids for individually-listed Bluetooth devices (see
         // showRouteMenu): offset well above CallAudioState.ROUTE_* (max 8) and
         // the MENU_* ids above so they can share one CardMenu click handler.

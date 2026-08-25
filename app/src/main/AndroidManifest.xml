@@ -240,6 +240,12 @@
             android:name=".CallBackReminderReceiver"
             android:exported="false" />
 
+        <!-- Fires the in-call sleep timer's auto-hangup (and 1-minute warning),
+             scheduled via AlarmManager. -->
+        <receiver
+            android:name=".SleepTimerReceiver"
+            android:exported="false" />
+
         <!-- Official hook: when we're the default dialer, Telecom delegates the
              missed-call notification to us here instead of posting its own. -->
         <receiver

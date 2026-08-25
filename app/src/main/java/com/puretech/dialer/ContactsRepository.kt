@@ -36,6 +36,17 @@ object T9 {
         in 'p'..'s' -> '7'
         in 't'..'v' -> '8'
         in 'w'..'z' -> '9'
+        // Standard Hebrew keypad layout. Final forms (ך ם ן ף ץ) map to the
+        // same digit as their base letter (כ מ נ פ צ) since they're the same
+        // letter, just spelled differently at the end of a word.
+        'א', 'ב', 'ג' -> '3'
+        'ד', 'ה', 'ו' -> '2'
+        'ז', 'ח', 'ט' -> '6'
+        'י', 'כ', 'ך', 'ל' -> '5'
+        'מ', 'ם', 'נ', 'ן' -> '4'
+        'ס', 'ע', 'פ', 'ף' -> '9'
+        'צ', 'ץ', 'ק' -> '8'
+        'ר', 'ש', 'ת' -> '7'
         else -> null
     }
 

@@ -2,6 +2,7 @@ package com.puretech.dialer
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.puretech.dialer.databinding.ActivitySettingsBinding
 
@@ -56,6 +57,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowRecording.setOnClickListener {
             startActivity(Intent(this, RecordingSettingsActivity::class.java))
         }
+        binding.rowDeleteAllLogs.setOnClickListener { confirmDeleteAllLogs() }
 
         // On/off settings now open their own detail page (switch lives inside).
         binding.rowDialpadTone.setOnClickListener { openToggle(ToggleSettingActivity.KEY_DIALPAD_TONE) }
@@ -75,4 +77,21 @@ class SettingsActivity : AppCompatActivity() {
         )
     }
 
+    private fun confirmDeleteAllLogs() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setMessage(R.string.delete_all_logs_confirm)
+            .setPositiveButton(R.string.log_delete) { _, _ -> deleteAllLogs() }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun deleteAllLogs() {
+        val ctx = applicationContext
+        Thread {
+            CallLogRepository.deleteAll(ctx)
+            runOnUiThread {
+                Toast.makeText(this, R.string.all_logs_deleted, Toast.LENGTH_SHORT).show()
+            }
+        }.start()
+    }
 }

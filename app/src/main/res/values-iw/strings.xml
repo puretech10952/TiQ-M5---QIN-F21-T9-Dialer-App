@@ -39,7 +39,6 @@
     <string name="update_notif_text">PureTech Phone %1$s מוכן להתקנה.</string>
     <string name="dial_add_pause">הוסף הפסקה של 2 שניות</string>
     <string name="dial_add_wait">הוסף המתנה</string>
-    <string name="ongoing_call">שיחה פעילה</string>
     <string name="notif_hangup">נתק</string>
     <string name="notif_speaker_on">רמקול פעיל</string>
     <string name="notif_channel">שיחה פעילה</string>

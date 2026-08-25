@@ -39,7 +39,6 @@
     <string name="update_notif_text">PureTech Phone %1$s 已准备好安装。</string>
     <string name="dial_add_pause">添加 2 秒暂停</string>
     <string name="dial_add_wait">添加等待</string>
-    <string name="ongoing_call">通话中</string>
     <string name="notif_hangup">挂断</string>
     <string name="notif_speaker_on">扬声器已开启</string>
     <string name="notif_channel">通话中</string>

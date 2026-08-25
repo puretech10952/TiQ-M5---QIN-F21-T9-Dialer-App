@@ -127,15 +127,7 @@ class CallLogAdapter(
             name.text = e.name ?: number.ifBlank { ctx.getString(R.string.unknown_caller) }
             star.visibility = if (e.isStarred) View.VISIBLE else View.GONE
 
-            if (e.isOngoing) {
-                name.setTextColor(onSurface)
-                typeIcon.visibility = View.GONE
-                count.visibility = View.GONE
-                hd.visibility = View.GONE
-                wifi.visibility = View.GONE
-                time.text = ctx.getString(R.string.ongoing_call)
-                time.setTextColor(ctx.themeColor(com.google.android.material.R.attr.colorPrimary))
-            } else if (e.asContact) {
+            if (e.asContact) {
                 name.setTextColor(onSurface)
                 typeIcon.visibility = View.GONE
                 count.visibility = View.GONE
@@ -197,10 +189,8 @@ class CallLogAdapter(
             avatar.setOnClickListener {
                 if (e.name != null) onOpenContact(e) else toggle(bindingAdapterPosition)
             }
-            // Long-press a real call-log row for block / delete. Not for the
-            // contact-search row, and not for the synthetic ongoing-call row
-            // (it isn't a real call-log entry yet).
-            if (e.asContact || e.isOngoing) {
+            // Long-press a real call-log row for block / delete, not the contact-search row.
+            if (e.asContact) {
                 row.setOnLongClickListener(null)
                 row.isLongClickable = false
             } else {

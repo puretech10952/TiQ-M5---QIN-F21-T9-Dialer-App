@@ -39,7 +39,6 @@
     <string name="update_notif_text">PureTech Phone %1$s prêt à installer.</string>
     <string name="dial_add_pause">Ajouter une pause de 2 s</string>
     <string name="dial_add_wait">Ajouter une attente</string>
-    <string name="ongoing_call">Appel en cours</string>
     <string name="notif_hangup">Raccrocher</string>
     <string name="notif_speaker_on">Haut-parleur activé</string>
     <string name="notif_channel">Appel en cours</string>

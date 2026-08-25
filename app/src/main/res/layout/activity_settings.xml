@@ -194,11 +194,19 @@
 
                     <View style="@style/SettingRowDivider" />
 
-                    <LinearLayout android:id="@+id/rowAccounts" style="@style/SettingRowM3"
-                        android:background="@drawable/bg_rowgroup_bottom">
+                    <LinearLayout android:id="@+id/rowAccounts" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_sim" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"
                             android:layout_weight="1" android:text="@string/setting_calling_accounts" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
+
+                    <LinearLayout android:id="@+id/rowDeleteAllLogs" style="@style/SettingRowM3"
+                        android:background="@drawable/bg_rowgroup_bottom">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_delete" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/nav_delete_all_logs" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

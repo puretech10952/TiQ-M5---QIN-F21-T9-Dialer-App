@@ -39,7 +39,6 @@
     <string name="update_notif_text">PureTech Phone %1$s yüklenmeye hazır.</string>
     <string name="dial_add_pause">2 saniyelik duraklama ekle</string>
     <string name="dial_add_wait">Bekleme ekle</string>
-    <string name="ongoing_call">Devam eden arama</string>
     <string name="notif_hangup">Kapat</string>
     <string name="notif_speaker_on">Hoparlör açık</string>
     <string name="notif_channel">Devam eden arama</string>

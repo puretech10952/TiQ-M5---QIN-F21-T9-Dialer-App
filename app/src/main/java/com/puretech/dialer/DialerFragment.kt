@@ -7,9 +7,12 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.ContactsContract
 import android.telephony.PhoneNumberFormattingTextWatcher
 import android.text.method.ArrowKeyMovementMethod
@@ -65,6 +68,26 @@ class DialerFragment : Fragment() {
         ActivityResultContracts.RequestPermission()
     ) { }
 
+    // Live-refreshes the suggestions when a contact is added, renamed, deleted,
+    // or a number gets newly linked to a contact -- without this, dial-screen
+    // suggestions only picked up contact changes the next time the app/process
+    // restarted, since allContacts was otherwise only loaded once. Contact sync
+    // can fire several onChange notifications in a burst for one real edit, so
+    // this debounces with a short delay rather than reloading on every single one
+    // (same pattern as RecentsFragment's contactsObserver).
+    private val contactsChangeHandler = Handler(Looper.getMainLooper())
+    private val contactsChangeRunnable = Runnable {
+        if (_binding == null) return@Runnable
+        loadContacts()
+    }
+    private val contactsObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            contactsChangeHandler.removeCallbacks(contactsChangeRunnable)
+            contactsChangeHandler.postDelayed(contactsChangeRunnable, 600)
+        }
+    }
+    private var contactsObserverRegistered = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -103,13 +126,34 @@ class DialerFragment : Fragment() {
         }
 
         ensureContacts()
+        ensureContactsObserver()
         maybeRequestNotifications()
         pendingPrefill?.let { setNumber(it); pendingPrefill = null }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        if (contactsObserverRegistered) {
+            requireContext().contentResolver.unregisterContentObserver(contactsObserver)
+            contactsObserverRegistered = false
+        }
+        contactsChangeHandler.removeCallbacks(contactsChangeRunnable)
         _binding = null
+    }
+
+    /** Registers [contactsObserver] once contacts permission is actually granted
+     *  (a no-op call before then). Called again from onTabResumed so the
+     *  live-refresh starts working the moment permission is granted, without
+     *  needing an app restart. */
+    private fun ensureContactsObserver() {
+        if (contactsObserverRegistered) return
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+        requireContext().contentResolver.registerContentObserver(
+            ContactsContract.Contacts.CONTENT_URI, true, contactsObserver
+        )
+        contactsObserverRegistered = true
     }
 
     // --- Host-facing API -------------------------------------------------------
@@ -128,6 +172,7 @@ class DialerFragment : Fragment() {
     fun onTabResumed() {
         if (_binding == null) return
         updateBanner()
+        ensureContactsObserver()
         // Put the D-pad cursor back in the number field so digits/arrows edit it.
         binding.numberInput.requestFocus()
     }

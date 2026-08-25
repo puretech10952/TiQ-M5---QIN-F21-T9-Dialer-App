@@ -95,7 +95,7 @@ object CallManager {
             isLocalHold = false
             remoteHeld = false
             remoteHoldStartMs = 0L
-            SleepTimer.cancel()
+            service?.let { SleepTimer.cancel(it) }
             service?.let { CallRecordings.scheduleOrganize(it) }
         }
         notifyChanged()
@@ -117,7 +117,7 @@ object CallManager {
         isLocalHold = false
         remoteHeld = false
         remoteHoldStartMs = 0L
-        SleepTimer.cancel()
+        service?.let { SleepTimer.cancel(it) }
         // If Telecom yanked the service away (see onUnbind's doc) while
         // InCallActivity was on screen, its onStop() never got to run and
         // never reset this — leaving it stuck true. That would make the
