@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.net.Uri
+import android.util.Log
 
 /**
  * Permanent local call history in a private SQLite database.
@@ -36,6 +37,8 @@ object LocalCallStore {
     private const val C_GEO       = "geocoded"
     private const val C_SIM       = "sim_label"
 
+    private const val TAG = "LocalCallStore"
+
     data class StoredCall(
         val number: String,
         val type: Int,
@@ -53,6 +56,7 @@ object LocalCallStore {
 
     private class Helper(ctx: Context) : SQLiteOpenHelper(ctx, DB_NAME, null, DB_VERSION) {
         override fun onCreate(db: SQLiteDatabase) {
+            Log.i(TAG, "onCreate: creating $DB_NAME (fresh install or DB file was missing)")
             db.execSQL("""
                 CREATE TABLE $TABLE (
                     $C_ID        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,7 +86,14 @@ object LocalCallStore {
     private fun db(ctx: Context): SQLiteDatabase =
         (helper ?: synchronized(this) {
             helper ?: Helper(ctx.applicationContext).also { helper = it }
-        }).writableDatabase
+        }).let {
+            try {
+                it.writableDatabase
+            } catch (e: Exception) {
+                Log.e(TAG, "failed to open writable database", e)
+                throw e
+            }
+        }
 
     /** Called by [CallService] at the end of every call. Never duplicate-checks —
      *  that is handled in [CallLogRepository] when displaying the merged log. */
@@ -109,8 +120,20 @@ object LocalCallStore {
                 put(C_GEO, geocoded)
                 put(C_SIM, simLabel)
             }
-            db(ctx).insert(TABLE, null, cv)
-        } catch (_: Exception) {}
+            val rowId = db(ctx).insert(TABLE, null, cv)
+            if (rowId == -1L) {
+                Log.e(TAG, "record: insert failed (returned -1) for number ending ${number.takeLast(4)}, type=$type, date=$date")
+            } else {
+                val total = try {
+                    db(ctx).rawQuery("SELECT COUNT(*) FROM $TABLE", null).use {
+                        if (it.moveToFirst()) it.getInt(0) else -1
+                    }
+                } catch (_: Exception) { -1 }
+                Log.i(TAG, "record: saved rowId=$rowId type=$type date=$date duration=$duration — table now has $total row(s)")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "record: threw for number ending ${number.takeLast(4)}, type=$type, date=$date", e)
+        }
     }
 
     /** All stored calls, newest first. */
@@ -119,7 +142,9 @@ object LocalCallStore {
         try {
             db(ctx).rawQuery("SELECT * FROM $TABLE ORDER BY $C_DATE DESC", null)
                 .use { c -> while (c.moveToNext()) out.add(row(c)) }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.e(TAG, "loadAll failed", e)
+        }
         return out
     }
 
@@ -131,7 +156,9 @@ object LocalCallStore {
                 "SELECT * FROM $TABLE WHERE $C_NUMBER LIKE ? ORDER BY $C_DATE DESC",
                 arrayOf("%$last7")
             ).use { c -> while (c.moveToNext()) out.add(row(c)) }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.e(TAG, "loadForNumber failed", e)
+        }
         return out
     }
 
@@ -139,9 +166,12 @@ object LocalCallStore {
      *  digits are present, otherwise an exact match (withheld/blank numbers). */
     fun delete(ctx: Context, last7: String, exactFallback: String) {
         try {
-            if (last7.isNotEmpty()) db(ctx).delete(TABLE, "$C_NUMBER LIKE ?", arrayOf("%$last7"))
+            val n = if (last7.isNotEmpty()) db(ctx).delete(TABLE, "$C_NUMBER LIKE ?", arrayOf("%$last7"))
             else db(ctx).delete(TABLE, "$C_NUMBER = ?", arrayOf(exactFallback))
-        } catch (_: Exception) {}
+            Log.i(TAG, "delete: removed $n row(s) for number ending ${last7.takeLast(4).ifEmpty { exactFallback }}")
+        } catch (e: Exception) {
+            Log.e(TAG, "delete failed", e)
+        }
     }
 
     /** Like [delete], but scoped to calls within [fromDate]..[toDate] (inclusive)
@@ -149,7 +179,7 @@ object LocalCallStore {
      *  whole history. */
     fun deleteRange(ctx: Context, last7: String, exactFallback: String, fromDate: Long, toDate: Long) {
         try {
-            if (last7.isNotEmpty()) {
+            val n = if (last7.isNotEmpty()) {
                 db(ctx).delete(
                     TABLE, "$C_NUMBER LIKE ? AND $C_DATE BETWEEN ? AND ?",
                     arrayOf("%$last7", fromDate.toString(), toDate.toString())
@@ -160,12 +190,21 @@ object LocalCallStore {
                     arrayOf(exactFallback, fromDate.toString(), toDate.toString())
                 )
             }
-        } catch (_: Exception) {}
+            Log.i(TAG, "deleteRange: removed $n row(s) between $fromDate and $toDate")
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteRange failed", e)
+        }
     }
 
     /** Wipes the entire local call history. */
     fun deleteAll(ctx: Context) {
-        try { db(ctx).delete(TABLE, null, null) } catch (_: Exception) {}
+        Log.w(TAG, "deleteAll: wiping entire local call history", Exception("deleteAll call site"))
+        try {
+            val n = db(ctx).delete(TABLE, null, null)
+            Log.w(TAG, "deleteAll: removed $n row(s)")
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteAll failed", e)
+        }
     }
 
     /** Calls older than [beforeDate] (epoch ms), for stats / graph augmentation. */
@@ -176,7 +215,10 @@ object LocalCallStore {
                 "SELECT * FROM $TABLE WHERE $C_DATE < ? ORDER BY $C_DATE DESC",
                 arrayOf(beforeDate.toString())
             ).use { c -> while (c.moveToNext()) out.add(row(c)) }
-        } catch (_: Exception) {}
+            Log.i(TAG, "loadBefore($beforeDate): returned ${out.size} row(s)")
+        } catch (e: Exception) {
+            Log.e(TAG, "loadBefore failed", e)
+        }
         return out
     }
 

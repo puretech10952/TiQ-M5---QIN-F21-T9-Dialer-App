@@ -115,9 +115,15 @@ class CallService : InCallService() {
      * were tracking would sit frozen at their last known state forever: the
      * in-call screen never closes, and the next real incoming call gets
      * misread as a second/waiting call. See [CallManager.clearAll].
+     *
+     * Since onCallRemoved (and its [archiveCall] mirror into [LocalCallStore])
+     * never fires for calls still active at this point, archive them here too
+     * — otherwise that specific call is invisible to LocalCallStore forever,
+     * and once the system call log eventually trims it, it's gone for good.
      */
     override fun onUnbind(intent: Intent?): Boolean {
         Log.d(TAG, "onUnbind — clearing call state")
+        CallManager.calls.forEach { archiveCall(it) }
         CallManager.unregisterListener(notifListener)
         CallManager.clearAll()
         CallManager.service = null
@@ -140,6 +146,14 @@ class CallService : InCallService() {
      * Telecom callback can absorb.
      */
     private fun archiveCall(call: Call) {
+        try {
+            archiveCallUnsafe(call)
+        } catch (e: Exception) {
+            Log.e(TAG, "archiveCall: threw before reaching LocalCallStore.record", e)
+        }
+    }
+
+    private fun archiveCallUnsafe(call: Call) {
         val details = call.details ?: return
         val number  = details.handle?.schemeSpecificPart ?: ""
 

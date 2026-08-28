@@ -208,7 +208,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• <b>Sleep timer, fixed</b> — now reliably hangs up when it should, plus a custom duration option.\n\n• <b>In-call More menu</b> redesigned with a smoother, expanding look, plus a new Message option.\n\n• <b>Dial-pad suggestions</b> update instantly when you add or edit a contact.\n\n• <b>Hebrew T9</b> — Hebrew contact names now work with the dial pad.</string>
+    <string name="whats_new_body">• <b>Unlimited call history</b> — your call history is now kept forever and no longer gets cut off.</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
