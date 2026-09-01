@@ -102,8 +102,6 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         })
 
         binding.btnEnd.setOnClickListener { CallManager.hangup() }
-        binding.btnAnswer.setOnClickListener { CallManager.answer() }
-        binding.btnDecline.setOnClickListener { CallManager.reject() }
         binding.swipeIncoming.onAnswer = { CallManager.answer() }
         binding.swipeIncoming.onDecline = { CallManager.reject() }
         binding.btnMute.setOnClickListener { toggleMute() }
@@ -341,9 +339,29 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             show(binding.swipeIncomingPanel)
             hide(binding.incomingControls)
         } else {
+            applyAnswerButtonSide()
             show(binding.incomingControls)
             hide(binding.swipeIncomingPanel)
         }
+    }
+
+    /** Wires the round incoming-call buttons' icon/background/action to match
+     *  Settings -> Answer button side. btnAnswer/btnDecline are just the two
+     *  physical slots (left/right); which one behaves as Answer vs Decline is
+     *  assigned here each time, so no view reordering is needed and a
+     *  mid-session setting change takes effect on the next incoming call. */
+    private fun applyAnswerButtonSide() {
+        val answerOnRight = Prefs.answerButtonSide(this) == Prefs.ANSWER_SIDE_RIGHT
+        val answerSlot = if (answerOnRight) binding.btnDecline else binding.btnAnswer
+        val declineSlot = if (answerOnRight) binding.btnAnswer else binding.btnDecline
+        answerSlot.setImageResource(R.drawable.ic_call)
+        answerSlot.setBackgroundResource(R.drawable.bg_circle_answer)
+        answerSlot.contentDescription = getString(R.string.ctl_answer)
+        answerSlot.setOnClickListener { CallManager.answer() }
+        declineSlot.setImageResource(R.drawable.ic_call_end)
+        declineSlot.setBackgroundResource(R.drawable.bg_circle_end)
+        declineSlot.contentDescription = getString(R.string.ctl_decline)
+        declineSlot.setOnClickListener { CallManager.reject() }
     }
 
     private fun bindSecondaryStrip(held: Call?) {
@@ -401,6 +419,13 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         populateMoreOptionsRow()
         syncMoreOptionsMargin()
 
+        // bottomPanel's own rounded top corners would otherwise peek through
+        // as a gap at both edges right where moreOptionsPanel sits flush
+        // above it -- square them off for the duration so the two read as
+        // one continuous card (restored in collapseMoreOptions once it's
+        // fully closed).
+        binding.bottomPanel.setBackgroundResource(R.drawable.bg_call_panel_flat)
+
         val panel = binding.moreOptionsPanel
         moreOptionsAnimator?.cancel()
         panel.visibility = View.VISIBLE
@@ -423,6 +448,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         moreOptionsAnimator?.cancel()
         animateHeight(panel, panel.height, 0, android.view.animation.AccelerateInterpolator()) {
             panel.visibility = View.GONE
+            binding.bottomPanel.setBackgroundResource(R.drawable.bg_call_panel)
         }
     }
 

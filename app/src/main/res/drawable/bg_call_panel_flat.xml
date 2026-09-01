@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same fill as bg_call_panel but square-cornered: used on bottomPanel while
+     moreOptionsPanel is expanded above it, since bottomPanel's top edge is
+     then an interior seam, not the card's outer edge. Rounding it there left
+     a sliver of background showing through at both corners where the two
+     panels met (bottomPanel's own rounded corners receding below the seam
+     with nothing covering the gap they left behind). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/colorSurfaceContainer" />
+</shape>

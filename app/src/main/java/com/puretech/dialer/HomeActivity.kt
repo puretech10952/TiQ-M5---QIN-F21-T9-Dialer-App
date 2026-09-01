@@ -456,6 +456,8 @@ class HomeActivity : AppCompatActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (currentTab == Tab.DIALER) {
             if (dialerFragment.handleKey(event)) return true
+        } else if (currentTab == Tab.RECENTS && recentsFragment.handleKey(event)) {
+            return true
         } else if (!binding.searchInput.hasFocus() &&
             event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
         ) {

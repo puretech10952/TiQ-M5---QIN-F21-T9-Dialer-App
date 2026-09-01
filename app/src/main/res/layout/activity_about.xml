@@ -158,6 +158,12 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
+                    <LinearLayout android:id="@+id/rowChangelog" style="@style/SettingRowM3">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_history" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/about_changelog" />
+                    </LinearLayout>
+
                     <LinearLayout android:id="@+id/rowTerms" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_info" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"

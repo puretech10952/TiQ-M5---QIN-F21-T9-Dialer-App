@@ -1,6 +1,7 @@
 package com.puretech.dialer
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -16,13 +17,17 @@ import android.os.PowerManager
 import android.provider.ContactsContract
 import android.telecom.TelecomManager
 import android.text.format.DateUtils
+import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.puretech.dialer.databinding.FragmentRecentsBinding
@@ -109,6 +114,8 @@ class RecentsFragment : Fragment() {
         )
         binding.recents.layoutManager = LinearLayoutManager(requireContext())
         binding.recents.adapter = logAdapter
+        setupFastScroller()
+        setupSwipeActions()
 
         favoritesAdapter = FavoritesAdapter(
             onClick = { contact, anchor -> onFavoriteClick(contact, anchor) },
@@ -123,6 +130,15 @@ class RecentsFragment : Fragment() {
         binding.favoritesToggle.setOnClickListener { toggleFavorites() }
         binding.viewContacts.setOnClickListener { openContactsApp() }
 
+        // Chip extends CompoundButton, which re-asserts its own focusability
+        // during setup regardless of the layout's android:focusable="false" --
+        // only a runtime call after inflation reliably sticks. Keeps these
+        // touch-only so D-pad/keypad focus lands on the call log, not here.
+        for (chip in listOf(
+            binding.chipAll, binding.chipMissed, binding.chipReceived,
+            binding.chipOutgoing, binding.chipContacts
+        )) chip.isFocusable = false
+
         loadContacts()
         ensureLogPermission()
         ensureContactsObserver()
@@ -135,6 +151,8 @@ class RecentsFragment : Fragment() {
             contactsObserverRegistered = false
         }
         contactsChangeHandler.removeCallbacks(contactsChangeRunnable)
+        fastScrollPreDrawListener?.let { binding.recents.viewTreeObserver.removeOnPreDrawListener(it) }
+        fastScrollPreDrawListener = null
         _binding = null
     }
 
@@ -156,13 +174,167 @@ class RecentsFragment : Fragment() {
         contactsObserverRegistered = true
     }
 
+    // Set while the user is actively dragging the date fast-scroller's thumb
+    // (see setupFastScroller) -- suppresses the normal scroll-listener sync so
+    // the two positioning paths don't fight each other mid-drag.
+    private var scrubbingFastScroll = false
+    private var fastScrollPreDrawListener: ViewTreeObserver.OnPreDrawListener? = null
+
+    // Set on every tab-resume so D-pad/keypad focus lands on the first real
+    // call-log row instead of the search bar/chips/favorites chrome above it
+    // (see maybeFocusFirstLogRow) -- those are now touch-only (focusable=false
+    // in their layouts), so the log itself is the natural first stop, but the
+    // search box stays focusable for typing and still needs to be steered
+    // away from explicitly.
+    private var pendingInitialFocus = true
+
+    /** Draggable date scrollbar on the right edge (see fragment_recents.xml's
+     *  fastScrollTrack/Thumb/Bubble). The thumb also tracks ordinary swipe
+     *  scrolling like a normal scrollbar; dragging the track jumps the list
+     *  and shows the date being scrolled to in a bubble, like a contacts
+     *  A-Z scroller but indexed by day.
+     *
+     *  The thumb's visible/hidden state is re-checked on every draw pass
+     *  (OnPreDrawListener) rather than only right after an adapter data
+     *  change: computeVerticalScrollRange()/Extent() can still report stale
+     *  (equal) values the instant notifyDataSetChanged() fires, before
+     *  RecyclerView has actually laid out the new rows -- which permanently
+     *  hid the thumb until the next manual scroll. Checking every frame while
+     *  this tab is visible is cheap (all three compute* calls are O(1)) and
+     *  guarantees the thumb never gets stuck out of sync with real content. */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupFastScroller() {
+        val recycler = binding.recents
+        val track = binding.fastScrollTrack
+        val thumb = binding.fastScrollThumb
+        val bubble = binding.fastScrollBubble
+
+        val preDrawListener = ViewTreeObserver.OnPreDrawListener {
+            if (!scrubbingFastScroll) syncThumbToScrollPosition()
+            maybeFocusFirstLogRow()
+            true
+        }
+        recycler.viewTreeObserver.addOnPreDrawListener(preDrawListener)
+        fastScrollPreDrawListener = preDrawListener
+
+        track.setOnTouchListener { _, event ->
+            val trackHeight = track.height
+            val thumbHeight = thumb.height
+            if (trackHeight <= 0 || thumbHeight <= 0) return@setOnTouchListener false
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                    scrubbingFastScroll = true
+                    val range = (trackHeight - thumbHeight).coerceAtLeast(1)
+                    val thumbY = event.y.coerceIn(0f, range.toFloat())
+                    thumb.translationY = thumbY
+                    val itemCount = logAdapter.itemCount
+                    if (itemCount > 0) {
+                        val targetPos = ((thumbY / range) * (itemCount - 1)).toInt()
+                            .coerceIn(0, itemCount - 1)
+                        (recycler.layoutManager as? LinearLayoutManager)
+                            ?.scrollToPositionWithOffset(targetPos, 0)
+                        logAdapter.dateLabelForPosition(requireContext(), targetPos)?.let { label ->
+                            bubble.text = label
+                            bubble.visibility = View.VISIBLE
+                            val bubbleRange = (trackHeight - bubble.height).coerceAtLeast(0)
+                            bubble.translationY =
+                                (thumbY - bubble.height / 2f).coerceIn(0f, bubbleRange.toFloat())
+                        }
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    scrubbingFastScroll = false
+                    bubble.visibility = View.GONE
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    /** Swipe a call-log row left or right to eventually trigger a quick action
+     *  (not implemented yet -- shows a placeholder toast for now). A completed
+     *  swipe never actually dismisses the row: onSwiped() immediately rebinds
+     *  it, which resets ItemTouchHelper's internal swipe progress and snaps
+     *  the row back to center. A partial drag that's released before crossing
+     *  the swipe threshold already snaps back on its own -- that's
+     *  ItemTouchHelper's default behavior, no extra code needed. */
+    private fun setupSwipeActions() {
+        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int =
+                if (viewHolder.itemViewType == CallLogAdapter.TYPE_ITEM) super.getSwipeDirs(recyclerView, viewHolder) else 0
+
+            override fun onMove(
+                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder
+            ) = false
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                Toast.makeText(requireContext(), R.string.swipe_action_coming_soon, Toast.LENGTH_SHORT).show()
+                logAdapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
+            }
+        }
+        ItemTouchHelper(callback).attachToRecyclerView(binding.recents)
+    }
+
+    /** Positions the thumb to match the list's current scroll offset (like a
+     *  normal scrollbar), or hides it entirely when everything fits on
+     *  screen and there's nothing to scroll. */
+    private fun syncThumbToScrollPosition() {
+        val binding = _binding ?: return
+        val recycler = binding.recents
+        val track = binding.fastScrollTrack
+        val thumb = binding.fastScrollThumb
+        val range = recycler.computeVerticalScrollRange()
+        val extent = recycler.computeVerticalScrollExtent()
+        val trackHeight = track.height
+        val thumbHeight = thumb.height
+        if (range <= extent || trackHeight <= 0 || thumbHeight <= 0) {
+            thumb.visibility = View.GONE
+            return
+        }
+        thumb.visibility = View.VISIBLE
+        val offset = recycler.computeVerticalScrollOffset()
+        val fraction = offset.toFloat() / (range - extent).toFloat()
+        thumb.translationY = (fraction * (trackHeight - thumbHeight)).coerceIn(0f, (trackHeight - thumbHeight).toFloat())
+    }
+
+    /** Grabs D-pad/keypad focus onto the first real call-log row, once per
+     *  tab-resume (see pendingInitialFocus) and only if nothing in the list
+     *  is already focused (e.g. the user already navigated somewhere).
+     *  Waits (by simply no-oping and retrying next frame) until the row
+     *  actually exists as a bound, attached ViewHolder. */
+    private fun maybeFocusFirstLogRow() {
+        if (!pendingInitialFocus) return
+        val binding = _binding ?: return
+        if (binding.recents.hasFocus()) { pendingInitialFocus = false; return }
+        val pos = logAdapter.firstItemPosition()
+        if (pos < 0) return
+        val holder = binding.recents.findViewHolderForAdapterPosition(pos) ?: return
+        holder.itemView.requestFocus()
+        pendingInitialFocus = false
+    }
+
     // --- Host-facing API -------------------------------------------------------
 
     fun scrollTarget(): RecyclerView? = _binding?.recents
 
+    /** Hardware-key handling for the Recents tab: Call/Send dials whichever
+     *  call-log row currently holds D-pad/keypad focus. Mirrors
+     *  [DialerFragment.handleKey]. Returns true if consumed. */
+    fun handleKey(event: KeyEvent): Boolean {
+        if (event.keyCode != KeyEvent.KEYCODE_CALL) return false
+        if (event.action == KeyEvent.ACTION_UP) {
+            val binding = _binding ?: return true
+            logAdapter.focusedEntry(binding.recents)?.let { callNumber(it.number) }
+        }
+        return true
+    }
+
     /** Re-run the per-visit work whenever this tab becomes the visible one. */
     fun onTabResumed() {
         if (_binding == null) return
+        pendingInitialFocus = true
         (activity as? HomeActivity)?.let { it.clearSearchFocus(); it.applyPendingVoiceQuery() }
         VoicemailMonitor.start(requireContext())
         clearMissedCalls()

@@ -112,7 +112,7 @@ class DialerFragment : Fragment() {
         binding.btnMessageDial.setOnClickListener { messageDialed() }
 
         suggestionAdapter = SuggestionAdapter(
-            onCall = { callContact(it.number) },
+            onCall = { if (it.isVoicemail) Dialer.placeVoicemail(requireContext()) else callContact(it.number) },
             onOptions = { c, v -> showOptions(c, v) },
             onMessage = { messageNumber(it.number) }
         )
@@ -245,7 +245,11 @@ class DialerFragment : Fragment() {
                     // If D-pad focus has moved onto a suggestion row, Call/Send
                     // dials that highlighted contact, not the typed digits.
                     val focused = _binding?.suggestions?.let(suggestionAdapter::focusedContact)
-                    if (focused != null) callContact(focused.number) else startCall()
+                    when {
+                        focused?.isVoicemail == true -> Dialer.placeVoicemail(requireContext())
+                        focused != null -> callContact(focused.number)
+                        else -> startCall()
+                    }
                 }
                 return true
             }
@@ -405,7 +409,8 @@ class DialerFragment : Fragment() {
         val pinned = Contact(
             name = entry.name, number = entry.number, digits = pinnedDigits,
             nameT9 = "", wordT9 = emptyList(), photoUri = null,
-            timesContacted = 0, lastTimeContacted = 0, isQuickDial = true
+            timesContacted = 0, lastTimeContacted = 0, isQuickDial = true,
+            isVoicemail = entry.isVoicemail
         )
         return listOf(pinned) + rest
     }

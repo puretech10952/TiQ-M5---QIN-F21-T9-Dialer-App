@@ -27,6 +27,7 @@ class AboutActivity : AppCompatActivity() {
         val code = info?.longVersionCode ?: 0L
         binding.aboutVersion.text = getString(R.string.about_version, name, code)
 
+        binding.rowChangelog.setOnClickListener { openLegal(LegalActivity.DOC_CHANGELOG) }
         binding.rowTerms.setOnClickListener { openLegal(LegalActivity.DOC_TERMS) }
         binding.rowPrivacy.setOnClickListener { openLegal(LegalActivity.DOC_PRIVACY) }
         binding.rowFeedback.setOnClickListener { Feedback.send(this) }

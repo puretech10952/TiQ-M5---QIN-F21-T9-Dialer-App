@@ -202,6 +202,38 @@ class CallLogAdapter(
         }
     }
 
+    /** Full formatted date ("Wednesday, July 4, 2026") for whatever row sits at
+     *  [position] — shown in the date fast-scroller's bubble while dragging
+     *  (see [RecentsFragment]). A Header row carries only its short list
+     *  label, not a raw date, so this reads the date off the following Item
+     *  row instead (a Header is always immediately followed by one). */
+    fun dateLabelForPosition(context: Context, position: Int): String? {
+        val date = when (val row = rows.getOrNull(position)) {
+            is CallLogRow.Item -> row.entry.date
+            is CallLogRow.Header -> (rows.getOrNull(position + 1) as? CallLogRow.Item)?.entry?.date
+            null -> null
+        } ?: return null
+        return DateUtils.formatDateTime(
+            context, date,
+            DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_YEAR
+        )
+    }
+
+    /** Adapter position of the first real call-log row (skipping the leading
+     *  day header), or -1 if the list is empty. Used to land D-pad/keypad
+     *  focus straight on the call log instead of the search bar/chips/
+     *  favorites chrome above it (see [RecentsFragment]). */
+    fun firstItemPosition(): Int = rows.indexOfFirst { it is CallLogRow.Item }
+
+    /** The entry currently holding D-pad/keypad focus in [rv], if any — lets the
+     *  hardware Call/Send key dial whichever row is highlighted (see
+     *  [RecentsFragment.handleKey]). Mirrors [SuggestionAdapter.focusedContact]. */
+    fun focusedEntry(rv: RecyclerView): CallLogEntry? {
+        val child = rv.focusedChild ?: return null
+        val pos = rv.getChildAdapterPosition(child)
+        return (rows.getOrNull(pos) as? CallLogRow.Item)?.entry
+    }
+
     private fun formatNumber(number: String): String =
         PhoneNumberUtils.formatNumber(number, Locale.US.country) ?: number
 
@@ -227,6 +259,6 @@ class CallLogAdapter(
 
     companion object {
         private const val TYPE_HEADER = 0
-        private const val TYPE_ITEM = 1
+        const val TYPE_ITEM = 1
     }
 }

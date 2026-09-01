@@ -157,6 +157,16 @@ object Prefs {
     fun setIncomingCallGesture(c: Context, gesture: Int) =
         sp(c).edit().putInt("incoming_call_gesture", gesture).apply()
 
+    const val ANSWER_SIDE_LEFT = 0
+    const val ANSWER_SIDE_RIGHT = 1
+
+    /** Which side the round Answer button appears on for an incoming call
+     *  (only applies when [incomingCallGesture] is [GESTURE_TAP]) -- left
+     *  with Decline on the right (default), or the reverse. */
+    fun answerButtonSide(c: Context): Int = sp(c).getInt("answer_button_side", ANSWER_SIDE_LEFT)
+    fun setAnswerButtonSide(c: Context, side: Int) =
+        sp(c).edit().putInt("answer_button_side", side).apply()
+
     /** When off (default): an incoming call only takes over the full screen
      *  if the device is locked; while unlocked it shows as a notification
      *  instead, whether you're on the home screen or in another app. When

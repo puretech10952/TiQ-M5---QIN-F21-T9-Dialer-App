@@ -5,6 +5,7 @@
     <string name="backspace">Delete</string>
     <string name="dial_more_options">More options</string>
     <string name="feature_coming_soon">Feature coming soon</string>
+    <string name="swipe_action_coming_soon">Swipe actions coming soon</string>
     <string name="drawer_version">PureTech Dialer Version %1$s</string>
     <string name="setting_about">About</string>
     <string name="setting_about_summary">Version, copyright and contact</string>
@@ -16,6 +17,8 @@
     <string name="about_puretechkosher_link">PureTechKosher</string>
     <string name="about_puretechkosher_url" translatable="false">https://puretechkosher.com</string>
     <string name="about_feedback">Send feedback</string>
+    <string name="about_changelog">Change log</string>
+    <string name="changelog_title">Change Log</string>
     <string name="about_feedback_email" translatable="false">puretech10952@gmail.com</string>
     <string name="about_feedback_subject">PureTech Dialer feedback (v%1$s)</string>
     <string name="about_feedback_none">No email app found</string>
@@ -29,6 +32,7 @@
     <string name="update_no_notes">No release notes provided.</string>
     <string name="update_up_to_date">You\'re on the latest version.</string>
     <string name="update_available">An update is available.</string>
+    <string name="update_available_size_fmt">An update is available (%1$s MB).</string>
     <string name="update_no_asset">This release has no installable file yet.</string>
     <string name="update_download_install">Download &amp; install</string>
     <string name="update_downloading">Downloading… %1$d%%</string>
@@ -208,7 +212,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• <b>Unlimited call history</b> — your call history is now kept forever and no longer gets cut off.</string>
+    <string name="whats_new_body">• <b>Call log navigation fixed</b> — D-pad/keypad focus lands on the row itself and no longer gets stuck on the search bar, hamburger menu, or filter chips.<br/>• <b>Fast scroller</b> — drag the new date handle on the right edge of the call log to jump around quickly.<br/>• <b>Voicemail fixed</b> — dialing 1 for voicemail now actually places the call.<br/>• <b>Answer button side</b> — choose whether Answer appears on the left or right for incoming calls (Settings).<br/>• <b>Change log</b> — see the full version history from the About screen.<br/>• <b>Updater</b> now shows the download size before you install.<br/>• Swipe a call log entry left or right — more actions coming soon.<br/>• Fixed a visual gap in the in-call "More" options panel.</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
@@ -435,6 +439,11 @@
     <string name="setting_incoming_gesture_summary">Choose how to answer or decline an incoming call.</string>
     <string name="incoming_gesture_tap">Single tap</string>
     <string name="incoming_gesture_swipe">Horizontal swipe</string>
+
+    <string name="setting_answer_side">Answer button side</string>
+    <string name="setting_answer_side_summary">Which side the round Answer button appears on (only applies to Single tap, above).</string>
+    <string name="answer_side_left">Answer on the left, Decline on the right</string>
+    <string name="answer_side_right">Answer on the right, Decline on the left</string>
     <string name="setting_always_full_screen_calls">Always show full-screen calls</string>
     <string name="setting_always_full_screen_calls_summary">By default, an incoming call only takes over the whole screen when your phone is locked — while it\'s unlocked, whether you\'re on the home screen or using another app, you\'ll just see a notification with Answer and Decline instead. Turn this on to always show the full-screen call, even while your phone is unlocked and in use.</string>
     <string name="setting_block_unknown">Block unknown callers</string>

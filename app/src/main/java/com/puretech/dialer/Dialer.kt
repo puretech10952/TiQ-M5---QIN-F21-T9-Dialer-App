@@ -53,4 +53,13 @@ object Dialer {
         else Uri.fromParts("tel", normalized, null)
         context.getSystemService(TelecomManager::class.java)?.placeCall(uri, accountExtras(context))
     }
+
+    /** Place a call to the carrier's voicemail via the standard "voicemail:"
+     *  URI, which Telecom routes to the right number per-SIM on its own --
+     *  used instead of [place] since Quick dial's voicemail entry has no
+     *  real number of its own (see [ContactsRepository.Contact.isVoicemail]). */
+    fun placeVoicemail(context: Context) {
+        context.getSystemService(TelecomManager::class.java)
+            ?.placeCall(Uri.parse("voicemail:"), accountExtras(context))
+    }
 }

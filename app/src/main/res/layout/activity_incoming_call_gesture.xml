@@ -90,6 +90,50 @@
                         android:textSize="16sp" />
                 </RadioGroup>
             </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/answerSideLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="10dp"
+                android:text="@string/setting_answer_side_summary"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/answerSideCard"
+                style="@style/SettingsGroupCard">
+
+                <RadioGroup
+                    android:id="@+id/answerSideGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <RadioButton
+                        android:id="@+id/answerSideLeft"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="10dp"
+                        android:paddingStart="8dp"
+                        android:text="@string/answer_side_left"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="16sp" />
+
+                    <RadioButton
+                        android:id="@+id/answerSideRight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="10dp"
+                        android:paddingStart="8dp"
+                        android:text="@string/answer_side_right"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="16sp" />
+                </RadioGroup>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
 

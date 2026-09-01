@@ -18,8 +18,11 @@ data class Contact(
     val lastTimeContacted: Long,
     val lookupKey: String? = null, // stable per-contact id; set for favorites, used to
                                     // remember a chosen number when a contact has several
-    val isQuickDial: Boolean = false // true for the synthetic row QuickDial pins to the
+    val isQuickDial: Boolean = false, // true for the synthetic row QuickDial pins to the
                                       // top of the dialer suggestions
+    val isVoicemail: Boolean = false // true for the Quick dial code 1 default entry --
+                                      // [number] is meaningless (blank) for this row, dial
+                                      // via Dialer.placeVoicemail() instead of [number]
 )
 
 /** One of a contact's phone numbers, with its type label (Mobile/Home/Work/...). */

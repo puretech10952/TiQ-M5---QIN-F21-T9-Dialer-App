@@ -38,12 +38,14 @@
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:focusable="false"
                     android:scrollbars="none">
 
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/filterChips"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:focusable="false"
                         android:paddingHorizontal="12dp"
                         app:singleLine="true"
                         app:singleSelection="true"
@@ -56,6 +58,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:checked="true"
+                            android:focusable="false"
                             android:text="@string/filter_all" />
 
                         <com.google.android.material.chip.Chip
@@ -64,6 +67,7 @@
                             app:checkedIconVisible="false"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:focusable="false"
                             android:text="@string/filter_missed" />
 
                         <com.google.android.material.chip.Chip
@@ -72,6 +76,7 @@
                             app:checkedIconVisible="false"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:focusable="false"
                             android:text="@string/filter_received" />
 
                         <com.google.android.material.chip.Chip
@@ -80,6 +85,7 @@
                             app:checkedIconVisible="false"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:focusable="false"
                             android:text="@string/filter_outgoing" />
 
                         <com.google.android.material.chip.Chip
@@ -88,6 +94,7 @@
                             app:checkedIconVisible="false"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:focusable="false"
                             android:text="@string/filter_contacts" />
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
@@ -108,7 +115,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:clickable="true"
-                        android:focusable="true"
+                        android:focusable="false"
                         android:drawableEnd="@drawable/ic_arrow_drop_down"
                         android:drawablePadding="2dp"
                         android:gravity="center_vertical"
@@ -131,6 +138,7 @@
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
                         android:paddingVertical="4dp"
+                        android:focusable="false"
                         android:text="@string/view_contacts" />
                 </LinearLayout>
 
@@ -157,7 +165,7 @@
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
                 android:paddingBottom="72dp"
-                android:scrollbars="vertical" />
+                android:scrollbars="none" />
 
             <TextView
                 android:id="@+id/emptyText"
@@ -167,6 +175,46 @@
                 android:text="@string/no_recents"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- Date fast-scroller: fastScrollTrack is the full-height touch
+                 target (drag anywhere on it), fastScrollThumb is the visible
+                 pill that tracks scroll position, fastScrollBubble shows the
+                 date being scrolled to while dragging. Pinned to the literal
+                 right edge (not layout_gravity="end") since a vertical
+                 scrollbar shouldn't flip sides in RTL layouts (e.g. Hebrew).
+                 Kept to 24dp so it never overlaps item_call_log.xml's callBtn
+                 (which sits 28dp in from this same edge: 12dp card margin +
+                 16dp row end-padding). -->
+            <View
+                android:id="@+id/fastScrollTrack"
+                android:layout_width="24dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="right" />
+
+            <View
+                android:id="@+id/fastScrollThumb"
+                android:layout_width="6dp"
+                android:layout_height="48dp"
+                android:layout_gravity="right|top"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/fastscroll_thumb"
+                android:alpha="0.55" />
+
+            <TextView
+                android:id="@+id/fastScrollBubble"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|top"
+                android:layout_marginEnd="34dp"
+                android:background="@drawable/bg_scrub_bubble"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Wednesday, July 4, 2026"
                 tools:visibility="visible" />
         </FrameLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.puretech.dialer.databinding.ActivityUpdateBinding
 import java.io.File
+import java.util.Locale
 
 /**
  * In-app updater: checks the GitHub Releases API for a newer build, shows the
@@ -156,7 +157,12 @@ class UpdateActivity : AppCompatActivity() {
         binding.latestCard.visibility = View.VISIBLE
 
         if (newer && release.apkUrl != null) {
-            showStatus(getString(R.string.update_available))
+            if (release.sizeBytes > 0) {
+                val mb = release.sizeBytes / (1024.0 * 1024.0)
+                showStatus(getString(R.string.update_available_size_fmt, String.format(Locale.US, "%.1f", mb)))
+            } else {
+                showStatus(getString(R.string.update_available))
+            }
             binding.btnInstall.visibility = View.VISIBLE
         } else if (newer && release.apkUrl == null) {
             showStatus(getString(R.string.update_no_asset))
