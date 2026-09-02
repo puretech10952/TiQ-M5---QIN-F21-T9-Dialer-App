@@ -162,6 +162,14 @@
 
                     <View style="@style/SettingRowDivider" />
 
+                    <LinearLayout android:id="@+id/rowProximityLatch" style="@style/SettingRowM3">
+                        <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_screen_size" />
+                        <TextView style="@style/SettingTitle" android:layout_width="0dp"
+                            android:layout_weight="1" android:text="@string/setting_proximity_latch" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingRowDivider" />
+
                     <LinearLayout android:id="@+id/rowAssisted" style="@style/SettingRowM3">
                         <ImageView style="@style/SettingIconChip" android:src="@drawable/ic_call" />
                         <TextView style="@style/SettingTitle" android:layout_width="0dp"

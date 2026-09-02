@@ -111,6 +111,7 @@
         <activity android:name=".KeypadSettingsActivity" android:exported="false" />
         <activity android:name=".ScreenProfileActivity" android:exported="false" />
         <activity android:name=".RedirectSettingsActivity" android:exported="false" />
+        <activity android:name=".ProximityLatchSettingActivity" android:exported="false" />
         <activity android:name=".KeepAliveSettingsActivity" android:exported="false" />
         <activity android:name=".RecordingSettingsActivity" android:exported="false" />
         <activity android:name=".CallStatsActivity" android:exported="false" />
@@ -211,6 +212,22 @@
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/dialer_redirect_service" />
+        </service>
+
+        <!-- Optional, opt-in: lets ProximityController lock the screen directly
+             instead of relying on PROXIMITY_SCREEN_OFF_WAKE_LOCK's own re-light
+             behavior. Disabled until enabled in Accessibility settings. -->
+        <service
+            android:name=".ProximityAccessibilityService"
+            android:exported="true"
+            android:label="@string/proximity_lock_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/proximity_lock_service" />
         </service>
 
         <!-- Shares downloaded update APKs with the system package installer. -->

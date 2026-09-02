@@ -67,6 +67,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowAlwaysFullScreenCalls.setOnClickListener {
             openToggle(ToggleSettingActivity.KEY_ALWAYS_FULL_SCREEN_CALLS)
         }
+        binding.rowProximityLatch.setOnClickListener {
+            startActivity(Intent(this, ProximityLatchSettingActivity::class.java))
+        }
         binding.rowBlockUnknown.setOnClickListener { openToggle(ToggleSettingActivity.KEY_BLOCK_UNKNOWN) }
     }
 

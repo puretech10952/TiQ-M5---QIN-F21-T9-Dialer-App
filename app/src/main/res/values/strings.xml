@@ -212,7 +212,7 @@
     <!-- What's new -->
     <string name="whats_new_title">What\'s new in %1$s</string>
     <string name="whats_new_got_it">Got it</string>
-    <string name="whats_new_body">• <b>Call log navigation fixed</b> — D-pad/keypad focus lands on the row itself and no longer gets stuck on the search bar, hamburger menu, or filter chips.<br/>• <b>Fast scroller</b> — drag the new date handle on the right edge of the call log to jump around quickly.<br/>• <b>Voicemail fixed</b> — dialing 1 for voicemail now actually places the call.<br/>• <b>Answer button side</b> — choose whether Answer appears on the left or right for incoming calls (Settings).<br/>• <b>Change log</b> — see the full version history from the About screen.<br/>• <b>Updater</b> now shows the download size before you install.<br/>• Swipe a call log entry left or right — more actions coming soon.<br/>• Fixed a visual gap in the in-call "More" options panel.</string>
+    <string name="whats_new_body">• <b>Proximity sensor fix</b> — optional: prevents the screen from turning on automatically during a call and registering accidental touches from your face. Once it turns off, press the power button to turn it back on.\n\nTo enable: Settings → Proximity sensor fix → Turn on in Accessibility settings.</string>
     <string name="setting_assisted">Assisted dialing</string>
     <string name="setting_assisted_summary">Predict and add a country code when calling abroad</string>
     <string name="setting_assisted_toggle">Use assisted dialing</string>
@@ -446,6 +446,15 @@
     <string name="answer_side_right">Answer on the right, Decline on the left</string>
     <string name="setting_always_full_screen_calls">Always show full-screen calls</string>
     <string name="setting_always_full_screen_calls_summary">By default, an incoming call only takes over the whole screen when your phone is locked — while it\'s unlocked, whether you\'re on the home screen or using another app, you\'ll just see a notification with Answer and Decline instead. Turn this on to always show the full-screen call, even while your phone is unlocked and in use.</string>
+    <string name="setting_proximity_latch">Proximity sensor fix</string>
+    <string name="proximity_lock_heading">Proximity sensor fix</string>
+    <string name="proximity_lock_explain">Prevents the screen from turning on automatically during a call, so it can\'t register accidental touches from your face. Once the screen turns off, you\'ll need to press the power button to turn it back on.\n\nRequires turning on the permission below.</string>
+    <string name="proximity_lock_open_accessibility">Turn on in Accessibility settings</string>
+    <string name="proximity_lock_status_on">Status: On</string>
+    <string name="proximity_lock_status_off">Status: Off</string>
+    <string name="proximity_lock_service_label">Proximity sensor fix</string>
+    <string name="proximity_lock_service_desc">Prevents the screen from turning on and registering accidental touches during a call. Press the power button to turn it back on. Doesn\'t read your screen.</string>
+    <string name="proximity_lock_service_summary">Prevents accidental touches by keeping the screen off during calls</string>
     <string name="setting_block_unknown">Block unknown callers</string>
     <string name="setting_block_unknown_summary">Silently reject incoming calls from numbers that aren\'t saved in your contacts, including withheld or private numbers.</string>
     <string name="swipe_to_answer_hint">Slide to answer or decline</string>
