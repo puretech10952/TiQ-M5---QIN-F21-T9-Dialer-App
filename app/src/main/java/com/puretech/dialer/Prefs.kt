@@ -207,6 +207,16 @@ object Prefs {
     fun setDialpadTone(c: Context, on: Boolean) =
         sp(c).edit().putBoolean("dialpad_tone", on).apply()
 
+    /** Whether the Proximity sensor fix's accessibility permission should also
+     *  stop the screen relighting on its own during earpiece calls (requiring
+     *  a button press instead). Off by default: granting the permission alone
+     *  only unlocks the manual in-call Screen off button (Speaker/Bluetooth) —
+     *  this is a separate opt-in so that doesn't silently disable the normal
+     *  automatic proximity screen on/off at the ear. See [ProximityController]. */
+    fun proximityLatchEnabled(c: Context) = sp(c).getBoolean("proximity_latch_enabled", false)
+    fun setProximityLatchEnabled(c: Context, on: Boolean) =
+        sp(c).edit().putBoolean("proximity_latch_enabled", on).apply()
+
     /** Keep a foreground service running so incoming calls always surface on
      *  ROMs that freeze background apps (e.g. DuraSpeed on the F21). Off by
      *  default because it shows a permanent low-priority notification. */

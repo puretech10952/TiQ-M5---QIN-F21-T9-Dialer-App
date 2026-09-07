@@ -37,6 +37,8 @@ class StarredAdapter(
 
     override fun getItemCount() = items.size
 
+    fun entryAt(position: Int): StarredStore.StarredEntry? = items.getOrNull(position)
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_starred, parent, false)
         return VH(view)

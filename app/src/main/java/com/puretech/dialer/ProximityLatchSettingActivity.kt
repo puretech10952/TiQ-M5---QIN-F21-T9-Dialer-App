@@ -1,9 +1,6 @@
 package com.puretech.dialer
 
-import android.content.ComponentName
-import android.content.Intent
 import android.os.Bundle
-import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import com.puretech.dialer.databinding.ActivityProximityLatchSettingBinding
 
@@ -22,7 +19,15 @@ class ProximityLatchSettingActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.back.setOnClickListener { finish() }
-        binding.openAccessibility.setOnClickListener { openAccessibilitySettings() }
+        binding.openAccessibility.setOnClickListener { ProximityAccessibilityService.openSettings(this) }
+
+        binding.switchLatch.isChecked = Prefs.proximityLatchEnabled(this)
+        binding.switchLatch.setOnCheckedChangeListener { _, checked ->
+            Prefs.setProximityLatchEnabled(this, checked)
+        }
+        binding.rowLatch.setOnClickListener {
+            binding.switchLatch.isChecked = !binding.switchLatch.isChecked
+        }
     }
 
     override fun onResume() {
@@ -31,24 +36,5 @@ class ProximityLatchSettingActivity : AppCompatActivity() {
         binding.status.text = getString(
             if (on) R.string.proximity_lock_status_on else R.string.proximity_lock_status_off
         )
-    }
-
-    /** Deep-link to this app's accessibility entry; fall back to the full list. */
-    private fun openAccessibilitySettings() {
-        val component = ComponentName(this, ProximityAccessibilityService::class.java).flattenToString()
-        try {
-            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            val args = Bundle().apply { putString(EXTRA_FRAGMENT_ARG_KEY, component) }
-            intent.putExtra(EXTRA_FRAGMENT_ARG_KEY, component)
-            intent.putExtra(EXTRA_SHOW_FRAGMENT_ARGS, args)
-            startActivity(intent)
-        } catch (e: Exception) {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-        }
-    }
-
-    companion object {
-        private const val EXTRA_FRAGMENT_ARG_KEY = ":settings:fragment_args_key"
-        private const val EXTRA_SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args"
     }
 }

@@ -14,7 +14,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.puretech.dialer.databinding.ActivityStarredBinding
 
 /** The Starred page: pinned call-log entries/contacts, sortable, with notes. */
@@ -68,6 +70,7 @@ class StarredActivity : AppCompatActivity() {
         )
         binding.starredList.layoutManager = LinearLayoutManager(this)
         binding.starredList.adapter = adapter
+        setupSwipeToRemove()
 
         reload()
     }
@@ -228,6 +231,36 @@ class StarredActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.removed_from_callback_list, label), Toast.LENGTH_SHORT).show()
             }
         }.start()
+    }
+
+    /** Swipe a row either direction to remove it -- always confirms first since
+     *  a swipe is easy to trigger by accident, then snaps the row back into
+     *  place if the user backs out (same reset trick as
+     *  [RecentsFragment.setupSwipeActions]: rebinding the row clears
+     *  ItemTouchHelper's swipe progress). */
+    private fun setupSwipeToRemove() {
+        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(
+                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder
+            ) = false
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.bindingAdapterPosition
+                val entry = adapter.entryAt(position)
+                if (entry == null) {
+                    adapter.notifyItemChanged(position)
+                    return
+                }
+                val label = NameFormat.apply(this@StarredActivity, entry.name) ?: entry.name ?: entry.number
+                AlertDialog.Builder(this@StarredActivity)
+                    .setMessage(getString(R.string.starred_remove_confirm, label))
+                    .setPositiveButton(R.string.unstar_entry) { _, _ -> unstarAndReload(entry.number, label) }
+                    .setNegativeButton(R.string.cancel) { _, _ -> adapter.notifyItemChanged(position) }
+                    .setOnCancelListener { adapter.notifyItemChanged(position) }
+                    .show()
+            }
+        }
+        ItemTouchHelper(callback).attachToRecyclerView(binding.starredList)
     }
 
     private fun starAndReload(number: String, name: String?, photoUri: String?) {

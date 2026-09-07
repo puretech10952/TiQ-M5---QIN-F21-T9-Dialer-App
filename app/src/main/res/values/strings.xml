@@ -137,6 +137,7 @@
     <string name="unstar_entry">Remove from list</string>
     <string name="added_to_callback_list">Added %1$s to Call back list</string>
     <string name="removed_from_callback_list">Removed %1$s from Call back list</string>
+    <string name="starred_remove_confirm">Remove %1$s from your call back list?</string>
     <string name="starred_sort">Sort</string>
     <string name="starred_sort_date_new">Date added (newest first)</string>
     <string name="starred_sort_date_old">Date added (oldest first)</string>
@@ -368,6 +369,9 @@
     </plurals>
     <string name="ctl_more">More</string>
     <string name="ctl_stop_record">Stop recording</string>
+    <string name="ctl_screen_off">Screen off</string>
+    <string name="screen_off_permission_title">Screen off</string>
+    <string name="screen_off_permission_message">To turn off the screen during a call, turn on Screen control in Accessibility settings.</string>
     <string name="ctl_sleep_timer">Sleep timer</string>
     <string name="ctl_sleep_timer_running">Sleep timer · %1$s</string>
     <string name="ctl_sleep_timer_off">Turn off</string>
@@ -446,12 +450,13 @@
     <string name="answer_side_right">Answer on the right, Decline on the left</string>
     <string name="setting_always_full_screen_calls">Always show full-screen calls</string>
     <string name="setting_always_full_screen_calls_summary">By default, an incoming call only takes over the whole screen when your phone is locked — while it\'s unlocked, whether you\'re on the home screen or using another app, you\'ll just see a notification with Answer and Decline instead. Turn this on to always show the full-screen call, even while your phone is unlocked and in use.</string>
-    <string name="setting_proximity_latch">Proximity sensor fix</string>
-    <string name="proximity_lock_heading">Proximity sensor fix</string>
-    <string name="proximity_lock_explain">Prevents the screen from turning on automatically during a call, so it can\'t register accidental touches from your face. Once the screen turns off, you\'ll need to press the power button to turn it back on.\n\nRequires turning on the permission below.</string>
+    <string name="setting_proximity_latch">Screen control</string>
+    <string name="proximity_lock_heading">Screen control</string>
+    <string name="proximity_lock_explain">Turn this on to let PureTech Dialer turn off your screen during calls.\n\nIt is used for the Screen off button during Speaker and Bluetooth calls, and for the option below.</string>
     <string name="proximity_lock_open_accessibility">Turn on in Accessibility settings</string>
     <string name="proximity_lock_status_on">Status: On</string>
     <string name="proximity_lock_status_off">Status: Off</string>
+    <string name="proximity_lock_switch_label">Keep the screen off during calls at your ear, until you press a button</string>
     <string name="proximity_lock_service_label">Proximity sensor fix</string>
     <string name="proximity_lock_service_desc">Prevents the screen from turning on and registering accidental touches during a call. Press the power button to turn it back on. Doesn\'t read your screen.</string>
     <string name="proximity_lock_service_summary">Prevents accidental touches by keeping the screen off during calls</string>

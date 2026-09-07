@@ -3,6 +3,8 @@ package com.puretech.dialer
 import android.accessibilityservice.AccessibilityService
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.os.Bundle
 import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 
@@ -53,5 +55,25 @@ class ProximityAccessibilityService : AccessibilityService() {
          *  right after being enabled, or the user hasn't enabled it at all). */
         fun lockScreen(): Boolean =
             instance?.performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN) == true
+
+        /** Deep-link to this app's accessibility entry; fall back to the full list.
+         *  Shared by every feature that relies on this service ([ProximityController]'s
+         *  latch mode and the in-call manual screen-off control), so the hidden
+         *  fragment-args extras only live in one place. */
+        fun openSettings(context: Context) {
+            val component = ComponentName(context, ProximityAccessibilityService::class.java).flattenToString()
+            try {
+                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                val args = Bundle().apply { putString(EXTRA_FRAGMENT_ARG_KEY, component) }
+                intent.putExtra(EXTRA_FRAGMENT_ARG_KEY, component)
+                intent.putExtra(EXTRA_SHOW_FRAGMENT_ARGS, args)
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            }
+        }
+
+        private const val EXTRA_FRAGMENT_ARG_KEY = ":settings:fragment_args_key"
+        private const val EXTRA_SHOW_FRAGMENT_ARGS = ":settings:show_fragment_args"
     }
 }

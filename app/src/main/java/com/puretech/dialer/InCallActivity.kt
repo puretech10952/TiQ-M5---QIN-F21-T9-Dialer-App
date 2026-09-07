@@ -57,6 +57,16 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) startRecording() else toast(getString(R.string.rec_denied)) }
 
+    // BLUETOOTH_CONNECT is a dangerous, runtime-only permission on API 31+ (it is
+    // NOT part of the dialer role's auto-granted set, despite living in the
+    // manifest as a plain <uses-permission>). Without it, BluetoothDevice.getName()/
+    // getAlias() throw and we silently fall back to the generic "Bluetooth" label
+    // for every device. Request it proactively so real headset/car-kit names are
+    // ready by the time the route popup opens.
+    private val bluetoothPermLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { bindControlStates() }
+
     private val ticker = object : Runnable {
         override fun run() {
             updateDuration()
@@ -138,7 +148,21 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
 
     override fun onStart() {
         super.onStart()
-        if (!isPreview) CallManager.registerListener(this)
+        if (!isPreview) {
+            CallManager.registerListener(this)
+            requestBluetoothPermIfNeeded()
+        }
+    }
+
+    /** See [bluetoothPermLauncher]. No-op below API 31 (BLUETOOTH_CONNECT isn't
+     *  a runtime permission there) or once already granted. */
+    private fun requestBluetoothPermIfNeeded() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            bluetoothPermLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
+        }
     }
 
     override fun onResume() {
@@ -502,6 +526,13 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             getString(R.string.ctl_sleep_timer_running, formatSleepTimerRemaining())
         else getString(R.string.ctl_sleep_timer)
         items.add(MoreItem(MENU_SLEEP_TIMER, R.drawable.ic_sleep_timer, sleepLabel))
+        // Earpiece calls already blank the screen automatically via the proximity
+        // sensor (ProximityController) -- this manual control only earns its
+        // place for Speaker/Bluetooth/wired-headset calls, where nothing turns
+        // the screen off and it would otherwise just stay lit for the whole call.
+        if (CallManager.currentRoute() != CallAudioState.ROUTE_EARPIECE) {
+            items.add(MoreItem(MENU_SCREEN_OFF, R.drawable.ic_screen_off, getString(R.string.ctl_screen_off)))
+        }
         return items
     }
 
@@ -514,6 +545,27 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             MENU_MERGE -> CallManager.merge()
             MENU_MANAGE_CONF -> showManageConference()
             MENU_SLEEP_TIMER -> showSleepTimerDialog()
+            MENU_SCREEN_OFF -> screenOff()
+        }
+    }
+
+    /** Manually blanks the screen during a non-earpiece call, using the same
+     *  reliable GLOBAL_ACTION_LOCK_SCREEN call [ProximityController]'s latch
+     *  mode uses -- independent of whether that optional proximity feature is
+     *  turned on. Needs the same one-time Accessibility permission; prompts
+     *  for it the first time instead of silently doing nothing. */
+    private fun screenOff() {
+        if (ProximityAccessibilityService.isEnabled(this)) {
+            ProximityAccessibilityService.lockScreen()
+        } else {
+            sleepDialogBuilder()
+                .setTitle(R.string.screen_off_permission_title)
+                .setMessage(R.string.screen_off_permission_message)
+                .setPositiveButton(R.string.proximity_lock_open_accessibility) { _, _ ->
+                    ProximityAccessibilityService.openSettings(this)
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
         }
     }
 
@@ -1204,6 +1256,7 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
         private const val MENU_MANAGE_CONF = 106
         private const val MENU_SLEEP_TIMER = 107
         private const val MENU_MESSAGE = 108
+        private const val MENU_SCREEN_OFF = 109
         // Route-menu ids for individually-listed Bluetooth devices (see
         // showRouteMenu): offset well above CallAudioState.ROUTE_* (max 8) and
         // the MENU_* ids above so they can share one CardMenu click handler.

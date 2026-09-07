@@ -164,27 +164,37 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
-                android:id="@+id/avatarInitial"
+            <!-- Elevation gives the circle a soft drop shadow so it lifts off
+                 the background instead of reading as a flat, "dead" disc. -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="96dp"
                 android:layout_height="96dp"
                 android:layout_gravity="center"
-                android:background="@drawable/bg_circle_solid"
-                android:gravity="center"
-                android:textColor="#FFFFFF"
-                android:textSize="40sp"
-                android:visibility="gone"
-                tools:text="K"
-                tools:visibility="visible" />
+                app:cardCornerRadius="48dp"
+                app:cardElevation="10dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:strokeWidth="0dp">
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/contactPhoto"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:layout_gravity="center"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                app:shapeAppearanceOverlay="@style/CircleImageView" />
+                <TextView
+                    android:id="@+id/avatarInitial"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_circle_solid"
+                    android:gravity="center"
+                    android:textColor="#FFFFFF"
+                    android:textSize="44sp"
+                    android:visibility="gone"
+                    tools:text="K"
+                    tools:visibility="visible" />
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/contactPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    app:shapeAppearanceOverlay="@style/CircleImageView" />
+            </com.google.android.material.card.MaterialCardView>
         </FrameLayout>
 
         <LinearLayout

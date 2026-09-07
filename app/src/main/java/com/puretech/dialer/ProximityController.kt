@@ -21,8 +21,11 @@ import android.util.Log
  * Driven by [CallManager] state: active call + earpiece route → acquire,
  * otherwise → release.
  *
- * When [ProximityAccessibilityService] is enabled, that last part (lights back
- * up when moved away) is instead handled by [latch mode][startLatchMode]: some
+ * When [ProximityAccessibilityService] is enabled AND [Prefs.proximityLatchEnabled]
+ * is turned on (its own opt-in switch -- the permission alone also powers the
+ * unrelated manual in-call Screen off button, and must not silently change
+ * earpiece behavior on its own), that last part (lights back up when moved
+ * away) is instead handled by [latch mode][startLatchMode]: some
  * devices' proximity sensors misfire and report "far" for a moment while the
  * phone is still pressed to the caller's ear, which relights the screen and
  * lets a cheek trigger mute/hold/hang up. In latch mode we don't touch the
@@ -63,7 +66,14 @@ object ProximityController : CallManager.Listener {
 
     override fun onCallChanged() {
         val shouldBlank = CallManager.activeCall() != null && CallManager.isOnEarpiece()
-        val strict = appContext?.let { ProximityAccessibilityService.isEnabled(it) } == true
+        // Latch mode requires BOTH the accessibility permission AND its own
+        // explicit opt-in (Prefs) -- the permission alone is also what powers
+        // the unrelated manual in-call Screen off button (Speaker/Bluetooth),
+        // and granting it for that must not silently disable the normal
+        // automatic proximity screen on/off at the ear.
+        val strict = appContext?.let {
+            Prefs.proximityLatchEnabled(it) && ProximityAccessibilityService.isEnabled(it)
+        } == true
         Log.i(TAG, "onCallChanged shouldBlank=$shouldBlank strict=$strict")
 
         if (!strict) {
