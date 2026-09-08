@@ -439,19 +439,22 @@
 
             <LinearLayout style="@style/ControlGroup">
                 <ImageView android:id="@+id/btnWaitDecline" style="@style/ControlIcon"
-                    android:background="@drawable/bg_circle_end" android:src="@drawable/ic_call_end" />
+                    android:background="@drawable/bg_circle_end" android:src="@drawable/ic_call_end"
+                    android:elevation="6dp" />
                 <TextView style="@style/ControlLabel" android:text="@string/ctl_decline" />
             </LinearLayout>
 
             <LinearLayout style="@style/ControlGroup">
                 <ImageView android:id="@+id/btnWaitHold" style="@style/ControlIcon"
-                    android:background="@drawable/bg_circle_answer" android:src="@drawable/ic_hold" />
+                    android:background="@drawable/bg_circle_answer" android:src="@drawable/ic_hold"
+                    android:elevation="6dp" />
                 <TextView style="@style/ControlLabel" android:text="@string/wait_answer_hold" />
             </LinearLayout>
 
             <LinearLayout style="@style/ControlGroup">
                 <ImageView android:id="@+id/btnWaitEnd" style="@style/ControlIcon"
-                    android:background="@drawable/bg_circle_answer" android:src="@drawable/ic_call" />
+                    android:background="@drawable/bg_circle_answer" android:src="@drawable/ic_call"
+                    android:elevation="6dp" />
                 <TextView style="@style/ControlLabel" android:text="@string/wait_answer_end" />
             </LinearLayout>
         </LinearLayout>
@@ -504,6 +507,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/ctl_answer"
+                android:elevation="8dp"
                 android:padding="17dp"
                 android:src="@drawable/ic_call" />
         </LinearLayout>
@@ -517,6 +521,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/ctl_decline"
+                android:elevation="8dp"
                 android:padding="17dp"
                 android:src="@drawable/ic_call_end" />
         </LinearLayout>
@@ -591,6 +596,7 @@
             android:clickable="true"
             android:focusable="true"
             android:contentDescription="@string/ctl_end"
+            android:elevation="6dp"
             android:padding="15dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_call_end" />
