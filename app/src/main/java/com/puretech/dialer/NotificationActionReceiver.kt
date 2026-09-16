@@ -16,7 +16,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             ACTION_ANSWER -> CallManager.answer()
-            ACTION_HANGUP -> CallManager.hangup()
+            // Reused for both the ringing notification's "Decline" action and the
+            // ongoing-call notification's "Hang up" action (see CallNotifier). A
+            // still-ringing call must go through reject(), not disconnect() --
+            // disconnecting a ringing call logs it as an answered 0-second call
+            // instead of a declined one.
+            ACTION_HANGUP -> if (CallManager.ringingCall() != null) CallManager.reject() else CallManager.hangup()
             ACTION_MUTE -> CallManager.setMuted(!CallManager.isMuted())
             ACTION_SPEAKER -> CallManager.setSpeaker(!CallManager.isSpeakerOn())
             ACTION_CALL_BACK -> {

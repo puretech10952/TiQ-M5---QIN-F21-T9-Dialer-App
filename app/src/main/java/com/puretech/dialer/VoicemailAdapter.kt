@@ -68,6 +68,21 @@ class VoicemailAdapter(
     private val onToggleSelect: (VoicemailItem) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    /** Show the number clearly with dashes, e.g. 845-351-1200 or +1 845-351-1200
+     *  -- matches InCallActivity.prettyNumber() / CallNotifier.prettyNumber(). */
+    private fun prettyNumber(number: String): String {
+        if (number.isBlank()) return number
+        if (number.any { it == '*' || it == '#' }) return number
+        val digits = number.filter { it.isDigit() }
+        return when {
+            digits.length == 10 ->
+                "${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
+            digits.length == 11 && digits.startsWith("1") ->
+                "+1 ${digits.substring(1, 4)}-${digits.substring(4, 7)}-${digits.substring(7)}"
+            else -> android.telephony.PhoneNumberUtils.formatNumber(number, java.util.Locale.US.country) ?: number
+        }
+    }
+
     private val entries = ArrayList<VoicemailListEntry>()
     private var expandedId: Long = -1L
     private var playerState = VoicemailPlayerState()
@@ -192,7 +207,7 @@ class VoicemailAdapter(
             boundId = item.id
             val ctx = title.context
             title.text = item.displayName
-                ?: item.number.ifBlank { ctx.getString(R.string.unknown_caller) }
+                ?: prettyNumber(item.number).ifBlank { ctx.getString(R.string.unknown_caller) }
             // Unread indicator: bold the name instead of a separate dot, same
             // convention as the real Google Dialer's voicemail list.
             title.typeface = Typeface.create(

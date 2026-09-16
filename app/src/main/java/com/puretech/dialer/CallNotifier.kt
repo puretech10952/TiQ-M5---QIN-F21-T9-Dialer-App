@@ -50,7 +50,7 @@ object CallNotifier {
 
         val number = CallManager.number()
         val title = NameFormat.apply(context, ContactsRepository.displayName(context, number))
-            ?: number.ifBlank { context.getString(R.string.app_name) }
+            ?: prettyNumber(number).ifBlank { context.getString(R.string.app_name) }
         val person = Person.Builder().setName(title).build()
 
         val contentPi = PendingIntent.getActivity(
@@ -126,6 +126,22 @@ object CallNotifier {
     }
 
     fun cancel(context: Context) = manager(context).cancel(NOTIF_ID)
+
+    /** Show the number clearly with dashes, e.g. 845-351-1200 or +1 845-351-1200
+     *  -- matches InCallActivity.prettyNumber() so the notification and the
+     *  in-call screen never disagree on formatting. */
+    private fun prettyNumber(number: String): String {
+        if (number.isBlank()) return number
+        if (number.any { it == '*' || it == '#' }) return number
+        val digits = number.filter { it.isDigit() }
+        return when {
+            digits.length == 10 ->
+                "${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
+            digits.length == 11 && digits.startsWith("1") ->
+                "+1 ${digits.substring(1, 4)}-${digits.substring(4, 7)}-${digits.substring(7)}"
+            else -> android.telephony.PhoneNumberUtils.formatNumber(number, java.util.Locale.US.country) ?: number
+        }
+    }
 
     private fun action(context: Context, a: String): PendingIntent {
         val i = Intent(context, NotificationActionReceiver::class.java).setAction(a)

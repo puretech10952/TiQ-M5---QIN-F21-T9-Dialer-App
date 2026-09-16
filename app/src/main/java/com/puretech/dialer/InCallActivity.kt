@@ -271,6 +271,13 @@ class InCallActivity : AppCompatActivity(), CallManager.Listener {
             if (headerCall?.details?.hasProperty(Call.Details.PROPERTY_WIFI) == true)
                 View.VISIBLE else View.GONE
 
+        // Both branches below hide bottomPanel, which is what the More panel
+        // positions itself against and is left open the same way toggleDtmf()
+        // guards against -- close it first so a call answered/declined while
+        // it was open doesn't leave it floating over the next ringing/waiting
+        // screen as if it belonged there.
+        if ((waiting != null || ringing != null) && moreOptionsOpen) collapseMoreOptions()
+
         when {
             waiting != null -> {
                 // Full-screen incoming look: the big header already shows the waiting

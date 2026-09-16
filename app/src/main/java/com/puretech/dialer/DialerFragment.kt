@@ -389,21 +389,39 @@ class DialerFragment : Fragment() {
         return (urgent + weekly).distinctBy { key(it) }.take(5).toList()
     }
 
+    /** Bumped on every call so a search that finishes after a newer keystroke
+     *  has already superseded it gets dropped instead of overwriting a fresher
+     *  result (searches now run off-thread and can finish out of order). */
+    private var suggestionsGeneration = 0
+
     private fun updateSuggestions() {
         val q = binding.numberInput.text?.filter { it.isDigit() }?.toString() ?: ""
         val showFrequent = q.isEmpty()
-        val base = if (showFrequent) frequentContacts else ContactsRepository.search(q, allContacts)
-        suggestionAdapter.submit(if (showFrequent) base else applyQuickDial(q, base))
         binding.frequentLabel.visibility =
             if (showFrequent && frequentContacts.isNotEmpty()) View.VISIBLE else View.GONE
+        if (showFrequent) {
+            suggestionAdapter.submit(frequentContacts)
+            return
+        }
+        // Scoring + sorting the whole contact list is real work on this
+        // hardware, and doing it inline here blocked the next keystroke from
+        // being handled until it finished -- exactly what made fast dialpad
+        // tapping feel laggy. Run it off the main thread instead.
+        val gen = ++suggestionsGeneration
+        val contacts = allContacts
+        val ctx = requireContext().applicationContext
+        Thread {
+            val base = applyQuickDial(ctx, q, ContactsRepository.search(q, contacts))
+            ui { if (gen == suggestionsGeneration) suggestionAdapter.submit(base) }
+        }.start()
     }
 
     /** Pins the Quick Dial contact assigned to the exact typed digits (if any) at
      *  the top of the suggestions, marked as such, ahead of the regular ranked
      *  matches below it — with that same number filtered out of the rest so it
      *  doesn't also show up a second time. */
-    private fun applyQuickDial(q: String, base: List<Contact>): List<Contact> {
-        val entry = QuickDial.get(requireContext(), q) ?: return base
+    private fun applyQuickDial(context: Context, q: String, base: List<Contact>): List<Contact> {
+        val entry = QuickDial.get(context, q) ?: return base
         val pinnedDigits = entry.number.filter { it.isDigit() }
         val rest = base.filter { !sameTailDigits(it.digits, pinnedDigits) }
         val pinned = Contact(
